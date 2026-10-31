@@ -1,17 +1,318 @@
 @import "tailwindcss";
 
-/* Design tokens live here. Replace once the visual direction is decided. */
+/*
+  OBSCURA design tokens: change the look here, in one place.
+  Tailwind turns each token into utilities:
+    --color-x  -> bg-x / text-x / border-x     --font-x   -> font-x
+    --radius-x -> rounded-x                     --shadow-x -> shadow-x
+    --animate-x -> animate-x                    --spacing-x -> h-x / p-x / ...
+  Font families are loaded in client/index.html.
+*/
 @theme {
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* Paper (light surfaces) */
+  --color-parchment: #e9dcc0;
+  --color-parchment-dark: #cdb98f;
+  --color-parchment-ink: #2b2018; /* text on parchment */
+
+  /* Noir (dark surfaces) */
+  --color-ink: #121010;
+  --color-ink-soft: #1c1917;
+  --color-ink-raised: #26211d;
+  --color-line: #3b322b; /* borders on dark */
+  --color-bone: #efe6d2; /* main text on dark */
+  --color-muted: #a99e8a; /* secondary text on dark */
+
+  /* Accents */
+  --color-blood: #a3161a;
+  --color-blood-bright: #d4252b;
+  --color-blood-deep: #4a0b0d;
+  --color-gold: #d9a441;
+  --color-gold-soft: #b8893a;
+
+  /* Challenge category tags (see components/ui/CategoryTag.jsx) */
+  --color-tag-web: #1d6a66;
+  --color-tag-crypto: #5d3a92;
+  --color-tag-misc: #4a4540;
+  --color-tag-stego: #4a4540;
+  --color-tag-default: #4a4540;
+
+  --font-display: "Alfa Slab One", "Rockwell", Georgia, serif; /* logo, poster titles */
+  --font-heading: "Zilla Slab", "Rockwell", Georgia, serif; /* section headings */
+  --font-type: "Special Elite", "Courier New", monospace; /* typewriter labels, stamps */
+  --font-hand: "Caveat", "Segoe Print", "Bradley Hand", cursive; /* handwritten notes */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; /* body */
+  --font-mono: "Courier Prime", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; /* flag input, timer */
+
+  --radius-card: 0.5rem;
+  --radius-chip: 0.25rem;
+
+  --shadow-paper: 0 1px 0 rgb(0 0 0 / 0.3), 0 18px 40px -12px rgb(0 0 0 / 0.75);
+  --shadow-glow-red: 0 0 0 1px var(--color-blood-bright), 0 0 28px -6px rgb(212 37 43 / 0.6);
+  --shadow-glow-gold: 0 0 0 1px var(--color-gold), 0 0 28px -6px rgb(217 164 65 / 0.55);
+
+  /* Height reserved under the game navbar for the Mogambo ticker (not built yet).
+     Set to e.g. 2rem when the ticker ships; TickerSlot uses h-ticker. */
+  --spacing-ticker: 0rem;
+
+  --animate-fade-up: fade-up 0.4s ease-out both;
+  --animate-stamp-in: stamp-in 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) 0.25s both;
+  --animate-pulse-glow: pulse-glow 2.4s ease-in-out infinite;
+  /* Page transitions (components/layout/PageTransition.jsx) */
+  --animate-page-in: page-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-projector-cut: projector-cut 0.6s ease-out both;
+
+  /* New page develops in: sepia + soft focus -> sharp, with a small rise. */
+  @keyframes page-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+      filter: sepia(0.7) blur(3px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+  /* Projector cut: brief dark flicker with a light band sweeping across. */
+  @keyframes projector-cut {
+    0% {
+      opacity: 1;
+      background-position: -60% 0;
+    }
+    18% {
+      opacity: 0.75;
+    }
+    28% {
+      opacity: 0.9;
+    }
+    100% {
+      opacity: 0;
+      background-position: 160% 0;
+    }
+  }
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes stamp-in {
+    from {
+      opacity: 0;
+      transform: scale(1.8);
+    }
+    to {
+      opacity: 0.92;
+      transform: scale(1);
+    }
+  }
+  @keyframes pulse-glow {
+    0%,
+    100% {
+      box-shadow: var(--shadow-glow-red);
+    }
+    50% {
+      box-shadow:
+        0 0 0 1px var(--color-blood-bright),
+        0 0 40px -4px rgb(212 37 43 / 0.8);
+    }
+  }
 }
 
-html,
-body,
-#root {
-  min-height: 100%;
+@layer base {
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+
+  body {
+    @apply bg-ink text-bone font-sans antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--color-blood);
+    color: var(--color-bone);
+  }
 }
 
-body {
-  @apply bg-neutral-950 text-neutral-100 font-sans antialiased;
+/* Motion is decoration only: switch it off for people who ask. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important; /* or staggered items stay hidden until their delay ends */
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- Texture utilities (used as plain class names) ---------- */
+
+/* Page background: near-black with a faint red stage light and vignette. */
+@utility noir-backdrop {
+  background-color: var(--color-ink);
+  background-image:
+    radial-gradient(ellipse 80% 45% at 50% -10%, rgb(163 22 26 / 0.18), transparent 70%),
+    radial-gradient(ellipse at center, transparent 45%, rgb(0 0 0 / 0.55) 100%);
+}
+
+/* Aged parchment with stains, burnt edges and grain. */
+@utility paper-texture {
+  color: var(--color-parchment-ink);
+  background-color: var(--color-parchment);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .12 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 18% 12%, rgb(255 255 255 / 0.35), transparent 55%),
+    radial-gradient(ellipse at 85% 88%, rgb(120 80 30 / 0.28), transparent 50%),
+    radial-gradient(circle at 72% 28%, rgb(140 95 40 / 0.12), transparent 30%),
+    radial-gradient(ellipse at center, transparent 55%, rgb(90 55 20 / 0.4) 100%);
+}
+
+/* Weathered dark panel (designs 3, 4, 6). */
+@utility panel-dark {
+  background-color: rgb(28 25 23 / 0.92);
+  background-image:
+    radial-gradient(ellipse at 0% 0%, rgb(255 255 255 / 0.04), transparent 50%),
+    radial-gradient(ellipse at 100% 100%, rgb(163 22 26 / 0.08), transparent 60%);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+}
+
+/* Ragged paper edge. Pair with drop-shadow on a wrapper (clip-path cuts box-shadow). */
+@utility torn-edge {
+  clip-path: polygon(
+    0% 1.5%, 4% 0%, 9% 1.2%, 15% 0.2%, 22% 1.4%, 30% 0.3%, 37% 1.1%, 45% 0%, 53% 1.3%, 61% 0.2%,
+    68% 1.2%, 76% 0.1%, 84% 1.4%, 91% 0.3%, 96% 1.1%, 100% 0.4%, 99.4% 20%, 100% 45%, 99.3% 70%,
+    100% 98.6%, 95% 100%, 88% 98.8%, 80% 99.8%, 72% 98.7%, 64% 100%, 56% 98.9%, 48% 99.8%,
+    40% 98.6%, 32% 99.9%, 24% 98.8%, 16% 100%, 8% 98.9%, 0% 99.6%, 0.6% 75%, 0% 50%, 0.7% 25%
+  );
+}
+
+/* Film strip with sprocket holes top and bottom. */
+@utility film-strip {
+  --hole: rgb(239 230 210 / 0.7);
+  background-color: #0b0908;
+  padding: 16px 8px;
+  background-image:
+    repeating-linear-gradient(90deg, transparent 0 5px, var(--hole) 5px 13px, transparent 13px 18px),
+    repeating-linear-gradient(90deg, transparent 0 5px, var(--hole) 5px 13px, transparent 13px 18px);
+  background-size: 100% 6px;
+  background-position:
+    0 5px,
+    0 calc(100% - 5px);
+  background-repeat: no-repeat;
+}
+
+/* Film strip with sprocket holes left and right (reel card frame, design 5). */
+@utility film-strip-v {
+  --hole: rgb(239 230 210 / 0.7);
+  background-color: #0b0908;
+  padding: 8px 16px;
+  background-image:
+    repeating-linear-gradient(180deg, transparent 0 5px, var(--hole) 5px 13px, transparent 13px 18px),
+    repeating-linear-gradient(180deg, transparent 0 5px, var(--hole) 5px 13px, transparent 13px 18px);
+  background-size: 6px 100%;
+  background-position:
+    5px 0,
+    calc(100% - 5px) 0;
+  background-repeat: no-repeat;
+}
+
+/* Film grain on top of an element's background, below its content. */
+@utility grain-overlay {
+  position: relative;
+  isolation: isolate;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: inherit;
+    opacity: 0.14;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}
+
+/* Rubber stamp: double border, rotated, typewriter caps. */
+@utility stamp {
+  display: inline-block;
+  font-family: var(--font-type);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1.05;
+  color: var(--color-blood);
+  border: 3px double currentColor;
+  border-radius: 4px;
+  padding: 0.2em 0.55em;
+  rotate: var(--stamp-rotate, -8deg); /* override per stamp: [--stamp-rotate:10deg] */
+  opacity: 0.92;
+}
+
+/* Full-screen overlay for the projector-cut page transition (sits under the sticky navbar). */
+@utility projector-cut {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  background-color: rgb(10 8 8 / 0.7);
+  background-image: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgb(239 230 210 / 0.1) 45%,
+    rgb(239 230 210 / 0.18) 50%,
+    rgb(239 230 210 / 0.1) 55%,
+    transparent 70%
+  );
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: var(--animate-projector-cut);
+}
+
+/* Children rise in one after another (cards, rows, tiles). */
+@utility stagger {
+  & > * {
+    animation: var(--animate-fade-up);
+    animation-delay: 0.48s;
+  }
+  & > :nth-child(1) {
+    animation-delay: 0.12s;
+  }
+  & > :nth-child(2) {
+    animation-delay: 0.18s;
+  }
+  & > :nth-child(3) {
+    animation-delay: 0.24s;
+  }
+  & > :nth-child(4) {
+    animation-delay: 0.3s;
+  }
+  & > :nth-child(5) {
+    animation-delay: 0.36s;
+  }
+  & > :nth-child(6) {
+    animation-delay: 0.42s;
+  }
+}
+
+/* Dotted red route on the mission map (SVG paths). */
+@utility dotted-route {
+  fill: none;
+  stroke: var(--color-blood-bright);
+  stroke-width: 3;
+  stroke-dasharray: 1 9;
+  stroke-linecap: round;
 }

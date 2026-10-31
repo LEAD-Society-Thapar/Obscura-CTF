@@ -1,48 +1,19 @@
-import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import Logo from "../components/ui/Logo.jsx";
+import TeamAccessCard from "../components/game/TeamAccessCard.jsx";
 
+// Standalone Team Access page (same card as the landing page).
 export default function Login() {
-  const { login } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [teamCode, setTeamCode] = useState("");
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
-
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setBusy(true);
-    try {
-      await login(teamCode.trim());
-      navigate(location.state?.from?.pathname || "/map", { replace: true });
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setBusy(false);
-    }
-  };
+  const { team } = useAuth();
+  if (team) return <Navigate to="/map" replace />;
 
   return (
-    <section className="max-w-sm">
-      <h1 className="text-2xl font-semibold">Team login</h1>
-      <form onSubmit={onSubmit} className="mt-4 space-y-3">
-        <input
-          value={teamCode}
-          onChange={(e) => setTeamCode(e.target.value)}
-          placeholder="Team code"
-          className="w-full rounded-md bg-neutral-900 border border-neutral-700 px-3 py-2 text-sm outline-none focus:border-neutral-400"
-          autoFocus
-        />
-        {error && <p className="text-sm text-red-400">{error}</p>}
-        <button
-          disabled={busy || !teamCode.trim()}
-          className="px-4 py-2 rounded-md bg-neutral-100 text-neutral-900 text-sm font-medium disabled:opacity-50"
-        >
-          {busy ? "Checking..." : "Enter"}
-        </button>
-      </form>
+    <section className="mx-auto flex max-w-md flex-col items-center px-4 py-12 sm:py-20">
+      <h1 className="sr-only">Team login</h1>
+      <Logo className="text-5xl sm:text-6xl" />
+      <p className="mt-2 mb-8 font-hand text-2xl text-blood-bright">The Archive is broken.</p>
+      <TeamAccessCard className="w-full" />
     </section>
   );
 }

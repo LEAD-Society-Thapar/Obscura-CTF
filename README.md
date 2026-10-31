@@ -18,6 +18,7 @@ cp client/.env.example client/.env
 npm run dev                  # client :5173, server :5000
 ```
 Open http://localhost:5173. The landing page shows the API status.
+The client runs on mock data by default; see `client/README.md`.
 
 ## Structure
 ```
@@ -25,8 +26,11 @@ sat-ctf/
 ├── client/                 React app (Vite dev server proxies /api to :5000)
 │   └── src/
 │       ├── api/            fetch wrapper + endpoint functions
-│       ├── components/     layout/ and ui/
-│       ├── context/        AuthContext (team session)
+│       ├── components/     layout/, ui/ and game/
+│       ├── context/        AuthContext (team session), GameDataContext
+│       ├── data/           mock data + fake server (mock mode, on by default)
+│       ├── hooks/          data hooks: the only way pages read game data
+│       ├── lib/            config, display formatters, art slot registry
 │       ├── pages/          one file per screen (+ admin/)
 │       └── routes/         ProtectedRoute, AdminRoute
 ├── server/
