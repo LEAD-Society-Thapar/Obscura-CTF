@@ -10,5 +10,6 @@ export function errorHandler(err, _req, res, _next) {
   if (status >= 500) console.error(err);
   res.status(status).json({
     error: status >= 500 && env.isProd ? "Internal server error" : err.message,
+    ...(status < 500 ? err.data : null),
   });
 }

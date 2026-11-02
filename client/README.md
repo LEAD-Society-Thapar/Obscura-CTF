@@ -7,8 +7,8 @@ npm run dev      # http://localhost:5173 (proxies /api to :5000)
 npm run build
 ```
 
-Mock mode is on by default: the whole game runs on fake data with no server. Log in with **any** Team ID and password.
-Set `VITE_USE_MOCKS=false` in `client/.env` to use the real API.
+`client/.env.example` sets `VITE_USE_MOCKS=false`: the real server + Supabase (log in with `team1` / `1234`, see the
+root README). Set it to `true` (or leave it unset) for mock mode: fake data, no server, **any** Team ID and password.
 
 ## Folder layout
 
@@ -54,9 +54,8 @@ api/endpoints.js ─────────────────┘        (
   `useRelics`, `useActivity`, `useGate`, `useReel`, `useRules`, `useLeaderboard`, `useEventClock`, and
   `useGameActions` (`submitFlag`, `revealHint`). Every hook returns `{ loading, error?, ... }`.
 - `mockApi.js` exports the same function names as `endpoints.js` and returns the response shapes the UI expects,
-  so it doubles as the proposed API contract for the backend. Going live = set `VITE_USE_MOCKS=false` and make
-  the server return the same shapes (or adapt them in `useGameData.js`).
-- `endpoints.js` has three functions the server doesn't have yet: `getReel`, `getRules`, `getActs` (marked "proposed").
+  so it doubles as the API contract: the server (`server/src/controllers/game.controller.js`) returns the same shapes.
+  Keep the two in step when a shape changes. Game content for the live API is in `server/src/data/game.js`.
 - Mock progress is kept in `sessionStorage`, so it survives a reload. Logging out resets it.
 - **Flags never exist in the client.** In mock mode any flag ending in `}` is accepted. Mock rate limits
   (3 s between flags, 15 s cooldown after 5 wrong) live in `lib/config.js`; the real server uses 10 s / 60 s.

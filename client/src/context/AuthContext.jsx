@@ -57,9 +57,7 @@ export function AuthProvider({ children }) {
       setTeam(mockTeam);
       return mockTeam;
     }
-    // TODO(auth): the UI collects Team ID + Password, but the server only accepts a team code today.
-    // The Team ID is sent as the team code and the password is dropped until the backend supports it.
-    const data = await teamLogin(teamId);
+    const data = await teamLogin(teamId, password);
     setTeam(data.team);
     return data.team;
   };

@@ -3,9 +3,8 @@ import { api } from "./client.js";
 export const health = () => api.get("/health");
 
 // Auth
-// TODO(auth): the designs ask for Team ID + Password, but the server's /auth/login only takes a team code.
-// Send the password once the backend supports it.
-export const teamLogin = (teamCode) => api.post("/auth/login", { teamCode });
+// The Team ID typed on the login screen is the team's code on the server.
+export const teamLogin = (teamCode, password) => api.post("/auth/login", { teamCode, password });
 export const teamLogout = () => api.post("/auth/logout");
 export const getMe = () => api.get("/auth/me");
 
@@ -18,7 +17,6 @@ export const useHint = (slug, level) => api.post(`/game/gate/${slug}/hint`, { le
 export const skipCheckpoint = (slug) => api.post(`/game/gate/${slug}/skip`);
 export const getInventory = () => api.get("/game/inventory");
 export const getLeaderboard = () => api.get("/game/leaderboard");
-// Proposed for the UI, not on the server yet (mock versions in src/data/mockApi.js).
 export const getReel = (cpId) => api.get(`/game/reel/${cpId}`);
 export const getRules = () => api.get("/game/rules");
 export const getActs = () => api.get("/game/acts"); // public: titles only, for the landing page

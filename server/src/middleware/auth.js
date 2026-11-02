@@ -37,6 +37,12 @@ export function requireTeam(req, _res, next) {
   }
 }
 
+// Sets req.team when a valid team cookie is present, otherwise carries on as a guest.
+export function optionalTeam(req, res, next) {
+  requireTeam(req, res, () => {}); // on failure requireTeam passes the error to this no-op
+  next();
+}
+
 export function requireAdmin(req, _res, next) {
   try {
     const payload = readToken(req, ADMIN_COOKIE);
