@@ -3,36 +3,44 @@ import ArtSlot from "../ui/ArtSlot.jsx";
 import Icon from "../ui/Icon.jsx";
 
 const STATUS_TEXT = { done: "Completed", current: "In progress", locked: "Locked" };
+const ACT_ART = {
+  1: "/assets/mission-map/acts/act-01-ramgarh.png",
+  2: "/assets/mission-map/acts/act-02-mumbai.png",
+  3: "/assets/mission-map/acts/act-03-filmcity.png",
+  4: "/assets/mission-map/acts/act-04-railway.png",
+  5: "/assets/mission-map/acts/act-05-mogambo.png",
+};
 
-// Mission map act card (design 2): framed art, paper title label, progress chip.
-// `act` comes from useActs() (has status, solvedCount, total).
 export default function ActCard({ act, className = "" }) {
   const locked = act.status === "locked";
   const current = act.status === "current";
+  const image = ACT_ART[act.id];
 
   const content = (
     <>
       <div
-        className={`relative overflow-hidden rounded-[3px] border-4 border-parchment/90 shadow-paper transition-transform motion-safe:group-hover:-translate-y-1 ${
+        className={`relative mx-auto flex h-60 w-full max-w-[250px] items-center justify-center transition-transform motion-safe:group-hover:-translate-y-1 ${
           current ? "shadow-glow-red motion-safe:animate-pulse-glow" : ""
         } ${locked ? "brightness-75 grayscale" : ""}`}
       >
-        <ArtSlot name={act.coverSlot} />
+        {image ? (
+          <img
+            src={image}
+            alt={`Act ${act.id}: ${act.title}`}
+            loading="lazy"
+            className="h-full w-full object-contain"
+          />
+        ) : (
+          <ArtSlot name={act.coverSlot} />
+        )}
         {locked && (
-          <span className="absolute inset-0 grid place-items-center bg-ink/40 text-bone/80">
+          <span className="absolute inset-0 grid place-items-center text-bone/80">
             <Icon name="lock" className="size-10" />
           </span>
         )}
       </div>
 
-      <div className="paper-texture absolute right-2 -bottom-3 w-[60%] rotate-[1.5deg] rounded-[2px] px-3 pb-2 shadow-paper">
-        <span className="-mx-3 mb-1.5 block bg-blood px-3 py-0.5 font-heading text-sm font-bold tracking-wider text-bone uppercase">
-          Act {act.id}
-        </span>
-        <span className="block font-heading text-base leading-tight font-bold uppercase sm:text-lg">{act.title}</span>
-      </div>
-
-      <span className="absolute -bottom-12 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-line bg-ink/90 px-3 py-1 font-type text-xs whitespace-nowrap text-bone">
+      <span className="mx-auto mt-1 flex w-fit items-center gap-1.5 rounded-full border border-line bg-ink/90 px-3 py-1 font-type text-xs whitespace-nowrap text-bone">
         <Icon name={locked ? "lock" : act.status === "done" ? "check" : "film"} className="size-3.5 text-gold" />
         {act.solvedCount}/{act.total}
         <span className="sr-only">
@@ -43,7 +51,7 @@ export default function ActCard({ act, className = "" }) {
     </>
   );
 
-  const cls = `group relative mb-14 block ${className}`;
+  const cls = `group relative mb-2 block ${className}`;
 
   if (locked) {
     return (
