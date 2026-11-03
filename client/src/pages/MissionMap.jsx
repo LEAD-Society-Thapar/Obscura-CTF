@@ -28,55 +28,130 @@ export default function MissionMap() {
 
   return (
     <section aria-labelledby="map-heading">
-      <div className="paper-texture torn-edge relative px-4 pt-8 pb-6 sm:px-8 lg:px-10">
-        <header className="text-center">
-          <h1 id="map-heading" className="font-display text-4xl tracking-wide text-blood uppercase sm:text-5xl">
-            The Journey
-          </h1>
-          <p className="mt-2 font-type text-sm tracking-wide uppercase sm:text-base">
-            Five acts. Twenty checkpoints. One stolen archive.
-            {totalCheckpoints > 0 && <span className="sr-only"> ({totalCheckpoints} checkpoints in total.)</span>}
-          </p>
-        </header>
-
-        <Note className="mx-auto mt-6 -rotate-2 lg:absolute lg:top-6 lg:right-8 lg:mt-0">
-          Some places hide more than they show.
-        </Note>
-
-        {loading || error ? (
-          <PageStatus loading={loading} error={error} label="Unrolling the map" />
-        ) : (
-          <div className="relative mt-10">
-            {/* Dotted red route (decorative), drawn behind the cards through their centres.
-                Coordinates are % of the grid box; desktop only. Adjust if PLACEMENT changes. */}
-            <svg
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 hidden h-full w-full lg:block"
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-            >
-              <path
-                className="dotted-route"
-                vectorEffect="non-scaling-stroke"
-                d="M16 24 C 28 12, 38 10, 50 17 C 62 10, 74 12, 84 25 C 88 52, 42 42, 33 66 C 44 80, 56 82, 67 70"
+      <div className="paper-texture torn-edge relative isolate px-4 pt-8 pb-6 sm:px-8 lg:px-10">
+        <img
+          src="/assets/mission-map/parchment/parchment.png"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 hidden h-full w-full object-cover lg:block"
+        />
+        <div className="relative z-10">
+          <header className="relative pb-12 text-center sm:pb-16">
+            <h1 id="map-heading">
+              <img
+                src="/assets/mission-map/labels/The%20Journey_%20Five%20Acts,%20One%20Archive.png"
+                alt="The Journey. Five acts. Twenty checkpoints. One stolen archive."
+                className="mx-auto block h-auto w-full max-w-[760px] object-contain"
               />
-            </svg>
+            </h1>
+            <p className="sr-only">
+              {totalCheckpoints > 0 && `${totalCheckpoints} checkpoints in total.`}
+            </p>
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 bottom-0 z-20 mx-auto flex w-full max-w-[520px] items-center justify-between px-1"
+            >
+              <img
+                src="/assets/mission-map/labels/classified-stamp.png"
+                alt=""
+                className="h-10 w-[68px] -rotate-6 object-contain drop-shadow-md sm:h-14 sm:w-28 lg:h-14 lg:w-32"
+              />
+              <img
+                src="/assets/mission-map/seals/seal-camera.png"
+                alt=""
+                className="size-8 rotate-3 object-contain drop-shadow-md sm:size-10 lg:size-12"
+              />
+              <img
+                src="/assets/mission-map/seals/seal-star.png"
+                alt=""
+                className="size-8 -rotate-3 object-contain drop-shadow-md sm:size-10 lg:size-12"
+              />
+              <img
+                src="/assets/mission-map/seals/seal-film-reel.png"
+                alt=""
+                className="size-8 rotate-6 object-contain drop-shadow-md sm:size-10 lg:size-12"
+              />
+              <img
+                src="/assets/mission-map/labels/archive-label.png"
+                alt=""
+                className="h-9 w-[76px] rotate-2 object-contain drop-shadow-md sm:h-12 sm:w-28 lg:h-12 lg:w-32"
+              />
+            </div>
+          </header>
 
-            <ol className="stagger relative grid grid-cols-1 gap-x-10 gap-y-4 sm:grid-cols-2 lg:grid-cols-6">
-              {acts.map((act, i) => (
-                <li key={act.id} className={PLACEMENT[i] || ""}>
-                  <ActCard act={act} />
+          <Note className="mr-auto mt-6 rotate-1 text-2xl lg:static lg:w-56 lg:text-base xl:absolute xl:top-32 xl:left-0 xl:mt-0 xl:w-28 xl:text-lg">
+            Every reel holds a secret. Every clue brings you closer to the Archive.
+          </Note>
+
+          <Note className="ml-auto mt-6 -rotate-2 text-2xl lg:absolute lg:top-6 lg:-right-4 lg:mt-0 lg:w-20 lg:text-base xl:w-36 xl:text-xl">
+            Some places hide more than they show.
+          </Note>
+
+          {loading || error ? (
+            <PageStatus loading={loading} error={error} label="Unrolling the map" />
+          ) : (
+            <div className="relative mt-8 lg:mt-[18px]">
+              {/* Dotted red route (decorative), drawn behind the cards through their centres.
+                  Coordinates are % of the grid box; desktop only. Adjust if PLACEMENT changes. */}
+              <svg
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 hidden h-full w-full lg:block"
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+              >
+                <path
+                  className="dotted-route"
+                  vectorEffect="non-scaling-stroke"
+                  d="M16 24 C 28 12, 38 10, 50 17 C 62 10, 74 12, 84 25 C 88 52, 42 42, 33 66 C 44 80, 56 82, 67 70"
+                />
+              </svg>
+
+              <ol className="stagger relative z-10 grid grid-cols-1 gap-x-10 gap-y-4 sm:grid-cols-2 lg:grid-cols-6">
+                {acts.map((act, i) => (
+                  <li key={act.id} className={PLACEMENT[i] || ""}>
+                    <ActCard act={act} />
+                  </li>
+                ))}
+                <li
+                  aria-hidden="true"
+                  className="hidden lg:col-start-6 lg:row-start-2 lg:flex lg:items-start lg:justify-end"
+                >
+                  <Note className="rotate-2 text-lg">
+                    Find the clues. Collect the relics. Uncover the truth. Stop Mogambo.
+                  </Note>
                 </li>
-              ))}
-              <li aria-hidden="true" className="hidden lg:col-start-6 lg:row-start-2 lg:flex lg:items-start lg:justify-end">
-                <Note className="rotate-2 text-lg">Find the clues. Collect the relics. Uncover the truth. Stop Mogambo.</Note>
-              </li>
-            </ol>
-            <Note className="mx-auto mt-2 rotate-1 lg:hidden">
-              Find the clues. Collect the relics. Uncover the truth. Stop Mogambo.
-            </Note>
-          </div>
-        )}
+              </ol>
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute bottom-[4.25rem] left-0 z-0 hidden size-40 lg:block"
+              >
+                <div className="relative size-full">
+                  <img
+                    src="/assets/mission-map/polaroids/polaroid-camera.png"
+                    alt=""
+                    className="absolute bottom-1 left-0 z-10 w-24 -rotate-6 object-contain drop-shadow-md"
+                    loading="lazy"
+                  />
+                  <img
+                    src="/assets/mission-map/polaroids/polaroid-architecture.png"
+                    alt=""
+                    className="absolute top-0 right-0 z-20 w-28 rotate-6 object-contain drop-shadow-md"
+                    loading="lazy"
+                  />
+                  <img
+                    src="/assets/mission-map/polaroids/polaroid-detective.png"
+                    alt=""
+                    className="absolute right-6 bottom-0 z-30 w-20 rotate-2 object-contain drop-shadow-md"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+              <Note className="mx-auto mt-2 rotate-1 lg:hidden">
+                Find the clues. Collect the relics. Uncover the truth. Stop Mogambo.
+              </Note>
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );
