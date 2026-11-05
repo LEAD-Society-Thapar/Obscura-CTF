@@ -43,7 +43,7 @@ export default function GameNavbar({ chips }) {
   const { logout } = useAuth();
 
   return (
-    <header className="sticky top-0 z-30 border-b border-line/70 bg-ink/90 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-[#b58a42]/60 bg-[#0b0908]/95 shadow-[inset_0_-1px_0_rgba(181,138,66,0.35)] backdrop-blur-sm">
       <nav aria-label="Game" className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between gap-3">
           <div className="flex items-center gap-6">
