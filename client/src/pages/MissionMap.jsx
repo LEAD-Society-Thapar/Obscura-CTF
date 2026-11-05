@@ -31,7 +31,7 @@ export default function MissionMap() {
     <section aria-labelledby="map-heading">
       <div className="paper-texture torn-edge relative isolate px-4 pt-8 pb-6 sm:px-8 lg:px-10">
         <img
-          src="/assets/mission-map/parchment/parchment.png"
+          src="/assets/mission-map/parchment/parchment.webp"
           alt=""
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 hidden h-full w-full object-cover lg:block"
@@ -40,7 +40,7 @@ export default function MissionMap() {
           <header className="relative pb-12 text-center sm:pb-16">
             <h1 id="map-heading">
               <img
-                src="/assets/mission-map/labels/The%20Journey_%20Five%20Acts,%20One%20Archive.png"
+                src="/assets/mission-map/labels/The%20Journey_%20Five%20Acts,%20One%20Archive.webp"
                 alt="The Journey. Five acts. Twenty checkpoints. One stolen archive."
                 className="mx-auto block h-auto w-full max-w-[760px] object-contain"
               />

@@ -4,11 +4,11 @@ import Icon from "../ui/Icon.jsx";
 
 const STATUS_TEXT = { done: "Completed", current: "In progress", locked: "Locked" };
 const ACT_ART = {
-  1: "/assets/mission-map/acts/act-01-ramgarh.png",
-  2: "/assets/mission-map/acts/act-02-mumbai.png",
-  3: "/assets/mission-map/acts/act-03-filmcity.png",
-  4: "/assets/mission-map/acts/act-04-railway.png",
-  5: "/assets/mission-map/acts/act-05-mogambo.png",
+  1: "/assets/mission-map/acts/act-01-ramgarh.webp",
+  2: "/assets/mission-map/acts/act-02-mumbai.webp",
+  3: "/assets/mission-map/acts/act-03-filmcity.webp",
+  4: "/assets/mission-map/acts/act-04-railway.webp",
+  5: "/assets/mission-map/acts/act-05-mogambo.webp",
 };
 
 export default function ActCard({ act, className = "" }) {

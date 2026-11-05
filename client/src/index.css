@@ -173,7 +173,7 @@
 @utility paper-texture {
   color: var(--color-parchment-ink);
   background-color: transparent;
-  background-image: url("/assets/Aged Torn Parchment Sheet.png");
+  background-image: url("/assets/Aged Torn Parchment Sheet.webp");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
