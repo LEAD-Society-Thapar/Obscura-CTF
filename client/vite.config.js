@@ -4,6 +4,8 @@ import tailwindcss from "@tailwindcss/vite";
 
 // In dev, /api/* is proxied to the Express server so cookies stay same-origin.
 export default defineConfig({
+  // One shared .env at the repo root (only VITE_* vars reach the browser).
+  envDir: "..",
   plugins: [react(), tailwindcss()],
   server: {
     port: 5173,
