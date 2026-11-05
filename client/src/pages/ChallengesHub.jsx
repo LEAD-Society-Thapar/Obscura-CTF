@@ -38,7 +38,7 @@ function JourneyTile({ act }) {
     </>
   );
 
-  const cls = `block rounded-[18px] border px-3 py-4 text-center transition-all duration-200 ${
+  const cls = `block min-h-[118px] rounded-[16px] border px-3 py-4 text-center transition-all duration-200 ${
     current
       ? "border-[#6F211B] bg-[#6f211b]/10 shadow-[0_0_0_1px_rgba(111,33,27,0.2),0_12px_22px_rgba(111,33,27,0.12)]"
       : complete
@@ -72,12 +72,13 @@ export default function ChallengesHub() {
   const currentCp = currentAct?.current;
 
   return (
-    <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.5fr)]">
+    <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(310px,0.9fr)_minmax(0,1.65fr)]">
       <section
         aria-labelledby="team-heading"
-        className="paper-texture relative overflow-hidden rounded-[24px] border border-[#b58a42]/50 p-5 sm:p-6"
+        className="paper-texture torn-edge relative overflow-hidden p-5 shadow-[inset_0_0_0_1px_rgba(52,31,18,0.18),0_14px_24px_rgba(30,18,12,0.62)] sm:p-6"
+        style={{ backgroundSize: "120% 120%", backgroundPosition: "center center" }}
       >
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.12),transparent_42%)]" aria-hidden="true" />
+        <div className="absolute inset-[-8%] bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.12),transparent_42%)]" aria-hidden="true" />
         <div className="relative">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -140,7 +141,7 @@ export default function ChallengesHub() {
       </section>
 
       <div className="space-y-6">
-        <section aria-labelledby="journey-heading" className="paper-texture rounded-[24px] border border-[#b58a42]/50 p-5 sm:p-6">
+        <section aria-labelledby="journey-heading" className="paper-texture torn-edge p-5 shadow-[inset_0_0_0_1px_rgba(52,31,18,0.18),0_14px_24px_rgba(30,18,12,0.62)] sm:p-6" style={{ backgroundSize: "120% 120%", backgroundPosition: "center center" }}>
           <div className="flex items-center justify-between gap-3">
             <h2 id="journey-heading" className="font-heading text-3xl font-bold tracking-[0.04em] text-[#24170F]">
               Your Journey
@@ -156,7 +157,7 @@ export default function ChallengesHub() {
           </ol>
         </section>
 
-        <section aria-labelledby="relics-heading" className="paper-texture rounded-[24px] border border-[#b58a42]/50 p-5 sm:p-6">
+        <section aria-labelledby="relics-heading" className="paper-texture torn-edge p-5 shadow-[inset_0_0_0_1px_rgba(52,31,18,0.18),0_14px_24px_rgba(30,18,12,0.62)] sm:p-6" style={{ backgroundSize: "120% 120%", backgroundPosition: "center center" }}>
           <div className="flex items-center justify-between">
             <h2 id="relics-heading" className="font-heading text-3xl font-bold tracking-[0.04em] text-[#24170F]">
               Relics

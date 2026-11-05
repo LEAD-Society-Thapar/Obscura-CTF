@@ -15,7 +15,8 @@ const PLACEMENT = [
 function Note({ children, className = "" }) {
   return (
     <p
-      className={`paper-texture w-56 rounded-[2px] px-4 py-3 font-hand text-xl leading-snug shadow-paper ${className}`}
+      className={`paper-texture torn-edge w-56 bg-transparent px-4 py-3 font-hand text-xl leading-snug shadow-[inset_0_0_0_1px_rgba(61,38,24,0.12),0_10px_18px_rgba(0,0,0,0.18)] ${className}`}
+      style={{ backgroundSize: "120% 120%", backgroundPosition: "center center" }}
     >
       {children}
     </p>

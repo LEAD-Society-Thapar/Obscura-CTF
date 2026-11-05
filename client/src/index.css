@@ -172,15 +172,13 @@
 /* Aged parchment with the archived paper asset and a subtle warm tint. */
 @utility paper-texture {
   color: var(--color-parchment-ink);
-  background-color: #d7b98a;
-  background-image:
-    url("/assets/mission-map/parchment/parchment.png"),
-    linear-gradient(180deg, rgb(255 255 255 / 0.12), rgb(92 57 27 / 0.08));
-  background-size: cover, cover;
+  background-color: transparent;
+  background-image: url("/assets/Aged Torn Parchment Sheet.png");
+  background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.24),
+    inset 0 0 0 1px rgb(80 52 30 / 0.15),
     0 18px 34px rgb(0 0 0 / 0.26);
 }
 
@@ -194,13 +192,13 @@
   border-radius: var(--radius-card);
 }
 
-/* Ragged paper edge. Pair with drop-shadow on a wrapper (clip-path cuts box-shadow). */
+/* Ragged paper edge. The irregular clip path is the actual visible border, not a decorative inner card. */
 @utility torn-edge {
   clip-path: polygon(
-    0% 1.5%, 4% 0%, 9% 1.2%, 15% 0.2%, 22% 1.4%, 30% 0.3%, 37% 1.1%, 45% 0%, 53% 1.3%, 61% 0.2%,
-    68% 1.2%, 76% 0.1%, 84% 1.4%, 91% 0.3%, 96% 1.1%, 100% 0.4%, 99.4% 20%, 100% 45%, 99.3% 70%,
-    100% 98.6%, 95% 100%, 88% 98.8%, 80% 99.8%, 72% 98.7%, 64% 100%, 56% 98.9%, 48% 99.8%,
-    40% 98.6%, 32% 99.9%, 24% 98.8%, 16% 100%, 8% 98.9%, 0% 99.6%, 0.6% 75%, 0% 50%, 0.7% 25%
+    0% 1.8%, 5% 0.2%, 11% 1.3%, 18% 0%, 24% 1.8%, 31% 0.3%, 38% 1.6%, 46% 0.2%, 53% 1.5%, 60% 0.4%,
+    67% 1.7%, 73% 0.2%, 80% 1.4%, 87% 0.1%, 93% 1.9%, 100% 0.7%, 99.4% 18%, 100% 36%, 98.8% 52%,
+    100% 68%, 99.2% 84%, 100% 98.8%, 94% 100%, 88% 98.7%, 81% 100%, 72% 98.9%, 64% 100%, 56% 98.8%,
+    49% 100%, 41% 98.7%, 34% 100%, 27% 98.8%, 18% 100%, 10% 98.9%, 0% 99.3%, 0.7% 72%, 0% 48%, 0.8% 24%
   );
 }
 
