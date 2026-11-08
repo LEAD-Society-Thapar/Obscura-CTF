@@ -1,0 +1,215 @@
+.act-panel--cinematic {
+  min-height: 29rem;
+  border-color: rgb(181 139 69 / 38%);
+}
+
+.act-panel--ramgarh {
+  background-color: #17110e;
+  background-image:
+    linear-gradient(
+      0deg,
+      rgb(10 9 8 / 94%) 0%,
+      rgb(10 9 8 / 78%) 28%,
+      rgb(10 9 8 / 32%) 61%,
+      rgb(10 9 8 / 12%) 100%
+    ),
+    linear-gradient(rgb(20 13 10 / 13%), rgb(20 13 10 / 13%)),
+    url("/images/acts/act-1-ramgarh.png");
+  background-position: center, center, center 48%;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.act-panel--mumbai {
+  background-color: #17110e;
+  background-image:
+    linear-gradient(
+      0deg,
+      rgb(10 9 8 / 94%) 0%,
+      rgb(10 9 8 / 78%) 28%,
+      rgb(10 9 8 / 32%) 61%,
+      rgb(10 9 8 / 12%) 100%
+    ),
+    linear-gradient(rgb(20 13 10 / 13%), rgb(20 13 10 / 13%)),
+    url("/images/acts/act-2-mumbai.png");
+  background-position: center, center, center 54%;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.act-panel--filmcity {
+  background-color: #17110e;
+  background-image:
+    linear-gradient(
+      0deg,
+      rgb(10 9 8 / 94%) 0%,
+      rgb(10 9 8 / 78%) 28%,
+      rgb(10 9 8 / 32%) 61%,
+      rgb(10 9 8 / 12%) 100%
+    ),
+    linear-gradient(rgb(20 13 10 / 13%), rgb(20 13 10 / 13%)),
+    url("/images/acts/act-3-filmcity.png");
+  background-position: center, center, center 52%;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.act-panel--express {
+  background-color: #17110e;
+  background-image:
+    linear-gradient(
+      0deg,
+      rgb(10 9 8 / 94%) 0%,
+      rgb(10 9 8 / 78%) 28%,
+      rgb(10 9 8 / 32%) 61%,
+      rgb(10 9 8 / 12%) 100%
+    ),
+    linear-gradient(rgb(20 13 10 / 13%), rgb(20 13 10 / 13%)),
+    url("/images/acts/act-4-express.png");
+  background-position: center, center, center 58%;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.act-panel--mars {
+  border-color: rgb(139 46 39 / 54%);
+  background-color: #17110e;
+  background-image:
+    linear-gradient(
+      0deg,
+      rgb(10 9 8 / 94%) 0%,
+      rgb(10 9 8 / 78%) 28%,
+      rgb(10 9 8 / 32%) 61%,
+      rgb(10 9 8 / 12%) 100%
+    ),
+    linear-gradient(rgb(38 12 13 / 16%), rgb(38 12 13 / 16%)),
+    url("/images/acts/act-5-mars.png");
+  background-position: center, center, center 54%;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.act-panel--mars .act-panel-title-accent {
+  color: #c45b50;
+}
+
+.act-panel--mars .act-panel-progress {
+  border-top-color: rgb(190 107 83 / 56%);
+}
+
+.act-panel-content--cinematic {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.act-panel--cinematic .act-panel-label {
+  color: #d3b16a;
+  font-family: "Courier Prime", ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+}
+
+.act-panel--cinematic .act-panel-title {
+  width: 100%;
+  max-width: 100%;
+  margin-top: 0.55rem;
+  padding-right: 0.5rem;
+  color: #f0e2c5;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  letter-spacing: -0.025em;
+  line-height: 1.08;
+  text-shadow: 0 2px 14px rgb(0 0 0 / 55%);
+  text-wrap: balance;
+}
+
+.act-panel--cinematic .act-panel-title-line,
+.act-panel--cinematic .act-panel-title-accent {
+  display: block;
+}
+
+.act-panel--cinematic .act-panel-title-line {
+  white-space: nowrap;
+}
+
+.act-panel--cinematic .act-panel-title-accent {
+  color: #bd5a43;
+}
+
+.act-panel--cinematic .act-panel-description {
+  max-width: 26rem;
+  margin-top: 1rem;
+  color: rgb(244 232 208 / 94%);
+  font-size: 0.95rem;
+  line-height: 1.72;
+  text-shadow: 0 1px 8px rgb(0 0 0 / 80%);
+}
+
+.act-panel--cinematic .act-panel-film {
+  margin-top: 0.75rem;
+  color: #d0bd9b;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+}
+
+.act-panel--cinematic .act-panel-progress {
+  width: fit-content;
+  margin-top: auto;
+  padding-top: 0.8rem;
+  border-top: 1px solid rgb(211 177 106 / 52%);
+  color: #d3b16a;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-shadow: 0 1px 8px rgb(0 0 0 / 75%);
+}
+
+@media (min-width: 1024px) {
+  .act-panel--ramgarh {
+    background-position: center, center, center 46%;
+  }
+
+  .act-panel--mumbai {
+    background-position: center, center, center 56%;
+  }
+
+  .act-panel--filmcity {
+    background-position: center, center, center 50%;
+  }
+
+  .act-panel--express {
+    background-position: center, center, center 58%;
+  }
+
+  .act-panel--mars {
+    background-position: center, center, center 54%;
+  }
+}
+
+@media (max-width: 640px) {
+  .act-panel--cinematic {
+    min-height: 27rem;
+  }
+
+  .act-panel--ramgarh {
+    background-position: center, center, 53% center;
+  }
+
+  .act-panel--mumbai {
+    background-position: center, center, 50% 56%;
+  }
+
+  .act-panel--filmcity {
+    background-position: center, center, center 50%;
+  }
+
+  .act-panel--express {
+    background-position: center, center, 54% 58%;
+  }
+
+  .act-panel--mars {
+    background-position: center, center, 50% 54%;
+  }
+}

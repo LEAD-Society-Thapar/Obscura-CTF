@@ -1,0 +1,614 @@
+.team-dashboard {
+  --dashboard-parchment: #d8bd86;
+  --dashboard-background: #110f0d;
+  --dashboard-panel: #211b15;
+  --dashboard-ink: #3d2b1f;
+  --dashboard-crimson: #8b2e27;
+  --dashboard-gold: #b58b45;
+  --dashboard-light: #e8d8b8;
+  --dashboard-muted: #705638;
+  --dashboard-paper-texture: url("/assets/Aged Torn Parchment Sheet.webp");
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+.team-dashboard .dashboard-dossier {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--dashboard-parchment);
+  background-image: var(--dashboard-paper-texture);
+  background-blend-mode: normal;
+}
+
+.team-dashboard .dashboard-dossier > .relative {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.team-dashboard .dashboard-dossier-stats {
+  padding-top: 0;
+}
+
+.team-dashboard .dashboard-dossier > [aria-hidden="true"] {
+  display: none;
+}
+
+.team-dashboard .dashboard-archive-label,
+.team-dashboard .dashboard-secret-stamp {
+  color: var(--dashboard-crimson);
+  font-family: "Courier Prime", ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.team-dashboard .dashboard-team-name,
+.team-dashboard .dashboard-current-act-title,
+.team-dashboard .dashboard-section-heading,
+.team-dashboard .journey-act-title,
+.team-dashboard .relic-card-name {
+  font-family: "IM Fell English", Georgia, serif;
+  font-weight: 400;
+}
+
+.team-dashboard .dashboard-team-name {
+  margin-top: 0.2rem;
+  color: #24170f;
+  font-size: clamp(1.45rem, 3vw, 1.8rem);
+  letter-spacing: 0.055em;
+  line-height: 1;
+  overflow-wrap: anywhere;
+  text-transform: uppercase;
+}
+
+.team-dashboard .dashboard-team-score {
+  margin-top: 0.4rem;
+  color: var(--dashboard-crimson);
+  font-family: "Inter", ui-sans-serif, sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.015em;
+  line-height: 1.25;
+}
+
+.team-dashboard .dashboard-secret-stamp {
+  flex: 0 0 auto;
+  margin: 0.1rem 0.2rem 0 0;
+  padding: 0.28rem 0.42rem;
+  border: 1px solid rgb(139 46 39 / 58%);
+  background: rgb(41 27 22 / 10%);
+  letter-spacing: 0.12em;
+  rotate: -6deg;
+}
+
+.team-dashboard .dashboard-current-act-title {
+  color: #24170f;
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+
+.team-dashboard .dashboard-support,
+.team-dashboard .dashboard-stat,
+.team-dashboard .dashboard-resume-button,
+.team-dashboard .dashboard-view-all,
+.team-dashboard .dashboard-activity-feed {
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+.team-dashboard .dashboard-main-grid {
+  column-gap: 1.25rem;
+  row-gap: 1.25rem;
+}
+
+.team-dashboard .dashboard-current-act [role="progressbar"] {
+  height: 0.4rem;
+  border-color: rgb(93 67 51 / 25%);
+  background: rgb(53 35 25 / 22%);
+}
+
+.team-dashboard .dashboard-current-act [role="progressbar"] > div {
+  background: #8b2926;
+  box-shadow: none;
+}
+
+.team-dashboard .dashboard-resume-button {
+  min-height: 2.85rem;
+  font-weight: 650;
+  line-height: 1.35;
+  text-align: left;
+  transition:
+    background-color 160ms ease-out,
+    box-shadow 160ms ease-out,
+    transform 160ms ease-out;
+}
+
+.team-dashboard .dashboard-resume-button:hover {
+  background-color: #842923;
+  box-shadow: 0 5px 12px rgb(81 25 21 / 18%);
+  transform: translateY(-1px);
+}
+
+.team-dashboard .dashboard-section-heading {
+  letter-spacing: 0.025em;
+  line-height: 1.05;
+}
+
+.team-dashboard .dashboard-stat {
+  min-height: 7.2rem;
+  border-color: rgb(93 67 51 / 42%);
+  background-color: transparent;
+  padding: 0.7rem;
+}
+
+.team-dashboard .dashboard-stat-label {
+  align-items: flex-start;
+  min-height: 2.65rem;
+  gap: 0.45rem;
+  color: var(--dashboard-ink);
+  font-family: "Inter", ui-sans-serif, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.team-dashboard .dashboard-stat-label > span:last-child {
+  padding-top: 0.2rem;
+}
+
+.team-dashboard .dashboard-stat-reading {
+  min-height: 1.8rem;
+  margin-top: 0.45rem;
+  gap: 0 0.3rem;
+  font-family: "Inter", ui-sans-serif, sans-serif;
+  line-height: 1;
+}
+
+.team-dashboard .dashboard-stat-value {
+  color: var(--dashboard-ink);
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+}
+
+.team-dashboard .dashboard-stat-detail {
+  color: var(--dashboard-crimson);
+  font-size: 0.68rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.team-dashboard .journey-act-card {
+  display: flex;
+  min-height: 9.5rem;
+  height: 100%;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.7rem;
+  border: 1px solid rgb(93 67 51 / 48%);
+  border-radius: 0.65rem;
+  background: rgb(216 189 134 / 20%);
+  color: #352319;
+  text-align: left;
+  text-decoration: none;
+  transition:
+    background-color 150ms ease-out,
+    border-color 150ms ease-out,
+    transform 150ms ease-out;
+}
+
+.team-dashboard .journey-act-card[href]:hover {
+  transform: translateY(-2px);
+}
+
+.team-dashboard .journey-act-card.is-complete {
+  border-color: rgb(112 86 56 / 52%);
+  background: rgb(112 86 56 / 8%);
+}
+
+.team-dashboard .journey-act-card.is-current {
+  border-color: rgb(139 46 39 / 78%);
+  background: rgb(139 46 39 / 7%);
+  box-shadow: inset 0 2px 0 rgb(139 46 39 / 62%);
+}
+
+.team-dashboard .journey-act-card.is-locked {
+  border-color: rgb(112 86 56 / 35%);
+  background: rgb(112 86 56 / 5%);
+  color: #594a3d;
+}
+
+.team-dashboard .journey-act-number {
+  color: var(--dashboard-muted);
+  font-family: "Courier Prime", ui-monospace, monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.team-dashboard .journey-complete-mark {
+  display: grid;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgb(138 104 46 / 65%);
+  border-radius: 50%;
+  color: #77551e;
+}
+
+.team-dashboard .journey-act-title {
+  min-height: 2.5em;
+  color: var(--dashboard-ink);
+  font-size: 1.02rem;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+.team-dashboard .journey-act-card.is-locked .journey-act-title {
+  color: var(--dashboard-muted);
+}
+
+.team-dashboard .journey-act-progress {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem;
+  margin-top: auto;
+}
+
+.team-dashboard .journey-act-count {
+  color: var(--dashboard-ink);
+  font-family: "Inter", ui-sans-serif, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.team-dashboard .journey-act-status {
+  color: var(--dashboard-muted);
+  font-family: "Inter", ui-sans-serif, sans-serif;
+  font-size: 0.58rem;
+  line-height: 1.2;
+  text-align: right;
+}
+
+.team-dashboard .journey-act-card.is-current .journey-act-status {
+  color: var(--dashboard-crimson);
+  font-weight: 600;
+}
+
+.team-dashboard .journey-act-card.is-complete .journey-act-status {
+  color: var(--dashboard-muted);
+}
+
+.team-dashboard .journey-progress-track {
+  display: block;
+  width: 100%;
+  height: 0.26rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(61 43 31 / 22%);
+}
+
+.team-dashboard .journey-progress-value {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--dashboard-muted);
+}
+
+.team-dashboard .is-current .journey-progress-value {
+  background: var(--dashboard-crimson);
+}
+
+.team-dashboard .is-complete .journey-progress-value {
+  background: var(--dashboard-gold);
+}
+
+.team-dashboard .dashboard-journey-section {
+  border: 1px solid rgb(112 86 56 / 38%);
+  background-color: var(--dashboard-parchment);
+  background-image: var(--dashboard-paper-texture);
+  background-size: 120% 120%;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-blend-mode: normal;
+  box-shadow:
+    inset 0 0 0 1px rgb(61 43 31 / 10%),
+    0 10px 18px rgb(0 0 0 / 20%);
+}
+
+.team-dashboard .dashboard-relic-gallery {
+  border: 1px solid rgb(112 86 56 / 42%);
+  background: var(--dashboard-panel);
+  box-shadow: 0 12px 22px rgb(0 0 0 / 24%);
+}
+
+.team-dashboard .dashboard-relic-gallery .dashboard-section-heading {
+  color: var(--dashboard-gold);
+  font-size: 1.65rem;
+}
+
+.team-dashboard .dashboard-relic-gallery .dashboard-view-all {
+  color: var(--dashboard-light);
+}
+
+.team-dashboard .dashboard-relic-gallery .dashboard-view-all:hover {
+  color: var(--dashboard-gold);
+}
+
+.team-dashboard .dashboard-activity-section {
+  border: 1px solid rgb(181 139 69 / 28%);
+  border-radius: 0.6rem;
+  background: var(--dashboard-panel);
+  box-shadow:
+    inset 0 1px 0 rgb(237 228 208 / 3%),
+    0 12px 22px rgb(0 0 0 / 24%);
+}
+
+.team-dashboard .dashboard-activity-section .dashboard-archive-label {
+  color: var(--dashboard-gold);
+}
+
+.team-dashboard .dashboard-activity-section .dashboard-section-heading {
+  color: var(--dashboard-light);
+  font-size: 1.5rem;
+}
+
+.team-dashboard .dashboard-activity-feed {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 62rem;
+  margin-inline: auto;
+  color: var(--dashboard-light);
+  align-items: start;
+}
+
+.team-dashboard .dashboard-activity-feed > li {
+  min-height: 3.25rem;
+  align-self: start;
+  border-color: rgb(181 139 69 / 23%);
+}
+
+.team-dashboard .dashboard-activity-feed > li > :first-child {
+  background: rgb(181 139 69 / 12%);
+  color: var(--dashboard-gold);
+}
+
+.team-dashboard .dashboard-activity-description {
+  color: var(--dashboard-light);
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+}
+
+.team-dashboard .dashboard-activity-meta time {
+  color: #b9aa8d;
+}
+
+.team-dashboard .dashboard-activity-points.text-\[\#76551f\] {
+  color: #d4b66f;
+}
+
+.team-dashboard .dashboard-activity-points.text-\[\#6F211B\] {
+  color: #d98578;
+}
+
+.team-dashboard .dashboard-activity-section > div > p {
+  color: #c2b59f;
+}
+
+.team-dashboard .dashboard-activity-empty {
+  color: #b9aa8d;
+}
+
+.team-dashboard .dashboard-view-all {
+  flex: 0 0 auto;
+  padding: 0.35rem 0;
+}
+
+.team-dashboard .relic-collection-card {
+  border-radius: 0.25rem;
+  border-color: transparent;
+  background-color: transparent;
+  background-image: var(--dashboard-paper-texture);
+  background-blend-mode: normal;
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-shadow: none;
+}
+
+.team-dashboard .relic-artwork {
+  object-fit: contain;
+  transition:
+    filter 180ms ease-out,
+    opacity 180ms ease-out;
+}
+
+.team-dashboard .relic-artwork--collected {
+  filter: drop-shadow(0 1px 5px rgb(143 99 36 / 22%));
+}
+
+.team-dashboard .relic-artwork--locked {
+  filter: grayscale(10%) contrast(1.06);
+  opacity: 0.7;
+}
+
+.team-dashboard .relic-lock-badge {
+  z-index: 1;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-color: rgb(166 122 53 / 55%);
+  color: #e0c58e;
+}
+
+.team-dashboard .relic-card-name {
+  color: var(--dashboard-ink);
+  font-size: clamp(0.65rem, 0.85vw, 0.78rem);
+  line-height: 1.12;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+
+.team-dashboard .relic-card-act {
+  color: var(--dashboard-muted);
+  font-family: "IM Fell English", Georgia, serif;
+  font-size: 0.72rem;
+  font-style: italic;
+  line-height: 1.2;
+}
+
+.team-dashboard .relic-card-caption {
+  padding: 0.35rem 0.4rem 0.55rem;
+}
+
+.team-dashboard .dashboard-activity-feed {
+  color: #352319;
+}
+
+.team-dashboard .dashboard-activity-feed > li {
+  min-width: 0;
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+}
+
+.team-dashboard .dashboard-activity-description {
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+
+.team-dashboard .dashboard-activity-meta {
+  font-family: "Inter", ui-sans-serif, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.team-dashboard .dashboard-activity-points {
+  font-family: "Courier Prime", ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+}
+
+@media (min-width: 640px) {
+  .team-dashboard .dashboard-activity-feed {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 1.5rem;
+    row-gap: 0;
+  }
+
+  .team-dashboard .dashboard-activity-feed > li {
+    grid-template-columns: 1.25rem minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 0.85rem;
+  }
+
+  .team-dashboard .dashboard-activity-feed > li > :first-child {
+    grid-row: 1;
+    margin-top: 0;
+  }
+
+  .team-dashboard .dashboard-activity-description {
+    grid-column: 2;
+  }
+
+  .team-dashboard .dashboard-activity-meta {
+    grid-column: 3;
+    grid-row: 1;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 419px) {
+  .team-dashboard .dashboard-stat {
+    display: flex;
+    min-height: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.65rem 0.75rem;
+  }
+
+  .team-dashboard .dashboard-stat-label {
+    min-height: 0;
+    max-width: 65%;
+  }
+
+  .team-dashboard .dashboard-stat-reading {
+    min-height: 0;
+    justify-content: flex-end;
+    margin-top: 0;
+    text-align: right;
+  }
+}
+
+@media (max-width: 360px) {
+  .team-dashboard .dashboard-dossier-header {
+    position: relative;
+    padding-top: 0.75rem;
+  }
+
+  .team-dashboard .dashboard-dossier-identity {
+    max-width: 100%;
+  }
+
+  .team-dashboard .dashboard-dossier-avatar {
+    width: 3.25rem;
+    height: 3.25rem;
+  }
+
+  .team-dashboard .dashboard-secret-stamp {
+    position: absolute;
+    top: -0.1rem;
+    right: 0.2rem;
+    margin: 0;
+  }
+
+  body:has(.team-dashboard) nav[aria-label="Game"] > div:first-child {
+    gap: 0.25rem;
+  }
+
+  body:has(.team-dashboard) nav[aria-label="Game"] > div:first-child > div:last-child {
+    gap: 0.25rem;
+  }
+
+  body:has(.team-dashboard) nav[aria-label="Game"] [role="timer"] {
+    padding: 0.25rem;
+  }
+
+  body:has(.team-dashboard) nav[aria-label="Game"] [role="timer"] span:first-child {
+    font-size: 0.875rem;
+  }
+
+  body:has(.team-dashboard) nav[aria-label="Game"] [role="timer"] span:last-child {
+    font-size: 0.4375rem;
+  }
+
+  body:has(.team-dashboard) nav[aria-label="Game"] > div:first-child > div:last-child > a[href="/challenges"] {
+    gap: 0.25rem;
+    padding-inline: 0.1875rem;
+  }
+
+  body:has(.team-dashboard) nav[aria-label="Game"] > div:first-child > div:last-child > a[href="/challenges"] > span:first-child {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  body:has(.team-dashboard) nav[aria-label="Game"] button {
+    padding: 0.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .team-dashboard .dashboard-resume-button,
+  .team-dashboard .journey-act-card,
+  .team-dashboard .relic-artwork {
+    transition: none;
+  }
+}

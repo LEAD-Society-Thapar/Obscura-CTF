@@ -147,6 +147,16 @@
   }
 }
 
+/* Dashboard typography stays within its content and never changes navbar branding. */
+.team-dashboard {
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+.team-dashboard .font-type,
+.team-dashboard .font-mono {
+  font-family: "Courier Prime", ui-monospace, monospace;
+}
+
 /* Motion is decoration only: switch it off for people who ask. */
 @media (prefers-reduced-motion: reduce) {
   *,

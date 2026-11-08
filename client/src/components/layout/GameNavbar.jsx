@@ -64,7 +64,7 @@ export default function GameNavbar({ chips }) {
             <Link to="/map" aria-label="OBSCURA mission map">
               <Logo className="text-lg sm:text-2xl" />
             </Link>
-            <Tabs className="hidden items-center gap-1 md:flex" />
+            <Tabs className="hidden items-center gap-1 lg:flex" />
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             {chips}
@@ -80,7 +80,7 @@ export default function GameNavbar({ chips }) {
           </div>
         </div>
         {/* Mobile: tabs move to a scrollable row under the logo. */}
-        <Tabs className="-mx-4 flex overflow-x-auto px-2 pb-1 md:hidden" />
+        <Tabs className="-mx-4 flex overflow-x-auto px-2 pb-1 lg:hidden" />
       </nav>
     </header>
   );

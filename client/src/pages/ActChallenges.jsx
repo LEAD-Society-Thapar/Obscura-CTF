@@ -4,6 +4,7 @@ import CheckpointRow from "../components/game/CheckpointRow.jsx";
 import ArtSlot from "../components/ui/ArtSlot.jsx";
 import Icon from "../components/ui/Icon.jsx";
 import PageStatus from "../components/ui/PageStatus.jsx";
+import "./ActChallenges.css";
 
 // Design 3: one act's checkpoint list.
 export default function ActChallenges() {
@@ -24,6 +25,13 @@ export default function ActChallenges() {
 
   // Last letter in red, echoing the OBSCURA wordmark (design 3).
   const title = act.title.toUpperCase();
+  const isRamgarh = Number(act.id) === 1;
+  const isMumbai = Number(act.id) === 2;
+  const isFilmcity = Number(act.id) === 3;
+  const isExpress = Number(act.id) === 4;
+  const isMars = Number(act.id) === 5;
+  const isCinematicPanel = isRamgarh || isMumbai || isFilmcity || isExpress || isMars;
+  const finalWordStart = title.lastIndexOf(" ");
 
   return (
     <>
@@ -34,19 +42,30 @@ export default function ActChallenges() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,22rem)_1fr]">
         <section
           aria-labelledby="act-heading"
-          className="relative min-h-64 overflow-hidden rounded-card border border-line lg:min-h-[30rem]"
+          className={`act-panel relative min-h-64 overflow-hidden rounded-card border border-line lg:min-h-[30rem]${isRamgarh ? " act-panel--ramgarh act-panel--cinematic" : isMumbai ? " act-panel--mumbai act-panel--cinematic" : isFilmcity ? " act-panel--filmcity act-panel--cinematic" : isExpress ? " act-panel--express act-panel--cinematic" : isMars ? " act-panel--mars act-panel--cinematic" : ""}`}
         >
-          <ArtSlot name={act.bannerSlot} fill icon={null} />
-          <div className="absolute inset-0 bg-linear-to-b from-ink/90 via-ink/50 to-ink/85" />
-          <div className="relative p-6">
-            <p className="font-heading text-2xl font-bold tracking-wide text-bone uppercase">Act {act.id}</p>
-            <h1 id="act-heading" className="font-display text-3xl leading-tight text-bone sm:text-4xl">
-              {title.slice(0, -1)}
-              <span className="text-blood-bright">{title.slice(-1)}</span>
-            </h1>
-            <p className="mt-4 max-w-xs leading-relaxed text-bone/90">{act.blurb}</p>
-            {act.film && <p className="mt-2 max-w-xs font-type text-xs text-muted">Film: {act.film}</p>}
-            <p className="mt-4 font-type text-sm text-gold">
+          {!isCinematicPanel && <ArtSlot name={act.bannerSlot} fill icon={null} />}
+          {!isCinematicPanel && <div className="absolute inset-0 bg-linear-to-b from-ink/90 via-ink/50 to-ink/85" />}
+          <div className={`act-panel-content relative p-6${isCinematicPanel ? " act-panel-content--cinematic" : ""}`}>
+            <div className="act-panel-copy">
+              <p className="act-panel-label font-heading text-2xl font-bold tracking-wide text-bone uppercase">Act {act.id}</p>
+              <h1 id="act-heading" className="act-panel-title font-display text-3xl leading-tight text-bone sm:text-4xl">
+                {isCinematicPanel ? (
+                  <>
+                    <span className="act-panel-title-line">{title.slice(0, finalWordStart).trim()}</span>
+                    <span className="act-panel-title-accent">{title.slice(finalWordStart)}</span>
+                  </>
+                ) : (
+                  <>
+                    {title.slice(0, -1)}
+                    <span className="text-blood-bright">{title.slice(-1)}</span>
+                  </>
+                )}
+              </h1>
+              <p className="act-panel-description mt-4 max-w-xs leading-relaxed text-bone/90">{act.blurb}</p>
+              {act.film && <p className="act-panel-film mt-2 max-w-xs font-type text-xs text-muted">Film: {act.film}</p>}
+            </div>
+            <p className="act-panel-progress mt-4 font-type text-sm text-gold">
               {act.solvedCount}/{act.total} solved
             </p>
           </div>

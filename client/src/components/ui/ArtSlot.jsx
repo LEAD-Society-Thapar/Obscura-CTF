@@ -31,14 +31,23 @@ function toneFor(name) {
  * icon:    placeholder icon name, or null for slots that sit behind text
  * alt:     describe the image; omit for decorative art
  */
-export default function ArtSlot({ name, src, alt = "", fill = false, compact = false, icon = "film", className = "" }) {
+export default function ArtSlot({
+  name,
+  src,
+  alt = "",
+  fill = false,
+  compact = false,
+  icon = "film",
+  fit = "cover",
+  className = "",
+}) {
   const spec = slotSpec(name);
   const image = src ?? ART_SOURCES[name];
   const sizing = fill ? "absolute inset-0 h-full w-full" : "relative w-full";
   const style = fill ? {} : { aspectRatio: `${spec.w} / ${spec.h}` };
 
   if (image) {
-    return <img src={image} alt={alt} loading="lazy" className={`${sizing} object-cover ${className}`} style={style} />;
+    return <img src={image} alt={alt} loading="lazy" className={`${sizing} object-${fit} ${className}`} style={style} />;
   }
 
   return (
