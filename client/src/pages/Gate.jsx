@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useGameActions, useGate } from "../hooks/useGameData.js";
-import { formatCp } from "../lib/format.js";
+import { formatCp, isFinalCp } from "../lib/format.js";
+import EndingModal from "../components/game/EndingModal.jsx";
 import FlagForm from "../components/game/FlagForm.jsx";
 import HintPanel from "../components/game/HintPanel.jsx";
 import ReelCardModal from "../components/game/ReelCardModal.jsx";
@@ -13,13 +14,15 @@ import PageStatus from "../components/ui/PageStatus.jsx";
 import PointsBadge from "../components/ui/PointsBadge.jsx";
 import SafeMarkdown from "../components/ui/SafeMarkdown.jsx";
 
-function BackLink({ act }) {
+function BackLink({ act, final = false }) {
+  const [to, label] = final
+    ? ["/relics", "Back to Relics"]
+    : act
+      ? [`/challenges/act/${act}`, `Back to Act ${act}`]
+      : ["/challenges", "Back to Challenges"];
   return (
-    <Link
-      to={act ? `/challenges/act/${act}` : "/challenges"}
-      className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-bone"
-    >
-      <Icon name="arrowLeft" className="size-4" /> {act ? `Back to Act ${act}` : "Back to Challenges"}
+    <Link to={to} className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-bone">
+      <Icon name="arrowLeft" className="size-4" /> {label}
     </Link>
   );
 }
@@ -28,6 +31,7 @@ function BackLink({ act }) {
 function GateBlocked({ error }) {
   const code = error?.data?.code;
   const locked = code === "LOCKED";
+  const final = !!error?.data?.final;
   return (
     <div className="mx-auto max-w-lg py-12 text-center">
       <span className="mx-auto grid size-16 place-items-center rounded-full bg-ink-raised text-muted ring-1 ring-line">
@@ -37,14 +41,16 @@ function GateBlocked({ error }) {
         {locked ? "This gate is still sealed" : code === "NOT_FOUND" ? "No gate here" : "The projector jammed"}
       </h1>
       <p className="mt-2 text-muted">
-        {locked
-          ? "Solve the previous checkpoint first. Its Reel Card shows the way here."
-          : code === "NOT_FOUND"
-            ? "This gate doesn't exist, or it belongs to another team."
-            : error?.message}
+        {locked && final
+          ? "Collect all five relics to face Mogambo."
+          : locked
+            ? "Solve the previous checkpoint first. Its Reel Card shows the way here."
+            : code === "NOT_FOUND"
+              ? "This gate doesn't exist, or it belongs to another team."
+              : error?.message}
       </p>
       <div className="mt-6">
-        <BackLink act={error?.data?.act} />
+        <BackLink act={error?.data?.act} final={final} />
       </div>
     </div>
   );
@@ -62,6 +68,7 @@ export default function Gate() {
   if (error) return <GateBlocked error={error} />;
 
   const solved = cp.status === "solved";
+  const final = isFinalCp(cp);
   const paragraphs = cp.story.split("\n").filter(Boolean);
 
   const onSolved = (result) => {
@@ -71,18 +78,20 @@ export default function Gate() {
 
   const closeReel = () => setSolve(null);
   const nextAction = (next) =>
-    next
-      ? { to: `/gate/${next.slug}`, label: "Go to next checkpoint", onClick: closeReel }
-      : { to: "/relics", label: "See your relics", onClick: closeReel };
+    next && isFinalCp(next)
+      ? { to: `/gate/${next.slug}`, label: "Face Mogambo", onClick: closeReel }
+      : next
+        ? { to: `/gate/${next.slug}`, label: "Go to next checkpoint", onClick: closeReel }
+        : { to: "/relics", label: "See your relics", onClick: closeReel };
 
   return (
     <article aria-labelledby="cp-title">
-      <BackLink act={cp.act} />
+      <BackLink act={cp.act} final={final} />
 
       <div className="mt-4 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
         {/* min-w-0: lets wide code blocks/tables scroll inside their box instead of widening the page. */}
         <div className="min-w-0">
-          <p className="font-type text-lg text-gold">{formatCp(cp)}</p>
+          <p className={`font-type text-lg ${final ? "text-blood-bright" : "text-gold"}`}>{final ? "Final Gate" : formatCp(cp)}</p>
           <h1 id="cp-title" className="font-heading text-4xl font-bold text-bone sm:text-5xl">
             {cp.title}
           </h1>
@@ -154,7 +163,12 @@ export default function Gate() {
               </Button>
               {cp.next && (
                 <Button to={`/gate/${cp.next.slug}`} size="sm" caps={false}>
-                  Next checkpoint <Icon name="arrowRight" className="size-4" />
+                  {isFinalCp(cp.next) ? "Face Mogambo" : "Next checkpoint"} <Icon name="arrowRight" className="size-4" />
+                </Button>
+              )}
+              {final && (
+                <Button to="/challenges" size="sm" caps={false}>
+                  See your victory <Icon name="arrowRight" className="size-4" />
                 </Button>
               )}
             </div>
@@ -165,11 +179,17 @@ export default function Gate() {
       </div>
 
       <ReelCardModal
-        open={!!solve}
+        open={!!solve && !solve.finished}
         onClose={closeReel}
         reel={solve?.reel}
         relic={solve?.relic}
-        action={solve ? nextAction(solve.next) : null}
+        action={solve && !solve.finished ? nextAction(solve.next) : null}
+      />
+      <EndingModal
+        open={!!solve?.finished}
+        onClose={closeReel}
+        title={solve?.endingTitle}
+        ending={solve?.ending}
       />
     </article>
   );

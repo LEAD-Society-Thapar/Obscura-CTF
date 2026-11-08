@@ -1,4 +1,4 @@
-import { formatCp } from "../../lib/format.js";
+import { formatCp, isFinalCp } from "../../lib/format.js";
 import ArtSlot from "../ui/ArtSlot.jsx";
 import Button from "../ui/Button.jsx";
 import PaperCard from "../ui/PaperCard.jsx";
@@ -30,7 +30,7 @@ export default function ReelCardBody({ reel, relic, action, headingId, headingAs
         Reel Card Collected
       </Heading>
       <p className="mt-1 text-center font-type text-sm text-parchment-ink/80">
-        {formatCp(reel)} &mdash; {reel.title}
+        {isFinalCp(reel) ? reel.title : <>{formatCp(reel)} &mdash; {reel.title}</>}
       </p>
 
       <div className={`mt-6 grid items-center gap-5 ${hasQuote ? "sm:grid-cols-[auto_1fr]" : "justify-items-center"}`}>

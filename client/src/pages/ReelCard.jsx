@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { useReel } from "../hooks/useGameData.js";
+import { isFinalCp } from "../lib/format.js";
 import ReelCardBody from "../components/game/ReelCardBody.jsx";
 import PageStatus from "../components/ui/PageStatus.jsx";
 
@@ -22,8 +23,10 @@ export default function ReelCard() {
   }
 
   const action = next
-    ? { to: `/gate/${next.slug}`, label: "Go to next checkpoint" }
-    : { to: `/challenges/act/${reel.act}`, label: `Back to Act ${reel.act}` };
+    ? { to: `/gate/${next.slug}`, label: isFinalCp(next) ? "Face Mogambo" : "Go to next checkpoint" }
+    : isFinalCp(reel)
+      ? { to: "/challenges", label: "Back to your dossier" }
+      : { to: `/challenges/act/${reel.act}`, label: `Back to Act ${reel.act}` };
 
   return (
     <div className="mx-auto max-w-2xl py-4">

@@ -11,7 +11,7 @@
 import { fileURLToPath } from "node:url";
 import { requireDb } from "../src/config/supabase.js";
 import { env } from "../src/config/env.js";
-import { CHECKPOINTS, FINAL_BOSS } from "../src/data/game.js";
+import { CHECKPOINTS } from "../src/data/game.js";
 import { buildCheckpointRows, FLAGS_FILE, loadFlagsFile } from "../src/utils/flagRows.js";
 import { hashPassword } from "../src/utils/password.js";
 
@@ -43,7 +43,7 @@ const check = ({ error }, what) => {
 };
 
 // ---------- Flags ----------
-const ids = [...CHECKPOINTS.map((cp) => cp.id), FINAL_BOSS.id];
+const ids = CHECKPOINTS.map((cp) => cp.id); // 20 act checkpoints + "final" (already the last entry)
 let flags = loadFlagsFile();
 if (!flags) {
   const bar = "!".repeat(78);

@@ -5,20 +5,22 @@ import { readFileSync } from "node:fs";
 
 process.env.FLAG_PEPPER ??= "test-pepper";
 const raw = JSON.parse(readFileSync(new URL("../src/data/content/challenges.json", import.meta.url), "utf8"));
-const { ACTS, CHECKPOINTS, RELICS, RULES, FINAL_BOSS } = await import("../src/data/game.js");
+const { ACTS, ACT_CHECKPOINTS, CHECKPOINTS, RELICS, RULES, FINAL_BOSS } = await import("../src/data/game.js");
 const { TeamState, relicOfAct, isLastOfAct } = await import("../src/services/teamState.js");
 
-test("loads 5 acts, 20 checkpoints, 5 relics; final boss kept out of the unlock chain", () => {
+test("loads 5 acts, 20 act checkpoints + the final face-off as the 21st gate, 5 relics", () => {
   assert.equal(ACTS.length, 5);
-  assert.equal(CHECKPOINTS.length, 20);
-  assert.equal(RELICS.length, 5);
+  assert.equal(ACT_CHECKPOINTS.length, 20);
+  assert.equal(CHECKPOINTS.length, 21);
+  assert.equal(CHECKPOINTS.at(-1), FINAL_BOSS);
   assert.equal(FINAL_BOSS.id, "final");
-  assert.ok(!CHECKPOINTS.some((c) => c.id === "final"));
+  assert.equal(FINAL_BOSS.act, null);
+  assert.equal(RELICS.length, 5);
   assert.deepEqual(RULES, raw.rules);
 });
 
 test("content strings are passed through byte-for-byte", () => {
-  CHECKPOINTS.forEach((cp, i) => {
+  ACT_CHECKPOINTS.forEach((cp, i) => {
     const src = raw.checkpoints[i];
     for (const k of ["id", "title", "category", "points", "story", "body"]) assert.equal(cp[k], src[k], `${cp.id}.${k}`);
     assert.equal(cp.reel.quote, src.reel.quote);
@@ -89,4 +91,67 @@ test("submit response relic carries inscription and lore", () => {
   const relic = relicOfAct(1);
   assert.equal(typeof relic.inscription, "string");
   assert.equal(typeof relic.lore, "string");
+});
+
+// ---------- Final face-off ----------
+const { openGate } = await import("../src/controllers/game.controller.js");
+const now = () => new Date().toISOString();
+const solveRows = (cps) => cps.map((c) => ({ cp_id: c.id, points: c.points, solved_at: now() }));
+const relicRows = (ids) => ids.map((relic_id) => ({ relic_id, earned_at: now() }));
+const team = { id: "t2", name: "T2", points_adjust: 0 };
+
+test("final boss: 5.4 still awards the Martian Orb; final never awards a relic", () => {
+  const cp54 = CHECKPOINTS.find((c) => c.id === "5.4");
+  assert.ok(isLastOfAct(cp54));
+  assert.equal(relicOfAct(cp54.act).id, "martian-orb");
+  assert.equal(isLastOfAct(FINAL_BOSS), false);
+  assert.equal(relicOfAct(FINAL_BOSS.act), null);
+});
+
+test("final boss: never in acts or per-act counts", () => {
+  const p = new TeamState(team, [], [], []).progress();
+  const ids = p.acts.flatMap((a) => a.checkpoints.map((c) => c.id));
+  assert.equal(ids.length, 20);
+  assert.ok(!ids.includes("final"));
+  assert.equal(p.finalBoss.status, "locked");
+  assert.equal(p.finalBoss.slug, null);
+  assert.equal(p.finished, false);
+  assert.equal(p.finishedAt, null);
+  assert.equal(p.relicsTotal, 5);
+  assert.deepEqual(Object.keys(p.finalBoss).sort(), ["category", "id", "points", "slug", "status", "title"]);
+});
+
+test("final boss: unlocks after 5.4 with all five relics", () => {
+  const s = new TeamState(team, solveRows(ACT_CHECKPOINTS), [], relicRows(RELICS.map((r) => r.id)));
+  const p = s.progress();
+  assert.equal(p.finalBoss.status, "current");
+  assert.equal(p.finalBoss.slug, s.slugOf(FINAL_BOSS));
+  assert.equal(p.relicsCollected, 5);
+  assert.equal(openGate(s, s.slugOf(FINAL_BOSS)), FINAL_BOSS);
+  assert.equal(s.nextOf(CHECKPOINTS.find((c) => c.id === "5.4")).id, "final");
+});
+
+test("final boss: defence in depth, 403 LOCKED without every relic even when order allows it", () => {
+  // All 20 solved (order says final is next) but one relic row is missing.
+  const s = new TeamState(team, solveRows(ACT_CHECKPOINTS), [], relicRows(RELICS.slice(0, 4).map((r) => r.id)));
+  assert.equal(s.progress().finalBoss.status, "locked");
+  assert.equal(s.progress().finalBoss.slug, null);
+  assert.equal(s.nextOf(CHECKPOINTS.find((c) => c.id === "5.4")), null);
+  assert.throws(() => openGate(s, s.slugOf(FINAL_BOSS)), (e) => e.status === 403 && e.data.code === "LOCKED" && e.data.final === true);
+});
+
+test("final boss: solved -> finished, finishedAt, counted in stats and activity", () => {
+  const rows = solveRows(CHECKPOINTS);
+  const s = new TeamState(team, rows, [], relicRows(RELICS.map((r) => r.id)));
+  const p = s.progress();
+  assert.equal(p.finished, true);
+  assert.equal(p.finishedAt, rows.at(-1).solved_at);
+  assert.equal(p.finalBoss.status, "solved");
+  assert.equal(p.stats.solved, 21);
+  assert.equal(p.stats.totalCheckpoints, 21);
+  assert.equal(p.team.points, CHECKPOINTS.reduce((n, c) => n + c.points, 0));
+  const fin = p.activity.find((e) => e.cpId === "final");
+  assert.equal(fin.cp.id, "final");
+  assert.equal(fin.delta, FINAL_BOSS.points);
+  assert.equal(openGate(s, s.slugOf(FINAL_BOSS)), FINAL_BOSS); // still viewable after solving
 });

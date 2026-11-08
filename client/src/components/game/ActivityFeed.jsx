@@ -1,9 +1,10 @@
-import { formatCp, formatDelta } from "../../lib/format.js";
+import { formatCp, formatDelta, isFinalCp } from "../../lib/format.js";
 import Icon from "../ui/Icon.jsx";
 
 const ICONS = { solve: "check", hint: "bulb", relic: "relic" };
 
 function describe(item) {
+  if (item.type === "solve" && isFinalCp(item.cp)) return `Cleared ${item.cp.title}`;
   if (item.type === "solve") return `Solved ${formatCp(item.cp)} — ${item.cp.title}`;
   if (item.type === "hint") return `Used hint on ${formatCp(item.cp)}`;
   if (item.type === "relic") return `Collected ${item.relic?.name ?? "a relic"}`;

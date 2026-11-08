@@ -76,6 +76,29 @@ export function useRelics() {
   };
 }
 
+// Final face-off state from /progress. Safe defaults when the API (or mock mode) has no final boss yet.
+//   unlocked: the final gate is open and not yet solved (show the CTA, pulse the Relics tab)
+export function useFinale() {
+  const { progress, event, error } = useGameStore();
+  const relics = progress?.relics ?? [];
+  const finalBoss = progress?.finalBoss ?? null;
+  const finished = !!progress?.finished;
+  const finishedAt = progress?.finishedAt ?? null;
+  const startedAt = event?.startedAt ?? null;
+  const timeTakenMs =
+    finished && finishedAt && startedAt ? Math.max(0, new Date(finishedAt) - new Date(startedAt)) : null;
+  return {
+    loading: !progress && !error,
+    finalBoss,
+    relicsCollected: progress?.relicsCollected ?? relics.filter((r) => r.collected).length,
+    relicsTotal: progress?.relicsTotal ?? relics.length,
+    unlocked: finalBoss?.status === "current" && !!finalBoss.slug,
+    finished,
+    finishedAt,
+    timeTakenMs: Number.isFinite(timeTakenMs) ? timeTakenMs : null,
+  };
+}
+
 export function useActivity() {
   const { progress, error } = useGameStore();
   return { loading: !progress && !error, error, activity: progress?.activity ?? [] };

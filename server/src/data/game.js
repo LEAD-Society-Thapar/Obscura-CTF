@@ -57,11 +57,16 @@ export const RELICS = content.relics.map((r) => ({
   lore: r.lore,
 }));
 
-// Order in this array = unlock order. Each id needs a row in the `checkpoints` table (npm run db:seed:flags).
-export const CHECKPOINTS = content.checkpoints.map((cp) => toCheckpoint(cp));
-
-// Not part of CHECKPOINTS (and so not reachable through the unlock chain) until the final face-off is wired in.
+// The final face-off. act: null keeps it out of every act (map, per-act counts, relic awards).
+// It is only reachable once the team holds every relic (see TeamState in services/teamState.js).
 export const FINAL_BOSS = toCheckpoint(content.finalBoss, { act: null, index: null, slotKey: "final" });
+
+// The 20 act checkpoints, in unlock order.
+export const ACT_CHECKPOINTS = content.checkpoints.map((cp) => toCheckpoint(cp));
+
+// Order in this array = unlock order: the 20 act checkpoints, then the final face-off as the 21st gate.
+// Each id needs a row in the `checkpoints` table (npm run db:seed:flags).
+export const CHECKPOINTS = [...ACT_CHECKPOINTS, FINAL_BOSS];
 
 export const RULES = content.rules;
 
@@ -72,7 +77,9 @@ export const RULES = content.rules;
   const seen = new Set();
   let prev = null;
 
-  for (const cp of [...CHECKPOINTS, FINAL_BOSS]) {
+  if (FINAL_BOSS.id !== "final") fail(`finalBoss.id must be "final"`);
+  if (CHECKPOINTS.at(-1) !== FINAL_BOSS) fail("the final boss must be the last gate");
+  for (const cp of CHECKPOINTS) {
     if (typeof cp.id !== "string" || !cp.id) fail("a checkpoint has no string id");
     if (seen.has(cp.id)) fail(`duplicate checkpoint id ${cp.id}`);
     seen.add(cp.id);
@@ -82,7 +89,7 @@ export const RULES = content.rules;
       fail(`${cp.id}: hints must have ids 1..n in order and integer costs`);
     }
   }
-  for (const cp of CHECKPOINTS) {
+  for (const cp of ACT_CHECKPOINTS) {
     if (!actIds.has(cp.act)) fail(`${cp.id}: unknown act ${cp.act}`);
     if (cp.id !== `${cp.act}.${cp.index}`) fail(`${cp.id}: id must be "<act>.<index>"`);
     if (prev && (cp.act < prev.act || (cp.act === prev.act && cp.index !== prev.index + 1))) {
@@ -92,6 +99,6 @@ export const RULES = content.rules;
   }
   for (const a of ACTS) {
     if (!relicIds.has(a.relicId)) fail(`act ${a.id}: unknown relicId ${a.relicId}`);
-    if (!CHECKPOINTS.some((c) => c.act === a.id)) fail(`act ${a.id} has no checkpoints`);
+    if (!ACT_CHECKPOINTS.some((c) => c.act === a.id)) fail(`act ${a.id} has no checkpoints`);
   }
 }

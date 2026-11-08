@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
-import { useActivity, useActs, useRelics, useTeam } from "../hooks/useGameData.js";
+import { useActivity, useActs, useFinale, useRelics, useTeam } from "../hooks/useGameData.js";
 import { formatCp, formatPoints } from "../lib/format.js";
 import ActivityFeed from "../components/game/ActivityFeed.jsx";
 import RelicCard from "../components/game/RelicCard.jsx";
 import TeamAvatar from "../components/game/TeamAvatar.jsx";
+import VictoryPanel from "../components/game/VictoryPanel.jsx";
 import Button from "../components/ui/Button.jsx";
 import Icon from "../components/ui/Icon.jsx";
 import PageStatus from "../components/ui/PageStatus.jsx";
@@ -14,7 +15,7 @@ import StatTile from "../components/ui/StatTile.jsx";
 function JourneyTile({ act }) {
   const current = act.status === "current";
   const locked = act.status === "locked";
-  const complete = act.status === "solved";
+  const complete = act.status === "done"; // withActStats() uses "done" | "current" | "locked"
   const pct = act.total ? (act.solvedCount / act.total) * 100 : 0;
 
   const body = (
@@ -67,11 +68,22 @@ export default function ChallengesHub() {
   const { relics, collected, total } = useRelics();
   const { activity } = useActivity();
 
+  const { finalBoss, unlocked: finalOpen, finished } = useFinale();
+
   if (loading || error) return <PageStatus loading={loading} error={error} label="Loading your dossier" />;
 
-  const currentCp = currentAct?.current;
+  // Resume target: the current act checkpoint, or the final gate once every act is done.
+  const resume = finished
+    ? null
+    : currentAct?.current
+      ? { to: `/gate/${currentAct.current.slug}`, label: `Resume ${formatCp(currentAct.current)}: ${currentAct.current.title}` }
+      : finalOpen
+        ? { to: `/gate/${finalBoss.slug}`, label: `Face Mogambo: ${finalBoss.title}` }
+        : null;
 
   return (
+    <>
+    <VictoryPanel className="mb-5" />
     <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(310px,0.9fr)_minmax(0,1.65fr)]">
       <section
         aria-labelledby="team-heading"
@@ -113,14 +125,21 @@ export default function ChallengesHub() {
                 max={currentAct.total}
                 label={`Act ${currentAct.id} progress`}
               />
-              {currentCp && (
-                <Link
-                  to={`/gate/${currentCp.slug}`}
-                  className="mt-4 flex w-full items-center justify-between gap-3 rounded-[12px] border border-[#5f2a26]/70 bg-[#6F211B]/90 px-4 py-3 font-heading text-sm font-bold text-[#f7efe6] shadow-[0_8px_18px_rgba(111,33,27,0.22)] transition-transform hover:-translate-y-0.5"
-                >
-                  <span>Resume {formatCp(currentCp)}: {currentCp.title}</span>
-                  <Icon name="arrowRight" className="size-4" />
-                </Link>
+              {finished ? (
+                <p className="mt-4 flex w-full items-center gap-3 rounded-[12px] border border-[#b58a42] bg-[#24170F] px-4 py-3 font-heading text-sm font-bold text-[#d9a441]">
+                  <Icon name="trophy" className="size-4" />
+                  <span>Victory. Mogambo is defeated and the Archive is restored.</span>
+                </p>
+              ) : (
+                resume && (
+                  <Link
+                    to={resume.to}
+                    className="mt-4 flex w-full items-center justify-between gap-3 rounded-[12px] border border-[#5f2a26]/70 bg-[#6F211B]/90 px-4 py-3 font-heading text-sm font-bold text-[#f7efe6] shadow-[0_8px_18px_rgba(111,33,27,0.22)] transition-transform hover:-translate-y-0.5"
+                  >
+                    <span>{resume.label}</span>
+                    <Icon name="arrowRight" className="size-4" />
+                  </Link>
+                )
               )}
             </div>
           )}
@@ -176,5 +195,6 @@ export default function ChallengesHub() {
         </section>
       </div>
     </div>
+    </>
   );
 }

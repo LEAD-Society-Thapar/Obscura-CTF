@@ -1,7 +1,7 @@
 // Builds a team's view of the game from the DB rows + static content in data/game.js.
 // Response shapes follow the client's mock server (client/src/data/mockApi.js), which is the API contract.
 import { requireDb } from "../config/supabase.js";
-import { ACTS, CHECKPOINTS, RELICS } from "../data/game.js";
+import { ACTS, CHECKPOINTS, FINAL_BOSS, RELICS } from "../data/game.js";
 import { deriveGateSlug } from "../utils/gate.js";
 import { HttpError } from "../utils/httpError.js";
 
@@ -10,10 +10,20 @@ const rowsOf = ({ data, error }) => {
   return data;
 };
 
+export const isFinal = (cp) => cp?.id === FINAL_BOSS.id;
 export const checkpointById = (id) => CHECKPOINTS.find((c) => c.id === id) || null;
 export const checkpointAfter = (cp) => CHECKPOINTS[CHECKPOINTS.indexOf(cp) + 1] || null;
-export const isLastOfAct = (cp) => checkpointAfter(cp)?.act !== cp.act;
-export const relicOfAct = (actId) => RELICS.find((r) => r.id === ACTS.find((a) => a.id === actId)?.relicId) || null;
+// Only act checkpoints can end an act. The final boss (act: null) never does, so it never awards a relic;
+// 5.4 is last of act 5 because the next gate (final) has a different act.
+export const isLastOfAct = (cp) => cp?.act != null && !isFinal(cp) && checkpointAfter(cp)?.act !== cp.act;
+export const relicOfAct = (actId) =>
+  actId == null ? null : RELICS.find((r) => r.id === ACTS.find((a) => a.id === actId)?.relicId) || null;
+
+// True when every relic id appears in `relicIds`.
+export const holdsAllRelics = (relicIds) => {
+  const held = new Set(relicIds);
+  return RELICS.every((r) => held.has(r.id));
+};
 
 // Points are derived, never stored, so they can't drift: solves - hints + manual adjustment.
 export function pointsOf(team, solves, hints) {
@@ -57,6 +67,17 @@ export class TeamState {
         this.status.set(cp.id, "locked");
       }
     }
+
+    // Defence in depth: the final gate stays locked without every relic, whatever the order logic says
+    // (e.g. an admin-inserted solve row). A solved final stays solved.
+    this.hasAllRelics = holdsAllRelics(relics.map((r) => r.relic_id));
+    if (this.status.get(FINAL_BOSS.id) === "current" && !this.hasAllRelics) {
+      this.status.set(FINAL_BOSS.id, "locked");
+    }
+  }
+
+  get finalSolve() {
+    return this.solves.find((s) => s.cp_id === FINAL_BOSS.id) || null;
   }
 
   get points() {
@@ -154,17 +175,34 @@ export class TeamState {
   progress() {
     const activity = this.activity();
     const relics = this.relicList();
+    const finalSummary = this.summary(FINAL_BOSS);
+    const finalSolve = this.finalSolve;
     return {
       team: { id: this.team.id, name: this.team.name, avatarSlot: "team-avatar", points: this.points },
       stats: {
         hintsUsed: this.hints.length,
         hintPointsSpent: this.hints.reduce((n, h) => n + h.cost, 0),
         streak: this.streak(activity),
+        solved: this.solves.length, // includes the final face-off
+        totalCheckpoints: CHECKPOINTS.length, // 21
       },
+      // Acts list only act checkpoints (c.act === a.id), so the final face-off never shows on the map or in counts.
       acts: ACTS.map((a) => ({
         ...a,
         checkpoints: CHECKPOINTS.filter((c) => c.act === a.id).map((c) => this.summary(c)),
       })),
+      finalBoss: {
+        id: finalSummary.id,
+        title: finalSummary.title,
+        category: finalSummary.category,
+        points: finalSummary.points,
+        status: finalSummary.status,
+        slug: finalSummary.slug, // null while locked
+      },
+      relicsCollected: relics.filter((r) => r.collected).length,
+      relicsTotal: relics.length,
+      finished: !!finalSolve,
+      finishedAt: finalSolve?.solved_at ?? null,
       relics,
       activity: activity.map((e) => ({
         ...e,

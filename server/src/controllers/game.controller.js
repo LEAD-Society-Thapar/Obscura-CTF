@@ -8,6 +8,8 @@ import { HttpError } from "../utils/httpError.js";
 import {
   checkpointAfter,
   checkpointById,
+  holdsAllRelics,
+  isFinal,
   isLastOfAct,
   loadTeamState,
   pointsOf,
@@ -22,11 +24,15 @@ const rowsOf = ({ data, error }) => {
 };
 
 // Resolves a gate slug to an open checkpoint for this team, or throws NOT_FOUND / LOCKED.
-function openGate(state, slug) {
+export function openGate(state, slug) {
   const cp = state.bySlug(slug);
   if (!cp) throw new HttpError(404, "No gate here.", { code: "NOT_FOUND" });
+  // Defence in depth for the final face-off: refuse without every relic, independent of the status map.
+  if (isFinal(cp) && !state.hasAllRelics && state.status.get(cp.id) !== "solved") {
+    throw new HttpError(403, "Collect every relic to face Mogambo.", { code: "LOCKED", act: null, final: true });
+  }
   if (state.status.get(cp.id) === "locked") {
-    throw new HttpError(403, "This gate is still sealed.", { code: "LOCKED", act: cp.act });
+    throw new HttpError(403, "This gate is still sealed.", { code: "LOCKED", act: cp.act, final: isFinal(cp) });
   }
   return cp;
 }
@@ -36,12 +42,18 @@ export async function getEventState(_req, res) {
   const [ev] = rowsOf(await requireDb().from("event_state").select("*").eq("id", 1));
   const durationMinutes = ev?.duration_minutes ?? 90;
   if (!ev?.started_at || ev.status === "idle") {
-    return res.json({ status: ev?.status ?? "idle", endsAt: null, durationMinutes });
+    return res.json({ status: ev?.status ?? "idle", endsAt: null, startedAt: null, totalPausedMs: 0, durationMinutes });
   }
   const pausedMs =
     Number(ev.total_paused_ms) + (ev.status === "paused" && ev.paused_at ? Date.now() - new Date(ev.paused_at) : 0);
   const endsAt = new Date(new Date(ev.started_at).getTime() + durationMinutes * 60_000 + pausedMs);
-  res.json({ status: ev.status, endsAt: endsAt.toISOString(), durationMinutes });
+  res.json({
+    status: ev.status,
+    endsAt: endsAt.toISOString(),
+    startedAt: new Date(ev.started_at).toISOString(), // for "time taken" on the Victory panel
+    totalPausedMs: pausedMs,
+    durationMinutes,
+  });
 }
 
 // GET /api/game/progress
@@ -97,13 +109,24 @@ export async function submitFlag(req, res) {
     );
   }
 
-  const next = checkpointAfter(cp);
+  // Only point at the final gate if the team now holds every relic (including one awarded just now);
+  // otherwise the client sends them to the Relics page.
+  let next = checkpointAfter(cp);
+  if (isFinal(next) && !holdsAllRelics([...state.relics.map((r) => r.relic_id), ...(relic ? [relic.id] : [])])) {
+    next = null;
+  }
+  const final = isFinal(cp);
   res.json({
     correct: true,
     pointsAwarded: cp.points,
     reel: state.reelOf(cp),
     next: next ? { id: next.id, act: next.act, index: next.index, slug: state.slugOf(next) } : null,
     relic: relic ? { ...relic, collected: true } : null,
+    finished: final,
+    // Sent only after the final solve. The title comes from the server (not the client bundle) because it
+    // matches an accepted answer for the final checkpoint.
+    ending: final ? cp.reel.clue : null,
+    endingTitle: final ? cp.reel.quote || null : null,
   });
 }
 
