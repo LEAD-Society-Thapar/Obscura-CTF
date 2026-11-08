@@ -11,6 +11,7 @@ import CategoryTag from "../components/ui/CategoryTag.jsx";
 import Icon from "../components/ui/Icon.jsx";
 import PageStatus from "../components/ui/PageStatus.jsx";
 import PointsBadge from "../components/ui/PointsBadge.jsx";
+import SafeMarkdown from "../components/ui/SafeMarkdown.jsx";
 
 function BackLink({ act }) {
   return (
@@ -79,7 +80,8 @@ export default function Gate() {
       <BackLink act={cp.act} />
 
       <div className="mt-4 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
-        <div>
+        {/* min-w-0: lets wide code blocks/tables scroll inside their box instead of widening the page. */}
+        <div className="min-w-0">
           <p className="font-type text-lg text-gold">{formatCp(cp)}</p>
           <h1 id="cp-title" className="font-heading text-4xl font-bold text-bone sm:text-5xl">
             {cp.title}
@@ -99,6 +101,12 @@ export default function Gate() {
               <p key={i}>{p}</p>
             ))}
           </div>
+
+          {cp.body && (
+            <section aria-label="Challenge" className="mt-6 rounded-card border border-line bg-ink-soft/80 p-4 text-base leading-relaxed sm:p-5 sm:text-lg">
+              <SafeMarkdown>{cp.body}</SafeMarkdown>
+            </section>
+          )}
 
           {cp.downloads.length > 0 && (
             <section aria-labelledby="pack-heading" className="mt-6">

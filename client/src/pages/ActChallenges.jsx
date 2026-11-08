@@ -45,6 +45,7 @@ export default function ActChallenges() {
               <span className="text-blood-bright">{title.slice(-1)}</span>
             </h1>
             <p className="mt-4 max-w-xs leading-relaxed text-bone/90">{act.blurb}</p>
+            {act.film && <p className="mt-2 max-w-xs font-type text-xs text-muted">Film: {act.film}</p>}
             <p className="mt-4 font-type text-sm text-gold">
               {act.solvedCount}/{act.total} solved
             </p>
