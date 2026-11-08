@@ -3,7 +3,7 @@
 import { requireDb } from "../config/supabase.js";
 import { ACTS, RULES } from "../data/game.js";
 import { recordResult } from "../middleware/submitLimiter.js";
-import { flagMatches } from "../utils/gate.js";
+import { flagMatches, normalizeAnswer } from "../utils/gate.js";
 import { HttpError } from "../utils/httpError.js";
 import {
   checkpointAfter,
@@ -59,8 +59,8 @@ export async function getCheckpoint(req, res) {
 
 // POST /api/game/gate/:slug/submit  { flag }   (rate limited by submitLimiter)
 export async function submitFlag(req, res) {
-  const flag = String(req.body?.flag || "").trim();
-  if (!flag) throw new HttpError(400, "Enter a flag first.");
+  const flag = String(req.body?.flag || "");
+  if (!normalizeAnswer(flag)) throw new HttpError(400, "Enter a flag first.");
 
   const db = requireDb();
   const teamId = req.team.id;
@@ -70,11 +70,14 @@ export async function submitFlag(req, res) {
     throw new HttpError(409, "Your team already solved this checkpoint.", { code: "ALREADY_SOLVED" });
   }
 
-  const [row] = rowsOf(await db.from("checkpoints").select("flag_hash").eq("id", cp.id));
-  if (!row) throw new Error(`Checkpoint ${cp.id} has no flag in the DB. Run npm run db:seed.`);
+  // select("*") so this keeps working if migration 001 (accepted_hashes) has not been applied yet.
+  const [row] = rowsOf(await db.from("checkpoints").select("*").eq("id", cp.id));
+  if (!row) throw new Error(`Checkpoint ${cp.id} has no flag in the DB. Run npm run db:seed:flags.`);
 
-  const correct = flagMatches(flag, row.flag_hash);
-  rowsOf(await db.from("submissions").insert({ team_id: teamId, cp_id: cp.id, submitted: flag.slice(0, 200), correct }));
+  const correct = flagMatches(cp.id, flag, [row.flag_hash, ...(row.accepted_hashes ?? [])]);
+  // Never store a correct answer in plain text.
+  const submitted = correct ? "[correct]" : flag.trim().slice(0, 200);
+  rowsOf(await db.from("submissions").insert({ team_id: teamId, cp_id: cp.id, submitted, correct }));
   const limit = recordResult(teamId, correct);
   if (!correct) return res.json({ correct: false, ...limit });
 

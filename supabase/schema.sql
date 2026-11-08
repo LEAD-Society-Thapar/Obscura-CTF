@@ -18,10 +18,12 @@ create table if not exists teams (
   created_at     timestamptz not null default now()
 );
 
--- ---------- Checkpoints (flag stored as SHA-256 hash only) ----------
+-- ---------- Checkpoints (flags stored as keyed hashes only) ----------
+-- Hash = HMAC-SHA256(FLAG_PEPPER, "<id>:<normalized answer>"), see server/src/utils/gate.js.
 create table if not exists checkpoints (
-  id         text primary key,                  -- "2.2" = act 2, checkpoint 2 (matches game.js)
-  flag_hash  text not null                      -- sha256 hex of the flag
+  id               text primary key,                 -- "2.2" = act 2, checkpoint 2; "final" = final boss
+  flag_hash        text not null,                    -- hash of the primary answer
+  accepted_hashes  text[] not null default '{}'      -- hashes of alternative accepted answers (migration 001)
 );
 
 -- ---------- Per-team state. A team's points = sum(solves) - sum(hints) + points_adjust ----------

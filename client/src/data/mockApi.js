@@ -85,6 +85,7 @@ const nextOf = (cp) => {
 const detail = (cp) => ({
   ...summary(cp),
   story: cp.story,
+  body: cp.body ?? "",
   posterSlot: cp.posterSlot,
   downloads: cp.downloads,
   hints: cp.hints.map((h) => ({

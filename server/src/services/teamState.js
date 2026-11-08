@@ -102,6 +102,7 @@ export class TeamState {
     return {
       ...this.summary(cp),
       story: cp.story,
+      body: cp.body,
       posterSlot: cp.posterSlot,
       downloads: cp.downloads,
       hints: cp.hints.map((h) => ({
@@ -116,9 +117,18 @@ export class TeamState {
     };
   }
 
+  // Inscription and lore are only revealed for relics this team has collected.
   relicList() {
     const earned = new Set(this.relics.map((r) => r.relic_id));
-    return RELICS.map((r) => ({ ...r, collected: earned.has(r.id) }));
+    return RELICS.map((r) => {
+      const collected = earned.has(r.id);
+      return {
+        ...r,
+        collected,
+        inscription: collected ? r.inscription : null,
+        lore: collected ? r.lore : null,
+      };
+    });
   }
 
   // Newest first, built from solves + hints + relics (no separate log table).

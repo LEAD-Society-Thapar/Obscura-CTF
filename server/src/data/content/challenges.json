@@ -1,0 +1,708 @@
+{
+  "version": 1,
+  "story": {
+    "prologue": "The screen goes black. A red light blinks. Mogambo leans into the frame: *“Mogambo khush hua… Aapka Archive ab mera hai.”* A 90:00 countdown appears with a single button: **START THE HUNT**.",
+    "premise": "Beneath the city lies the Archive, the vault where every frame of Indian cinema is kept safe. Last night it went dark, and one line flickered on every screen: MOGAMBO KHUSH HUA.\n\nMogambo has split the Archive’s master key into five relics and hidden each one inside a legendary film. If he gathers all five on Mars, every story ends with the villain winning. You are OBSCURA’s agents: crack four checkpoints in each film world, recover the relics, and stop Mogambo before the picture ends.",
+    "ending": "*“Mogambo dukhi hua!”* The five relics click together into the Master Reel, and the Archive lights up frame by frame. Mogambo’s face flickers, freezes and melts into static. Last title card: *“Picture abhi baaki hai mere dost.”* Optional Round 2 teaser: *“Archive toh bach gaya. Ab website banao.”*\n\n---"
+  },
+  "acts": [
+    {
+      "id": 1,
+      "title": "Ramgarh Ka Rahasya",
+      "film": "Sholay (1975)",
+      "blurb": "Ramgarh, 1975. Gabbar’s dacoits have buried The Rusted Reel somewhere between the rocks and the water tank. Trust Jai’s coin at your own risk.",
+      "relicId": "rusted-reel"
+    },
+    {
+      "id": 2,
+      "title": "Mumbai Ka Mayajaal",
+      "film": "Don (1978)",
+      "blurb": "Bombay, 1978. Don has many faces, the police trust none of them, and every lead in this city of illusions is a trap. Find the Wax Seal before the mayajaal finds you.",
+      "relicId": "wax-seal"
+    },
+    {
+      "id": 3,
+      "title": "Filmcity Ka Fitoor",
+      "film": "Om Shanti Om (2007)",
+      "blurb": "Lights, camera, sabotage. Thirty years after a fire swallowed the set of Om Shanti Om, Film City is shooting it again, and someone still wants the Director’s Script burned.",
+      "relicId": "directors-script"
+    },
+    {
+      "id": 4,
+      "title": "Bollywood Express",
+      "film": "Dilwale Dulhania Le Jayenge (1995)",
+      "blurb": "London to Punjab on the Bollywood Express. Raj has a mandolin, Simran has a love letter, and the stern old man feeding pigeons looks suspiciously like Mogambo.",
+      "relicId": "love-letter"
+    },
+    {
+      "id": 5,
+      "title": "Mogambo Ka Mars",
+      "film": "Mr. India (1987), relocated to Mars",
+      "blurb": "Mogambo has fled to the red planet. Up here everything glows red, so no invisibility gadget can hide you. Seize the Martian Orb and make sure Mogambo is never khush again.",
+      "relicId": "martian-orb"
+    }
+  ],
+  "relics": [
+    {
+      "id": "rusted-reel",
+      "name": "The Rusted Reel",
+      "act": 1,
+      "inscription": "DHANNO",
+      "lore": "Found in Dhanno’s saddlebag. Inscription: **DHANNO**. Its last frame shows the Gateway of India and a man in a white suit walking away."
+    },
+    {
+      "id": "wax-seal",
+      "name": "The Wax Seal",
+      "act": 2,
+      "inscription": "UNDERWORLD",
+      "lore": "Found behind the mirror in Don’s den, still warm. Inscription: **UNDERWORLD**. Beneath it, in tiny letters: “Supplied to Mukesh Mehra, Film City.”"
+    },
+    {
+      "id": "directors-script",
+      "name": "The Director's Script",
+      "act": 3,
+      "inscription": "KAAYNAAT",
+      "lore": "Recovered from Mukesh’s pen drive. Inscription: **KAAYNAAT**. An e-ticket is attached: one seat on the Bollywood Express, booked for “Baldev Singh”, with no PNR."
+    },
+    {
+      "id": "love-letter",
+      "name": "The Love Letter",
+      "act": 4,
+      "inscription": "HUMSAFAR",
+      "lore": "It was tied to a pigeon’s leg all along. Inscription: **HUMSAFAR**. “Baldev Singh” peels off a rubber mask: it’s Mogambo, and he boards a rocket for Mars before the train even stops."
+    },
+    {
+      "id": "martian-orb",
+      "name": "The Martian Orb",
+      "act": 5,
+      "inscription": "INSAAF",
+      "lore": "It pulses once and turns gold. Inscription: **INSAAF**. Five relics, five words, and Mogambo is waiting inside the Archive."
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "1.1",
+      "act": 1,
+      "index": 1,
+      "title": "Kitne Aadmi The?",
+      "category": "Web",
+      "points": 100,
+      "story": "Gabbar’s spy has posted the gang roster on a web page. *“Kitne aadmi the?”* Gabbar roars. Kaalia swears it was two, but Gabbar trusts only what actually shows up on screen.",
+      "body": "How many names does a visitor actually see on this page?\n\n```html\n<h2>Gabbar ki Toli</h2>\n<ul>\n  <li>Kaalia</li>\n  <!-- <li>Sambha</li> -->\n  <li hidden>Jai</li>\n  <li>Thakur ka Khabri</li>\n  <li style=\"display: none\">Veeru</li>\n  <li>Soorma Bhopali</li>\n</ul>\n```",
+      "hints": [
+        {
+          "id": 1,
+          "cost": 20,
+          "teaser": "Code mein hai, screen pe nahi.",
+          "text": "Not everything in a page’s HTML gets drawn. Browsers skip HTML comments (`<!-- ... -->`) entirely, and some attributes and CSS rules keep an element in the code but off the screen."
+        },
+        {
+          "id": 2,
+          "cost": 40,
+          "teaser": "Har naam ki alag jaanch.",
+          "text": "Check every `<li>` on its own: is it commented out, marked hidden, or styled away? Kaalia’s “do” is not the answer."
+        }
+      ],
+      "reel": {
+        "quote": "",
+        "clue": "*“Sardar, teen aadmi the!”* Kaalia lied about the count, and Gabbar has noticed."
+      }
+    },
+    {
+      "id": "1.2",
+      "act": 1,
+      "index": 2,
+      "title": "Jai Ka Sikka",
+      "category": "Misc",
+      "points": 100,
+      "story": "Jai never lost a coin toss, because his coin had heads on both sides. Thakur’s new AI informer at the Ramgarh checkpost is just as one-sided: it calls every traveller a “villager”.",
+      "body": "1,000 travellers crossed the checkpost, and 50 of them were Gabbar’s dacoits. The informer said “villager” every single time. What are its accuracy and its recall for the dacoit class, in percent? Submit as `ACCURACY_RECALL`.",
+      "hints": [
+        {
+          "id": 1,
+          "cost": 20,
+          "teaser": "Sikka sirf ek taraf girta hai.",
+          "text": "Accuracy is correct predictions ÷ all predictions. Recall for a class is how many of its real members the model caught ÷ how many there really were. When one class is rare, a model can score high accuracy while catching nobody."
+        },
+        {
+          "id": 2,
+          "cost": 40,
+          "teaser": "Hisaab ka doosra pehlu.",
+          "text": "The informer never once says “dacoit”. Accuracy looks at all 1,000 travellers; recall looks only at the 50 real dacoits."
+        }
+      ],
+      "reel": {
+        "quote": "",
+        "clue": "“95% accuracy, zero dacoits caught.” Thakur throws the informer down the well. Real detectives count what matters."
+      }
+    },
+    {
+      "id": "1.3",
+      "act": 1,
+      "index": 3,
+      "title": "Kaalia Ki Chitthi",
+      "category": "Crypto",
+      "points": 100,
+      "story": "Before Gabbar’s game of roulette, Kaalia slipped a note to the gang. He was never good with codes: he pushed every letter forward by the number of men who really appear on Gabbar’s roster.",
+      "body": "What is the password?\n\n```text\nVDUGDU, WKH SDVVZRUG WR WKH UHHO YDXOW LV KROL.\n```",
+      "hints": [
+        {
+          "id": 1,
+          "cost": 20,
+          "teaser": "Har akshar thoda aage khisak gaya.",
+          "text": "A Caesar cipher shifts every letter by the same number of places. With a shift of 1, A becomes B and Z wraps round to A. To decode, shift each letter back by the same amount."
+        },
+        {
+          "id": 2,
+          "cost": 40,
+          "teaser": "Pichhle gate se kuch saath le aao.",
+          "text": "The shift is your answer to CP 1.1. Spaces and punctuation don’t move. dcode.fr’s Caesar tool, or CyberChef’s ROT13 with a custom amount, will do the work."
+        }
+      ],
+      "reel": {
+        "quote": "",
+        "clue": "*“Holi kab hai? Kab hai Holi?”* Gabbar finally gets his answer, and so do you."
+      }
+    },
+    {
+      "id": "1.4",
+      "act": 1,
+      "index": 4,
+      "title": "Basanti Ki Bak-Bak",
+      "category": "Stego",
+      "points": 100,
+      "story": "Basanti drove her tonga right past the spot where the reel was buried, and she would love to tell you all about it. *“Humein bekaar baat karne ki aadat toh hai nahi,”* she insists, and then talks nonstop. But she never says anything by accident.",
+      "body": "Who knows where the reel is buried?\n\n```text\nDon't ask me why the whole of Ramgarh calls me a chatterbox!\nHalf the village can't keep up with my tonga, let alone my tongue.\nAnd no, I did not see where Gabbar's men were digging last night...\nNot unless you count the moonlight, the shovels and all that shouting.\nNobody ever asks a tonga-wali the right question, you know.\nOnly one of us saw everything, and she has been neighing about it all morning.\n```",
+      "hints": [
+        {
+          "id": 1,
+          "cost": 20,
+          "teaser": "Basanti hamesha shuruaat se bolti hai.",
+          "text": "Steganography hides a message inside something innocent-looking. One of the oldest tricks is the acrostic, where the first letters of the lines spell a secret word."
+        },
+        {
+          "id": 2,
+          "cost": 40,
+          "teaser": "Basanti ki ek aadat pakdo.",
+          "text": "Ignore what Basanti says and look at how each line starts, top to bottom. The answer is a name, and it neighs."
+        }
+      ],
+      "reel": {
+        "quote": "",
+        "clue": "Dhanno snorts and paws at a fresh mound of earth near the water tank. Something metal glints below."
+      }
+    },
+    {
+      "id": "2.1",
+      "act": 2,
+      "index": 1,
+      "title": "Don Ka Network",
+      "category": "Web",
+      "points": 150,
+      "story": "Don’s gang runs its business through a web server, and every door you knock on answers with a three-digit code. Even the Thane police server has been pulled into the mayajaal.",
+      "body": "Match each status code to what happened at that door. Submit the scene letters for **200, 301, 401, 403, 404, 418 and 500, in that order** (seven letters).\n\n- (a) The guard recognises you as D’Silva’s man and still refuses entry.\n- (b) You search the whole den. Don simply isn’t there: mushkil hi nahi, naamumkin.\n- (c) The door opens and the gang welcomes “Don” inside, no questions asked.\n- (d) The gang’s own plan collapses from the inside before anyone can answer.\n- (e) The guard won’t say a word until you show some identity.\n- (f) The hideout has moved to a new address for good, and a note points you there.\n- (g) A havaldar asks the police server for coffee. It refuses, insisting it is a teapot.",
+      "hints": [
+        {
+          "id": 1,
+          "cost": 30,
+          "teaser": "Har darwaaza ek number bolta hai.",
+          "text": "An HTTP status code is the server’s one-number reply. 2xx means success, 3xx means “go somewhere else”, 4xx means the request has a problem, and 5xx means the server itself failed."
+        },
+        {
+          "id": 2,
+          "cost": 60,
+          "teaser": "Do code aapas mein ulajhte hain.",
+          "text": "401 means “who are you?” (not logged in yet); 403 means “I know who you are, and still no”. 418 is a real joke code from an April Fools’ RFC: think tea, not coffee."
+        }
+      ],
+      "reel": {
+        "quote": "",
+        "clue": "D’Silva’s team maps every door in Don’s network. One of them opens onto a hall of mirrors."
+      }
+    },
+    {
+      "id": "2.2",
+      "act": 2,
+      "index": 2,
+      "title": "Asli Don Kaun?",
+      "category": "Misc",
+      "points": 150,
+      "story": "Don is dead, and only D’Silva knows. His lookalike Vijay, a paan-loving street performer, now walks into the den every night as Don. Mogambo’s men have built a k-nearest-neighbours detector to catch the impostor.",
+      "body": "Past sightings, with paan eaten per day (x) and bodyguards around him (y):\n\n| Sighting | Paan per day (x) | Bodyguards (y) | Label |\n| --- | --- | --- | --- |\n| S1 | 3 | 4 | Don |\n| S2 | 1 | 6 | Don |\n| S3 | 2 | 7 | Don |\n| S4 | 5 | 1 | Vijay |\n| S5 | 6 | 3 | Vijay |\n| S6 | 8 | 0 | Vijay |\n\nTonight’s man: x = 4, y = 3. Use Euclidean distance. Which statements are true? Submit the letters of **every** true statement in alphabetical order (for example, `ACE`).\n\n- A) With k = 1, the detector says Don.\n- B) With k = 3, the detector says Vijay.\n- C) With k = 5, the detector says Vijay.\n- D) The single nearest sighting is a Vijay sighting.\n- E) The second-nearest sighting is S5.\n- F) For tonight’s man, the verdict depends on the value of k.",
+      "hints": [
+        {
+          "id": 1,
+          "cost": 30,
+          "teaser": "Padosi batayenge tum kaun ho.",
+          "text": "k-nearest neighbours (k-NN) labels a new point by finding the k closest labelled points and taking a majority vote. “Closest” here means ordinary straight-line (Euclidean) distance."
+        },
+        {
+          "id": 2,
+          "cost": 60,
+          "teaser": "Square root ki zaroorat nahi.",
+          "text": "Skip the square roots and rank the six sightings by (Δx)² + (Δy)² from tonight’s man. Then take the vote with k = 1, 3 and 5."
+        }
+      ],
+      "reel": {
+        "quote": "",
+        "clue": "The detector flips between Don and Vijay as k changes. In the mayajaal even machines get fooled, so you follow Vijay."
+      }
+    },
+    {
+      "id": "2.3",
+      "act": 2,
+      "index": 3,
+      "title": "Lal Diary",
+      "category": "Crypto",
+      "points": 150,
+      "story": "Don’s red diary holds every name in his network. Its last page looks like gibberish, and in the mayajaal nothing reads the right way round.",
+      "body": "What is the code word?\n\n```text\nQUxBV1NBUkFOQUIgOkRST1cgRURPQyAuREFFRCBTSSBOT0QgTEFFUiBFSFQ=\n```",
+      "hints": [
+        {
+          "id": 1,
+          "cost": 30,
+          "teaser": "Diary ki zubaan alag hai.",
+          "text": "Base64 is an encoding, not encryption. It rewrites any data using letters, digits, + and /, often padded with = at the end, and anyone can decode it without a key."
+        },
+        {
+          "id": 2,
+          "cost": 60,
+          "teaser": "Decode ke baad bhi kaam baaki hai.",
+          "text": "Decode it first (CyberChef: From Base64). What comes out is still scrambled, the way a mirror scrambles writing."
+        }
+      ],
+      "reel": {
+        "quote": "",
+        "clue": "Vijay hums the code word at the door, *“Khaike paan Banaraswala…”*, and the den lets you in."
+      }
+    },
+    {
+      "id": "2.4",
+      "act": 2,
+      "index": 4,
+      "title": "Hamshakal Akshar",
+      "category": "Stego",
+      "points": 150,
+      "story": "A telegram signed “Don” is waiting inside the den. But this Don is a lookalike, and so are some of his letters.",
+      "body": "What word do the impostor letters spell?\n\n> Bosѕ, the police are watcһing every road out of Bombay. Kеep the shipment hiddеn until the morning tide. Trust nobody who calls himѕelf Don today, not even me. The seal waits wһere every face looks bаck at itself. Stop.",
+      "hints": [
+        {
+          "id": 1,
+          "cost": 30,
+          "teaser": "Har akshar asli nahi hota.",
+          "text": "Homoglyphs are characters from different alphabets that look the same, like Latin “a” and Cyrillic “а”. Computers store them as different code points, which is how fake usernames and phishing links fool people."
+        },
+        {
+          "id": 2,
+          "cost": 60,
+          "teaser": "Dikhne se zyada, code point dekho.",
+          "text": "Paste the telegram, untouched, into CyberChef’s “Escape Unicode Characters” or any Unicode inspector. Ordinary letters come out unchanged and the impostors don’t. Read their Latin twins in order."
+        }
+      ],
+      "reel": {
+        "quote": "",
+        "clue": "SHEESHA: the mirror. Behind the tallest mirror in Don’s den, something glows red."
+      }
+    },
+    {
+      "id": "3.1",
+      "act": 3,
+      "index": 1,
+      "title": "Picture Abhi Baaki Hai",
+      "category": "Web",
+      "points": 200,
+      "story": "The remake’s opening shot is cued by JavaScript on the studio dashboard. Mukesh rigged the code so Om’s famous line comes out scrambled. Before the camera rolls, the director needs to know exactly what the console will print.",
+      "body": "Write the six words in the order they are printed, joined by underscores.\n\n```js\nsetTimeout(() => console.log(\"Picture\"), 0);\nconsole.log(\"abhi\");\nPromise.resolve().then(() => console.log(\"baaki\"));\n(async () => {\n  console.log(\"hai\");\n  await null;\n  console.log(\"mere\");\n})();\nconsole.log(\"dost\");\n```",
+      "hints": [
+        {
+          "id": 1,
+          "cost": 40,
+          "teaser": "Sab apni baari ka intezaar karte hain.",
+          "text": "JavaScript first runs all ordinary (synchronous) code from top to bottom. Then it empties the microtask queue (promise callbacks and code after an `await`), and only then runs macrotasks such as `setTimeout`, even with a 0 ms delay."
+        },
+        {
+          "id": 2,
+          "cost": 80,
+          "teaser": "Async function ka aadha safar.",
+          "text": "An async function runs like normal code until its first `await`; the rest of it joins the microtask queue behind anything queued earlier. Typing the dialogue in its famous order is exactly the mistake Mukesh is counting on."
+        }
+      ],
+      "reel": {
+        "quote": "",
+        "clue": "The console prints gibberish and the director grins: picture abhi baaki hai. Then the set lights flicker. Someone is in the projection room."
+      }
+    },
+    {
+      "id": "3.2",
+      "act": 3,
+      "index": 2,
+      "title": "Hit Ya Flop?",
+      "category": "Misc",
+      "points": 200,
+      "story": "Mukesh Mehra’s Hit-or-Flop AI decides which films live or die at Film City. Its training labels follow one simple rule, but Mukesh secretly flipped one label so his own flop would look like a hit.",
+      "body": "The rule: **Score = Opening (₹ crore) + 2 × Screens (hundreds)**. The label is HIT if Score ≥ 100, otherwise FLOP. Exactly one row breaks the rule. Submit the poisoned film and its true score as `FILM_SCORE`.\n\n| Film | Opening (₹ crore) | Screens (hundreds) | Label |\n| --- | --- | --- | --- |\n| Jalwa | 40 | 30 | HIT |\n| Toofan | 55 | 20 | FLOP |\n| Sitara | 30 | 40 | HIT |\n| Raftaar | 70 | 10 | FLOP |\n| Dhadkan | 25 | 35 | FLOP |\n| Mausam | 60 | 25 | HIT |\n| Bijli | 45 | 25 | HIT |\n| Shikari | 20 | 45 | HIT |\n| Kismat | 50 | 24 | FLOP |\n| Chandni | 35 | 33 | HIT |\n\n*(All numbers are invented for the puzzle.)*",
+      "hints": [
+        {
+          "id": 1,
+          "cost": 40,
+          "teaser": "Ek label jhooth bol raha hai.",
+          "text": "Data poisoning means tampering with training data, for example by flipping labels, so that a model learns the wrong lesson. When labels follow a known rule, you can catch the tampered row by recomputing the rule yourself."
+        },
+        {
+          "id": 2,
+          "cost": 80,
+          "teaser": "Sau ke aas-paas ka khel.",
+          "text": "Work out Opening + 2 × Screens for every film and compare it with the label. Be careful around 100: exactly 100 still counts as a HIT."
+        }
+      ],
+      "reel": {
+        "quote": "",
+        "clue": "Bijli was Mukesh’s own flop, dressed up as a hit. His AI lied because he taught it to."
+      }
+    },
+    {
+      "id": "3.3",
+      "act": 3,
+      "index": 3,
+      "title": "Jale Hue Panne",
+      "category": "Crypto",
+      "points": 200,
+      "story": "The first page of the Director’s Script survived the fire, but Mukesh locked it with a cipher once nicknamed *“le chiffre indéchiffrable”*. His key is the name still painted on the charred dressing-room door: SHANTI.",
+      "body": "Where is the script hidden? (one word)\n\n```text\nLOE FVZAWT FEMWWS VGAAKE GAM XHLYXV UOAAWMDPEE\n```",
+      "hints": [
+        {
+          "id": 1,
+          "cost": 40,
+          "teaser": "Ek chaabi, kai taale.",
+          "text": "The Vigenère cipher is a Caesar cipher whose shift keeps changing. A keyword is repeated under the message, and each key letter sets the shift for one letter (A = 0, B = 1 … Z = 25)."
+        },
+        {
+          "id": 2,
+          "cost": 80,
+          "teaser": "Chaabi darwaaze pe likhi hai.",
+          "text": "The key is on the dressing-room door, and spaces don’t use up key letters. CyberChef’s Vigenère Decode or dcode.fr will do the arithmetic."
+        }
+      ],
+      "reel": {
+        "quote": "",
+        "clue": "The script is hidden in the chandelier, the same chandelier that will one day come crashing down on Mukesh."
+      }
+    },
+    {
+      "id": "3.4",
+      "act": 3,
+      "index": 4,
+      "title": "Naam Badla, Aatma Wahi",
+      "category": "Stego",
+      "points": 200,
+      "story": "Inside the chandelier is Mukesh’s old pen drive. Om Shanti Om is a story of rebirth, a new name with the same soul, and Mukesh tried the same trick: he renamed every file so nobody would find the script. But a file’s first bytes remember its past life.",
+      "body": "What is each file really? Submit the four real file types in table order, joined by underscores.\n\n| File (the name it claims) | First bytes (hex) |\n| --- | --- |\n| `shanti_1977.mp4` | `25 50 44 46 2D 31 2E 34` |\n| `dard_e_disco.mp3` | `89 50 4E 47 0D 0A 1A 0A` |\n| `mukesh_alibi.pdf` | `47 49 46 38 39 61 20 03` |\n| `om_kapoor_poster.jpg` | `49 44 33 04 00 00 00 00` |",
+      "hints": [
+        {
+          "id": 1,
+          "cost": 40,
+          "teaser": "Naam badal sakte ho, janam nahi.",
+          "text": "Most file formats start with a fixed signature called a magic number. Renaming a file changes its extension but not those first bytes, so forensic tools trust the bytes, not the name."
+        },
+        {
+          "id": 2,
+          "cost": 80,
+          "teaser": "Naam nahi, shuruaati bytes.",
+          "text": "Convert each row from hex to text (CyberChef: From Hex). Three formats spell out their own name; for the fourth, look up which file type begins with the letters you see."
+        }
+      ],
+      "reel": {
+        "quote": "",
+        "clue": "`shanti_1977.mp4` was never a video. It is the Director’s Script, reborn as a PDF."
+      }
+    },
+    {
+      "id": "4.1",
+      "act": 4,
+      "index": 1,
+      "title": "PNR Ka Chakkar",
+      "category": "Web",
+      "points": 250,
+      "story": "Raj has to find Simran’s coach before the train leaves. The Bollywood Express booking portal builds its login query by pasting in whatever you type, so Raj tries the oldest trick in the book.",
+      "body": "The portal’s query:\n\n```sql\nSELECT * FROM bookings\nWHERE passenger = '<name box>' AND pnr = '<pnr box>';\n```\n\nRaj types `' OR '1'='1` in the name box and leaves the PNR box empty. The portal lists every row the query returns. Here is the table:\n\n| passenger | pnr | coach |\n| --- | --- | --- |\n| Raj Malhotra | 4521873690 | S3 |\n| Simran Singh | 8820417735 | S7 |\n| Kuljeet Singh | 1093847562 | A1 |\n| Baldev Singh | *(blank)* | H1 |\n| Chutki Singh | 6602938471 | B2 |\n\nHow many bookings appear, and in which coach? Submit as `COUNT_COACH`.",
+      "hints": [
+        {
+          "id": 1,
+          "cost": 50,
+          "teaser": "Jo likhoge, wahi query banegi.",
+          "text": "SQL injection happens when user input is pasted straight into a query: a quote mark you type can end the string early and add your own conditions. In SQL, AND is evaluated before OR, just as × comes before + in maths."
+        },
+        {
+          "id": 2,
+          "cost": 100,
+          "teaser": "Bracket laga ke padho.",
+          "text": "Write out the full WHERE clause with Raj’s input substituted, then add brackets to show what AND groups together. The trick is not as all-powerful as Raj thinks."
+        }
+      ],
+      "reel": {
+        "quote": "",
+        "clue": "One booking, coach H1, first class: a “Baldev Singh” travelling without a PNR. Simran’s father would never break the rules… would he?"
+      }
+    },
+    {
+      "id": "4.2",
+      "act": 4,
+      "index": 2,
+      "title": "Tujhe Dekha Toh...",
+      "category": "Misc",
+      "points": 250,
+      "story": "Raj’s camera AI must spot Simran in a crowded station. It feeds a 128 × 128 colour photo through this convolutional neural network (CNN).",
+      "body": "How many numbers go into the Dense layer?\n\n```text\nConv2D   8 filters, 5x5, stride 1, padding 2\nMaxPool  2x2, stride 2\nConv2D   16 filters, 3x3, stride 2, padding 1\nMaxPool  2x2, stride 2\nFlatten  -> Dense\n```",
+      "hints": [
+        {
+          "id": 1,
+          "cost": 50,
+          "teaser": "Har layer tasveer ko chhota karti hai.",
+          "text": "A convolution slides small filters over the image, and each filter produces one output channel. Output width = floor((W − K + 2P) / S) + 1, where W is the input width, K the filter size, P the padding and S the stride. A 2×2 max-pool with stride 2 halves the width and height."
+        },
+        {
+          "id": 2,
+          "cost": 100,
+          "teaser": "Shape track karo, channel bhi.",
+          "text": "Track the shape as width × height × channels, starting from 128 × 128 × 3. After a convolution the channel count equals its number of filters, and Flatten multiplies the three numbers together."
+        }
+      ],
+      "reel": {
+        "quote": "",
+        "clue": "The model locks on: platform 3, a mustard-yellow dupatta. *Tujhe dekha toh yeh jaana sanam.*"
+      }
+    },
+    {
+      "id": "4.3",
+      "act": 4,
+      "index": 3,
+      "title": "Upper, Middle, Lower",
+      "category": "Crypto",
+      "points": 250,
+      "story": "Raj slipped Simran a note in the sleeper coach. He didn’t write it in a straight line: he zig-zagged it across the three berths, upper, middle, lower, middle, upper, and so on.",
+      "body": "What is the password?\n\n```text\nIEEUWTANSRNTFHLVSOSEILUNRUDASODEOIASOYHLROPWSR\n```",
+      "hints": [
+        {
+          "id": 1,
+          "cost": 50,
+          "teaser": "Akshar patri pe naachte hain.",
+          "text": "The rail fence cipher writes a message in a zig-zag across several rows (“rails”) and then reads the rows one after another. No letter is changed; the letters are only shuffled."
+        },
+        {
+          "id": 2,
+          "cost": 100,
+          "teaser": "Teen patriyaan, ek raasta.",
+          "text": "Three berths, three rails. A rail fence decoder (CyberChef’s Rail Fence Cipher Decode with key 3, or dcode.fr) gives the sentence without spaces; add them back yourself."
+        }
+      ],
+      "reel": {
+        "quote": "",
+        "clue": "*“Palat… palat…”* Simran turns around. Bade bade deshon mein aisi chhoti chhoti baatein hoti rehti hain, Senorita."
+      }
+    },
+    {
+      "id": "4.4",
+      "act": 4,
+      "index": 4,
+      "title": "Aa... Aa... Aa...",
+      "category": "Stego",
+      "points": 250,
+      "story": "At every stop, “Baldev Singh” steps off to feed the pigeons and calls them in, just as he did in London. The Archive’s microphones noticed that his calls come short and long, with the pigeons fluttering between them like punctuation.",
+      "body": "What word are the pigeons carrying?\n\n```text\naa aa aa aa (flutter) aa aa aaaa (flutter) aaaa aaaa (flutter) aa aa aa (flutter) aa aaaa (flutter) aa aa aaaa aa (flutter) aa aaaa (flutter) aa aaaa aa\n```",
+      "hints": [
+        {
+          "id": 1,
+          "cost": 50,
+          "teaser": "Kabootar bhi baat karte hain.",
+          "text": "Morse code writes each letter as a short pattern of dots (short signals) and dashes (long signals), with a pause between letters. Any two-state signal can carry it: beeps, flashes of light, even bird calls."
+        },
+        {
+          "id": 2,
+          "cost": 100,
+          "teaser": "Chhoti awaaz aur lambi awaaz.",
+          "text": "Turn every short call into a dot and every long call into a dash; each flutter ends a letter. Then decode with a Morse chart or CyberChef’s From Morse Code."
+        }
+      ],
+      "reel": {
+        "quote": "",
+        "clue": "HUMSAFAR. The word is written on a love letter tied to a pigeon’s leg."
+      }
+    },
+    {
+      "id": "5.1",
+      "act": 5,
+      "index": 1,
+      "title": "Mogambo Ka Control Room",
+      "category": "Web",
+      "points": 300,
+      "story": "Mogambo’s panel at `https://mogambo.mars` is about to send a PUT request with a JSON body to `https://api.orb.mars` to wipe the Archive. It is the first call of the day: no cached DNS, no open connection, no cached preflight.",
+      "body": "Put the events in the order they happen. Submit the eight card letters in order.\n\n- (a) Browser sends the real PUT request with the JSON body\n- (b) TCP three-way handshake (SYN, SYN-ACK, ACK)\n- (c) Server answers the preflight with Access-Control-Allow-Origin and Access-Control-Allow-Methods\n- (d) DNS resolves api.orb.mars to an IP address\n- (e) Browser checks the CORS headers and hands the response to `fetch()`\n- (f) TLS handshake: certificate checked, session keys agreed\n- (g) Server replies 200 OK with Access-Control-Allow-Origin\n- (h) Browser sends an OPTIONS preflight with Origin and Access-Control-Request-Method: PUT",
+      "hints": [
+        {
+          "id": 1,
+          "cost": 60,
+          "teaser": "Pehle pata, phir rishta, phir ijaazat.",
+          "text": "Before any HTTP request, a browser needs an IP address (DNS), a connection (TCP) and, for https, an encrypted session (TLS). For a cross-origin request that isn’t “simple”, such as a PUT with JSON, the browser first asks permission with an OPTIONS “preflight” request. That permission system is CORS."
+        },
+        {
+          "id": 2,
+          "cost": 120,
+          "teaser": "Teen taiyaari, do ijaazat, teen asli.",
+          "text": "The first three cards set up the connection, the next two are the permission round-trip, and the last three are the real request and what happens to its answer."
+        }
+      ],
+      "reel": {
+        "quote": "",
+        "clue": "You catch the PUT mid-flight. The Archive wipe stalls at 99%, and Mogambo is not khush."
+      }
+    },
+    {
+      "id": "5.2",
+      "act": 5,
+      "index": 2,
+      "title": "Mogambo Khush Hua?",
+      "category": "Misc",
+      "points": 300,
+      "story": "The Martian Orb runs a language model that finishes one sentence all day: “Mogambo ___ hua.” For the blank it outputs the logits khush = 2.0, dukhi = 1.0 and naraz = 0.0. Mogambo turns the sampling temperature down to 0.5 so that he stays happy.",
+      "body": "At temperature 0.5, what is the probability that the Orb says “khush”? Round to two decimal places.",
+      "hints": [
+        {
+          "id": 1,
+          "cost": 60,
+          "teaser": "Taapmaan kam, mood fix.",
+          "text": "A language model turns its raw scores (logits) into probabilities with softmax: each option gets e raised to its logit, divided by the sum of those values over all options. Temperature T divides every logit before softmax: a low T makes the top choice more certain, a high T makes the options more even."
+        },
+        {
+          "id": 2,
+          "cost": 120,
+          "teaser": "Pehle taapmaan, phir softmax.",
+          "text": "Divide each logit by 0.5 first, then apply softmax to the three new numbers. A calculator with an eˣ key is all you need."
+        }
+      ],
+      "reel": {
+        "quote": "",
+        "clue": "87% khush. Mogambo has rigged his own mood, but the other 13% of him already knows what’s coming."
+      }
+    },
+    {
+      "id": "5.3",
+      "act": 5,
+      "index": 3,
+      "title": "Mogambo Ki Chhoti Chaabi",
+      "category": "Crypto",
+      "points": 300,
+      "story": "Mogambo locked the Orb’s vault code with RSA, the public-key cipher behind much of internet security. Arrogant as ever, he picked a key so small that a pocket calculator could break it. *“Mogambo ki chaabi koi nahi tod sakta!”*",
+      "body": "Public key: n = 91, e = 5. Mogambo turned each letter into a number (A = 1, B = 2 … Z = 26) and encrypted each one separately as c = m⁵ mod 91. What is the vault code?\n\n```text\n38 1 1 38 32 1 76 76 81\n```",
+      "hints": [
+        {
+          "id": 1,
+          "cost": 60,
+          "teaser": "Taala bada, chaabi chhoti.",
+          "text": "RSA decryption needs the private key d. Split n into two primes p × q, compute φ = (p − 1)(q − 1), then find d so that e × d leaves remainder 1 when divided by φ. Each number then decrypts as m = c^d mod n."
+        },
+        {
+          "id": 2,
+          "cost": 120,
+          "teaser": "Pehle n ko todo.",
+          "text": "91 only looks prime, so try small primes. Once you have d, Python’s `pow(c, d, 91)` decrypts each number instantly; then turn 1 into A, 2 into B, and so on."
+        }
+      ],
+      "reel": {
+        "quote": "",
+        "clue": "LAAL BATTI, the red light. On the red planet it shines everywhere, so nothing can stay invisible here, not even Mogambo."
+      }
+    },
+    {
+      "id": "5.4",
+      "act": 5,
+      "index": 4,
+      "title": "Pixel Mein Raaz",
+      "category": "Stego",
+      "points": 300,
+      "story": "The Orb’s sensor sends back a tiny 8 × 6 grayscale picture of itself. It looks like an ordinary glowing orb, but Mogambo hid one word in the least significant place possible.",
+      "body": "What word is hidden in the Orb’s pixels?\n\n```text\n 42  69  86  96  99  88  62  37\n 76 107 136 152 145 129 107  72\n 90 127 170 203 192 170 133  95\n 98 135 172 194 202 162 134  89\n 68 101 130 146 152 126 106  73\n 42  69  82  98  92  91  65  42\n```",
+      "hints": [
+        {
+          "id": 1,
+          "cost": 60,
+          "teaser": "Sabse chhota bit, sabse bada raaz.",
+          "text": "In a grayscale image each pixel is a number from 0 to 255. Its last binary digit, the least significant bit (LSB), changes the shade by only 1, which the eye can’t see, so stego tools hide one bit of a message in each pixel’s LSB."
+        },
+        {
+          "id": 2,
+          "cost": 120,
+          "teaser": "Odd ya even, bas itna.",
+          "text": "A number’s LSB is 1 if it is odd and 0 if it is even. Each row of 8 pixels gives 8 bits, which make one ASCII character (CyberChef: From Binary)."
+        }
+      ],
+      "reel": {
+        "quote": "",
+        "clue": "INSAAF. The Orb’s red glow turns to gold."
+      }
+    }
+  ],
+  "finalBoss": {
+    "id": "final",
+    "title": "The Final Face-off",
+    "category": "Meta",
+    "points": 500,
+    "story": "The Archive’s doors grind open. Mogambo sits on a throne of tangled film reels. *“Mogambo hamesha khush rehta hai,”* he laughs. “So tell me, agent: how do I feel now?”",
+    "body": "Read the inscriptions on your five relics in act order. They hold his answer.",
+    "hints": [
+      {
+        "id": 1,
+        "cost": 100,
+        "teaser": "Paanchon nishaaniyan ek saath.",
+        "text": "A meta-puzzle combines things you have already earned. Every relic on the Relics page carries a one-word inscription."
+      },
+      {
+        "id": 2,
+        "cost": 200,
+        "teaser": "Har nishaani se ek akshar.",
+        "text": "Take just one letter from each inscription, the most obvious one, in act order."
+      }
+    ],
+    "reel": {
+      "quote": "Mogambo dukhi hua!",
+      "clue": "*“Mogambo dukhi hua!”* The five relics click together into the Master Reel, and the Archive lights up frame by frame. Mogambo’s face flickers, freezes and melts into static. Last title card: *“Picture abhi baaki hai mere dost.”* Optional Round 2 teaser: *“Archive toh bach gaya. Ab website banao.”*\n\n---"
+    }
+  },
+  "rules": [
+    {
+      "id": 1,
+      "icon": "clock",
+      "title": "90 Minutes",
+      "body": "A single global countdown for all teams."
+    },
+    {
+      "id": 2,
+      "icon": "scroll",
+      "title": "Five Acts, One Face-off",
+      "body": "Progress in order: every solved checkpoint opens the next gate. Clear all five acts to reach Mogambo. Submit answers as OBSCURA{answer}. Case and spaces don't matter, and the bare answer works too."
+    },
+    {
+      "id": 3,
+      "icon": "mask",
+      "title": "Movies, Mysteries and Code",
+      "body": "Every gate wraps a puzzle in a film scene: web, AI/ML, crypto and hidden messages. Read carefully; the story is part of the clue."
+    },
+    {
+      "id": 4,
+      "icon": "bulb",
+      "title": "Hints and Penalties",
+      "body": "Each checkpoint has two hints. Hint 1 costs 20% of the checkpoint's points and Hint 2 costs 40%. Hint 2 unlocks only after Hint 1. Use them wisely."
+    },
+    {
+      "id": 5,
+      "icon": "relic",
+      "title": "Five Relics",
+      "body": "Clearing an act wins its relic. Read the inscription on each one: you will need all five at the end."
+    },
+    {
+      "id": 6,
+      "icon": "shield",
+      "title": "No Cheating",
+      "body": "Fair play only. Use of external brute-force tools, flag-sharing, or malicious activity will lead to disqualification."
+    }
+  ]
+}

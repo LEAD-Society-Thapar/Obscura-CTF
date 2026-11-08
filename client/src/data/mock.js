@@ -30,6 +30,7 @@ export const acts = [
   {
     id: 1,
     title: "Ramgarh Ka Rahasya",
+    film: null,
     blurb: "PLACEHOLDER: Dust, dacoits and a village that remembers everything.",
     coverSlot: "act-1-cover",
     bannerSlot: "act-1-banner",
@@ -38,6 +39,7 @@ export const acts = [
   {
     id: 2,
     title: "Mumbai Ka Mayajaal",
+    film: null,
     blurb: "City of dreams. City of lies. In the neon glow of Bombay, truth wears many masks.",
     coverSlot: "act-2-cover",
     bannerSlot: "act-2-banner",
@@ -46,6 +48,7 @@ export const acts = [
   {
     id: 3,
     title: "Filmcity Ka Fitoor",
+    film: null,
     blurb: "PLACEHOLDER: Lights, camera, conspiracy. Every set has a trapdoor.",
     coverSlot: "act-3-cover",
     bannerSlot: "act-3-banner",
@@ -54,6 +57,7 @@ export const acts = [
   {
     id: 4,
     title: "Pyaar Ki Rail",
+    film: null,
     blurb: "PLACEHOLDER: A train, a ticket and a love letter that never arrived.",
     coverSlot: "act-4-cover",
     bannerSlot: "act-4-banner",
@@ -62,6 +66,7 @@ export const acts = [
   {
     id: 5,
     title: "Mogambo Ka Mars",
+    film: null,
     blurb: "PLACEHOLDER: The red planet. The red lair. Mogambo is waiting.",
     coverSlot: "act-5-cover",
     bannerSlot: "act-5-banner",
@@ -80,6 +85,7 @@ const placeholderCp = (act, index, status, category = "Misc", points = 100) => (
   points,
   status,
   story: "PLACEHOLDER: Story scene goes here.",
+  body: "PLACEHOLDER: challenge text goes here.",
   posterSlot: `cp-${act}-${index}-poster`,
   downloads: [],
   hints: [
@@ -206,11 +212,11 @@ export const checkpoints = [
 
 // Design names. The original plan used different relic names (see server/src/data/checkpoints.js).
 export const relics = [
-  { id: "rusted-reel", name: "The Rusted Reel", act: 1, collected: true, slot: "relic-rusted-reel" },
-  { id: "wax-seal", name: "The Wax Seal", act: 2, collected: false, slot: "relic-wax-seal" },
-  { id: "directors-script", name: "The Director's Script", act: 3, collected: false, slot: "relic-directors-script" },
-  { id: "love-letter", name: "The Love Letter", act: 4, collected: false, slot: "relic-love-letter" },
-  { id: "martian-orb", name: "The Martian Orb", act: 5, collected: false, slot: "relic-martian-orb" },
+  { id: "rusted-reel", name: "The Rusted Reel", act: 1, collected: true, slot: "relic-rusted-reel", inscription: null, lore: null },
+  { id: "wax-seal", name: "The Wax Seal", act: 2, collected: false, slot: "relic-wax-seal", inscription: null, lore: null },
+  { id: "directors-script", name: "The Director's Script", act: 3, collected: false, slot: "relic-directors-script", inscription: null, lore: null },
+  { id: "love-letter", name: "The Love Letter", act: 4, collected: false, slot: "relic-love-letter", inscription: null, lore: null },
+  { id: "martian-orb", name: "The Martian Orb", act: 5, collected: false, slot: "relic-martian-orb", inscription: null, lore: null },
 ];
 
 // Newest first. Text is built in the UI (ActivityFeed) so the CP label format stays in lib/format.js.

@@ -16,7 +16,7 @@ cp client/.env.example client/.env
 # fill in server/.env: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (ask a teammate, never commit them)
 npm run dev                  # client :5173, server :5000
 ```
-Open http://localhost:5173 and log in with Team ID `team1`, password `1234`. Every checkpoint accepts the
+Open http://localhost:5173 and log in with Team ID `team1`, password `1234`. Without server/private/flags.local.json every checkpoint accepts the
 dev flag `OBSCURA{test}`.
 
 `.env` files are gitignored, so a fresh clone has none: without the Supabase values the server answers
@@ -26,9 +26,10 @@ dev flag `OBSCURA{test}`.
 The team shares one Supabase project, so only one person does this:
 1. Supabase dashboard -> SQL Editor: run `supabase/schema.sql`.
    Upgrading from the v0 draft schema? Run `supabase/reset.sql` first (dev only: drops all game tables).
-2. `npm run db:seed`: creates test teams `team1`..`team3` (password `1234`), stores the dev flag hash for every
-   checkpoint and starts a fresh 90-minute clock. Safe to re-run; it restarts the clock each time.
-   `npm run db:seed -- --reset` also wipes all team progress.
+2. `npm run db:seed`: creates test teams `team1`..`team3` (password `1234`) and stores the flag hashes from
+   `server/private/flags.local.json` (or, if that file is missing, the dev flag `OBSCURA{test}` everywhere).
+   `-- --start-clock` also starts a fresh event clock; `-- --reset` also wipes all team progress.
+   On the live DB use only `npm run db:seed:flags`.
 
 The key for `SUPABASE_SERVICE_ROLE_KEY` is the **secret** key (`sb_secret_...`) under Project Settings -> API Keys,
 not the publishable one.
@@ -59,13 +60,23 @@ sat-ctf/
 │       ├── middleware/     auth, submit limiter, error handling
 │       ├── routes/         /api routes + gateHunt.routes.js (root-level puzzle routes)
 │       └── utils/          gate slug derivation, flag + password hashing
-│   └── scripts/seed.js     npm run db:seed (dev teams, flag hashes, event clock)
+│   └── scripts/seed.js     npm run db:seed / db:seed:flags (flag hashes; dev teams; optional clock)
 ├── supabase/               schema.sql, reset.sql (dev only)
 └── docs/                   plan and decisions
 ```
 
+### Content and flags
+- Public content (acts, checkpoints, relics, rules, final boss): `server/src/data/content/challenges.json`,
+  loaded by `server/src/data/game.js`. Never import it from `client/`.
+- Answers: `server/private/flags.local.json` (gitignored, never commit). `npm run db:seed:flags` hashes them into
+  the `checkpoints` table and touches nothing else. It needs `FLAG_PEPPER`, which must match the deployed API's value.
+- Schema changes after the first `schema.sql` run live in `supabase/migrations/` (apply in order).
+- `npm test` runs the server unit tests (no DB needed).
+
 ## Rules the code must keep
-- Flags never leave the server. Stored as SHA-256 hashes, validated server-side only.
-- Gate slugs are per-team: `HMAC(GATE_SECRET, teamId + previousFlag)`.
+- Flags never leave the server. Stored as `HMAC(FLAG_PEPPER, cpId + ":" + normalizedAnswer)`, validated
+  server-side only. Answers are case/whitespace-insensitive and the `OBSCURA{...}` wrapper is optional
+  (see `normalizeAnswer` in `server/src/utils/gate.js`).
+- Gate slugs are per-team: `HMAC(GATE_SECRET, teamId + ":" + checkpointId)`.
 - Submissions: 1 per 10 s per team; 60 s cooldown after 5 wrong in a row.
 - The Supabase service-role key lives only in `server/.env`.
