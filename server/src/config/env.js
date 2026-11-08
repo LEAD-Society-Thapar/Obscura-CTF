@@ -1,4 +1,4 @@
-const required = ["JWT_SECRET", "ADMIN_PASSWORD", "GATE_SECRET"];
+const required = ["JWT_SECRET", "ADMIN_PASSWORD", "GATE_SECRET", "FLAG_PEPPER"];
 const missing = required.filter((k) => !process.env[k]);
 
 const isProd = process.env.NODE_ENV === "production";
@@ -22,4 +22,7 @@ export const env = {
   jwtSecret: process.env.JWT_SECRET || "dev-only-secret",
   adminPassword: process.env.ADMIN_PASSWORD || "",
   gateSecret: process.env.GATE_SECRET || "dev-only-gate-secret",
+  // Key for flag hashes. Must be identical wherever the seed runs and wherever the API runs.
+  flagPepper: process.env.FLAG_PEPPER || "dev-only-flag-pepper",
+  flagPepperIsSet: !!process.env.FLAG_PEPPER,
 };

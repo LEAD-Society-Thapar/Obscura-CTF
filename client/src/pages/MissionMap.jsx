@@ -41,7 +41,7 @@ export default function MissionMap() {
             <h1 id="map-heading">
               <img
                 src="/assets/mission-map/labels/The%20Journey_%20Five%20Acts,%20One%20Archive.webp"
-                alt="The Journey. Five acts. Twenty checkpoints. One stolen archive."
+                alt="The Journey. Five acts. Twenty checkpoints. One final face-off."
                 className="mx-auto block h-auto w-full max-w-[760px] object-contain"
               />
             </h1>

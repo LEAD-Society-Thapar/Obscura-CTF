@@ -3,14 +3,16 @@
 import { requireDb } from "../config/supabase.js";
 import { ACTS, RULES } from "../data/game.js";
 import { recordResult } from "../middleware/submitLimiter.js";
-import { flagMatches } from "../utils/gate.js";
+import { flagMatches, normalizeAnswer } from "../utils/gate.js";
 import { HttpError } from "../utils/httpError.js";
 import {
   checkpointAfter,
   checkpointById,
+  holdsAllRelics,
+  isFinal,
   isLastOfAct,
   loadTeamState,
-  pointsOf,
+  rankTeams,
   relicOfAct,
 } from "../services/teamState.js";
 
@@ -22,11 +24,15 @@ const rowsOf = ({ data, error }) => {
 };
 
 // Resolves a gate slug to an open checkpoint for this team, or throws NOT_FOUND / LOCKED.
-function openGate(state, slug) {
+export function openGate(state, slug) {
   const cp = state.bySlug(slug);
   if (!cp) throw new HttpError(404, "No gate here.", { code: "NOT_FOUND" });
+  // Defence in depth for the final face-off: refuse without every relic, independent of the status map.
+  if (isFinal(cp) && !state.hasAllRelics && state.status.get(cp.id) !== "solved") {
+    throw new HttpError(403, "Collect every relic to face Mogambo.", { code: "LOCKED", act: null, final: true });
+  }
   if (state.status.get(cp.id) === "locked") {
-    throw new HttpError(403, "This gate is still sealed.", { code: "LOCKED", act: cp.act });
+    throw new HttpError(403, "This gate is still sealed.", { code: "LOCKED", act: cp.act, final: isFinal(cp) });
   }
   return cp;
 }
@@ -36,12 +42,18 @@ export async function getEventState(_req, res) {
   const [ev] = rowsOf(await requireDb().from("event_state").select("*").eq("id", 1));
   const durationMinutes = ev?.duration_minutes ?? 90;
   if (!ev?.started_at || ev.status === "idle") {
-    return res.json({ status: ev?.status ?? "idle", endsAt: null, durationMinutes });
+    return res.json({ status: ev?.status ?? "idle", endsAt: null, startedAt: null, totalPausedMs: 0, durationMinutes });
   }
   const pausedMs =
     Number(ev.total_paused_ms) + (ev.status === "paused" && ev.paused_at ? Date.now() - new Date(ev.paused_at) : 0);
   const endsAt = new Date(new Date(ev.started_at).getTime() + durationMinutes * 60_000 + pausedMs);
-  res.json({ status: ev.status, endsAt: endsAt.toISOString(), durationMinutes });
+  res.json({
+    status: ev.status,
+    endsAt: endsAt.toISOString(),
+    startedAt: new Date(ev.started_at).toISOString(), // for "time taken" on the Victory panel
+    totalPausedMs: pausedMs,
+    durationMinutes,
+  });
 }
 
 // GET /api/game/progress
@@ -59,8 +71,8 @@ export async function getCheckpoint(req, res) {
 
 // POST /api/game/gate/:slug/submit  { flag }   (rate limited by submitLimiter)
 export async function submitFlag(req, res) {
-  const flag = String(req.body?.flag || "").trim();
-  if (!flag) throw new HttpError(400, "Enter a flag first.");
+  const flag = String(req.body?.flag || "");
+  if (!normalizeAnswer(flag)) throw new HttpError(400, "Enter a flag first.");
 
   const db = requireDb();
   const teamId = req.team.id;
@@ -70,11 +82,14 @@ export async function submitFlag(req, res) {
     throw new HttpError(409, "Your team already solved this checkpoint.", { code: "ALREADY_SOLVED" });
   }
 
-  const [row] = rowsOf(await db.from("checkpoints").select("flag_hash").eq("id", cp.id));
-  if (!row) throw new Error(`Checkpoint ${cp.id} has no flag in the DB. Run npm run db:seed.`);
+  // select("*") so this keeps working if migration 001 (accepted_hashes) has not been applied yet.
+  const [row] = rowsOf(await db.from("checkpoints").select("*").eq("id", cp.id));
+  if (!row) throw new Error(`Checkpoint ${cp.id} has no flag in the DB. Run npm run db:seed:flags.`);
 
-  const correct = flagMatches(flag, row.flag_hash);
-  rowsOf(await db.from("submissions").insert({ team_id: teamId, cp_id: cp.id, submitted: flag.slice(0, 200), correct }));
+  const correct = flagMatches(cp.id, flag, [row.flag_hash, ...(row.accepted_hashes ?? [])]);
+  // Never store a correct answer in plain text.
+  const submitted = correct ? "[correct]" : flag.trim().slice(0, 200);
+  rowsOf(await db.from("submissions").insert({ team_id: teamId, cp_id: cp.id, submitted, correct }));
   const limit = recordResult(teamId, correct);
   if (!correct) return res.json({ correct: false, ...limit });
 
@@ -94,13 +109,24 @@ export async function submitFlag(req, res) {
     );
   }
 
-  const next = checkpointAfter(cp);
+  // Only point at the final gate if the team now holds every relic (including one awarded just now);
+  // otherwise the client sends them to the Relics page.
+  let next = checkpointAfter(cp);
+  if (isFinal(next) && !holdsAllRelics([...state.relics.map((r) => r.relic_id), ...(relic ? [relic.id] : [])])) {
+    next = null;
+  }
+  const final = isFinal(cp);
   res.json({
     correct: true,
     pointsAwarded: cp.points,
     reel: state.reelOf(cp),
     next: next ? { id: next.id, act: next.act, index: next.index, slug: state.slugOf(next) } : null,
     relic: relic ? { ...relic, collected: true } : null,
+    finished: final,
+    // Sent only after the final solve. The title comes from the server (not the client bundle) because it
+    // matches an accepted answer for the final checkpoint.
+    ending: final ? cp.reel.clue : null,
+    endingTitle: final ? cp.reel.quote || null : null,
   });
 }
 
@@ -157,20 +183,12 @@ export async function getLeaderboard(req, res) {
   const db = requireDb();
   const [teams, solves, hints, events] = await Promise.all([
     db.from("teams").select("id, name, points_adjust"),
-    db.from("team_solves").select("team_id, points"),
+    db.from("team_solves").select("team_id, points, solved_at"),
     db.from("team_hints").select("team_id, cost"),
     db.from("event_state").select("leaderboard_frozen").eq("id", 1),
   ]).then((results) => results.map(rowsOf));
 
-  const rows = teams
-    .map((t) => {
-      const s = solves.filter((x) => x.team_id === t.id);
-      const h = hints.filter((x) => x.team_id === t.id);
-      return { teamId: t.id, team: t.name, points: pointsOf(t, s, h), solved: s.length };
-    })
-    .sort((a, b) => b.points - a.points || b.solved - a.solved)
-    .map((r, i) => ({ ...r, rank: i + 1, isYou: r.teamId === req.team?.id }));
-
+  const rows = rankTeams(teams, solves, hints, req.team?.id ?? null);
   res.json({ rows, frozen: !!events[0]?.leaderboard_frozen });
 }
 

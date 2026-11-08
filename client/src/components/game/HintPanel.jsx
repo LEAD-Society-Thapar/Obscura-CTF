@@ -2,6 +2,7 @@ import { useState } from "react";
 import { formatDelta } from "../../lib/format.js";
 import Button from "../ui/Button.jsx";
 import Icon from "../ui/Icon.jsx";
+import SafeMarkdown from "../ui/SafeMarkdown.jsx";
 import Spinner from "../ui/Spinner.jsx";
 
 // Hint ladder (design 4). Each hint has its own `cost`; hints unlock in order and need a confirm click.
@@ -46,7 +47,7 @@ export default function HintPanel({ hints, onReveal, readOnly = false }) {
                 <p className="font-heading font-semibold text-bone">
                   Hint {h.id} <span className="text-sm font-normal text-muted">({cost})</span>
                 </p>
-                <p className="mt-0.5 text-sm text-bone/90">{h.text}</p>
+                <SafeMarkdown className="mt-0.5 text-sm">{h.text}</SafeMarkdown>
               </div>
             </div>
           );

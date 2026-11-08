@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { useFinale } from "../../hooks/useGameData.js";
 import Logo from "../ui/Logo.jsx";
 import Icon from "../ui/Icon.jsx";
 
@@ -13,10 +14,12 @@ const tabs = [
 
 function Tabs({ className }) {
   const { pathname } = useLocation();
+  const { unlocked } = useFinale(); // final face-off open and not yet solved
   return (
     <ul className={className}>
       {tabs.map((t) => {
         const active = t.match ? t.match.some((p) => pathname.startsWith(p)) : pathname === t.to;
+        const pulse = unlocked && t.to === "/relics";
         return (
           <li key={t.to} className="shrink-0">
             <Link
@@ -25,10 +28,21 @@ function Tabs({ className }) {
               className={`relative block px-3 py-2 font-heading text-sm font-semibold tracking-wide transition-colors ${
                 active
                   ? "text-bone after:absolute after:inset-x-3 after:-bottom-px after:h-0.5 after:bg-blood-bright"
-                  : "text-muted hover:text-bone"
+                  : pulse
+                    ? "text-blood-bright hover:text-bone"
+                    : "text-muted hover:text-bone"
               }`}
             >
               {t.label}
+              {pulse && (
+                <>
+                  <span aria-hidden="true" className="absolute top-1.5 right-0.5 flex size-2">
+                    <span className="absolute inline-flex size-full rounded-full bg-blood-bright opacity-75 motion-safe:animate-ping" />
+                    <span className="relative inline-flex size-2 rounded-full bg-blood-bright" />
+                  </span>
+                  <span className="sr-only"> (final face-off unlocked)</span>
+                </>
+              )}
             </Link>
           </li>
         );

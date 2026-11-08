@@ -1,196 +1,104 @@
-// Static game content served by the API. NO flags here (flag hashes live in the `checkpoints` table).
-// Ported from client/src/data/mock.js so the live API shows the same screens as mock mode.
-// Values marked PLACEHOLDER need real content. The original plan's titles/points are in ./checkpoints.js.
+// Static game content served by the API, loaded from ./content/challenges.json.
+// NO flags here: flag hashes live in the `checkpoints` table (written by scripts/seed.js from
+// server/private/flags.local.json, which is gitignored).
+//
+// Content strings are passed through exactly as written in the JSON: never trim, normalize or re-type
+// them (CP 2.4 relies on Cyrillic look-alike letters, CP 1.1 shows HTML that must stay literal text).
+// Art slot names are derived from ids; see client/src/lib/artSlots.js for the slot registry.
+import content from "./content/challenges.json" with { type: "json" };
 
-export const ACTS = [
-  {
-    id: 1,
-    title: "Ramgarh Ka Rahasya",
-    blurb: "PLACEHOLDER: Dust, dacoits and a village that remembers everything.",
-    coverSlot: "act-1-cover",
-    bannerSlot: "act-1-banner",
-    relicId: "rusted-reel",
-  },
-  {
-    id: 2,
-    title: "Mumbai Ka Mayajaal",
-    blurb: "City of dreams. City of lies. In the neon glow of Bombay, truth wears many masks.",
-    coverSlot: "act-2-cover",
-    bannerSlot: "act-2-banner",
-    relicId: "wax-seal",
-  },
-  {
-    id: 3,
-    title: "Filmcity Ka Fitoor",
-    blurb: "PLACEHOLDER: Lights, camera, conspiracy. Every set has a trapdoor.",
-    coverSlot: "act-3-cover",
-    bannerSlot: "act-3-banner",
-    relicId: "directors-script",
-  },
-  {
-    id: 4,
-    title: "Pyaar Ki Rail",
-    blurb: "PLACEHOLDER: A train, a ticket and a love letter that never arrived.",
-    coverSlot: "act-4-cover",
-    bannerSlot: "act-4-banner",
-    relicId: "love-letter",
-  },
-  {
-    id: 5,
-    title: "Mogambo Ka Mars",
-    blurb: "PLACEHOLDER: The red planet. The red lair. Mogambo is waiting.",
-    coverSlot: "act-5-cover",
-    bannerSlot: "act-5-banner",
-    relicId: "martian-orb",
-  },
-];
+function fail(message) {
+  throw new Error(`[content] challenges.json: ${message}`);
+}
 
-const placeholderCp = (act, index, category = "Misc", points = 100) => ({
-  id: `${act}.${index}`,
-  act,
-  index,
-  title: `[Placeholder] Act ${act} Challenge ${index}`,
-  category,
-  points,
-  story: "PLACEHOLDER: Story scene goes here.",
-  posterSlot: `cp-${act}-${index}-poster`,
-  downloads: [],
-  hints: [
-    { id: 1, cost: 20, teaser: "PLACEHOLDER hint teaser.", text: "PLACEHOLDER hint text." },
-    { id: 2, cost: 40, teaser: "PLACEHOLDER second hint.", text: "PLACEHOLDER second hint text." },
-  ],
-  reel: {
-    quote: "PLACEHOLDER: a filmi dialogue goes here.",
-    clue: "PLACEHOLDER: clue to the next gate.",
-    frameSlot: `reel-${act}-${index}`,
-  },
-});
+const toHint = (h) => ({ id: h.id, cost: h.cost, teaser: h.teaser, text: h.text });
 
-// Order in this array = unlock order. Each id needs a row in the `checkpoints` table (npm run db:seed).
-export const CHECKPOINTS = [
-  placeholderCp(1, 1, "Web"),
-  placeholderCp(1, 2, "Misc"),
-  placeholderCp(1, 3, "Crypto"),
-  placeholderCp(1, 4, "Stego"),
-
-  {
-    id: "2.1",
-    act: 2,
-    index: 1,
-    title: "Welcome to Bombay",
-    category: "Web",
-    points: 100,
-    story: "PLACEHOLDER: The train pulls into Bombay Central. Somewhere in this city, the Archive's first reel is hidden.",
-    posterSlot: "cp-2-1-poster",
-    downloads: [],
-    hints: [{ id: 1, cost: 20, teaser: "PLACEHOLDER hint teaser.", text: "PLACEHOLDER hint text." }],
+// Same shape the API has always used, plus `body` (markdown-subset challenge text).
+function toCheckpoint(cp, { act = cp.act, index = cp.index, slotKey = `${cp.act}-${cp.index}` } = {}) {
+  return {
+    id: cp.id,
+    act,
+    index,
+    title: cp.title,
+    category: cp.category,
+    points: cp.points,
+    story: cp.story,
+    body: cp.body,
+    posterSlot: `cp-${slotKey}-poster`,
+    downloads: cp.downloads ?? [],
+    hints: cp.hints.map(toHint),
     reel: {
-      quote: "PLACEHOLDER: a filmi dialogue goes here.",
-      clue: "A new location has been marked on your map. Proceed to the next gate.",
-      frameSlot: "reel-2-1",
+      quote: cp.reel.quote,
+      clue: cp.reel.clue,
+      frameSlot: `reel-${slotKey}`,
     },
-  },
-  {
-    id: "2.2",
-    act: 2,
-    index: 2,
-    title: "Poster Pe Likha Hai",
-    category: "Misc",
-    points: 100,
-    story:
-      "A vintage poster surfaced from the old theatres of Bombay.\nThey say every blockbuster hides a secret message.\nTake a closer look... the hero isn't the only one with a line.",
-    posterSlot: "cp-2-2-poster",
-    downloads: [{ label: "poster_scan.jpg", href: "#", size: "PLACEHOLDER" }],
-    hints: [
-      { id: 1, cost: 20, teaser: "Maybe the dialogue isn't just a dialogue...", text: "PLACEHOLDER: real hint 1 text." },
-      { id: 2, cost: 40, teaser: "PLACEHOLDER second hint teaser.", text: "PLACEHOLDER: real hint 2 text." },
-    ],
-    reel: {
-      quote: "Bade bade shehron mein aisi chhoti chhoti baatein hoti rehti hain...",
-      clue: "A new location has been marked on your map. Proceed to the next gate.",
-      frameSlot: "reel-2-2",
-    },
-  },
-  {
-    id: "2.3",
-    act: 2,
-    index: 3,
-    title: "City Strings",
-    category: "Crypto",
-    points: 150,
-    story: "PLACEHOLDER: Story scene for City Strings.",
-    posterSlot: "cp-2-3-poster",
-    downloads: [],
-    hints: [{ id: 1, cost: 20, teaser: "PLACEHOLDER hint teaser.", text: "PLACEHOLDER hint text." }],
-    reel: {
-      quote: "PLACEHOLDER: a filmi dialogue goes here.",
-      clue: "A new location has been marked on your map. Proceed to the next gate.",
-      frameSlot: "reel-2-3",
-    },
-  },
-  {
-    id: "2.4",
-    act: 2,
-    index: 4,
-    title: "The Last Show",
-    category: "Stego",
-    points: 200,
-    story: "PLACEHOLDER: Story scene for The Last Show.",
-    posterSlot: "cp-2-4-poster",
-    downloads: [],
-    hints: [{ id: 1, cost: 20, teaser: "PLACEHOLDER hint teaser.", text: "PLACEHOLDER hint text." }],
-    reel: {
-      quote: "PLACEHOLDER: a filmi dialogue goes here.",
-      clue: "The Wax Seal is yours. A new act opens on your map.",
-      frameSlot: "reel-2-4",
-    },
-  },
+  };
+}
 
-  placeholderCp(3, 1, "Web"),
-  placeholderCp(3, 2, "Misc"),
-  placeholderCp(3, 3, "Crypto", 150),
-  placeholderCp(3, 4, "Stego", 200),
+export const STORY = content.story;
 
-  placeholderCp(4, 1, "Web"),
-  placeholderCp(4, 2, "Crypto", 150),
-  placeholderCp(4, 3, "Misc", 150),
-  placeholderCp(4, 4, "Stego", 200),
-
-  placeholderCp(5, 1, "Web", 150),
-  placeholderCp(5, 2, "Crypto", 200),
-  placeholderCp(5, 3, "Stego", 200),
-  placeholderCp(5, 4, "Misc", 300),
-];
+export const ACTS = content.acts.map((a) => ({
+  id: a.id,
+  title: a.title,
+  film: a.film,
+  blurb: a.blurb,
+  coverSlot: `act-${a.id}-cover`,
+  bannerSlot: `act-${a.id}-banner`,
+  relicId: a.relicId,
+}));
 
 // The last checkpoint of an act grants that act's relic.
-export const RELICS = [
-  { id: "rusted-reel", name: "The Rusted Reel", act: 1, slot: "relic-rusted-reel" },
-  { id: "wax-seal", name: "The Wax Seal", act: 2, slot: "relic-wax-seal" },
-  { id: "directors-script", name: "The Director's Script", act: 3, slot: "relic-directors-script" },
-  { id: "love-letter", name: "The Love Letter", act: 4, slot: "relic-love-letter" },
-  { id: "martian-orb", name: "The Martian Orb", act: 5, slot: "relic-martian-orb" },
-];
+export const RELICS = content.relics.map((r) => ({
+  id: r.id,
+  name: r.name,
+  act: r.act,
+  slot: `relic-${r.id}`,
+  inscription: r.inscription,
+  lore: r.lore,
+}));
 
-export const RULES = [
-  { id: 1, icon: "clock", title: "90 Minutes", body: "A single global countdown for all teams." },
-  {
-    id: 2,
-    icon: "scroll",
-    title: "Five Acts, Twenty Checkpoints",
-    body: "Progress in order. Unlock new gates using Reel Cards.",
-  },
-  {
-    id: 3,
-    icon: "mask",
-    title: "Memes, Movies and More",
-    body: "Clues are meme-based. Expect twists, references and hidden meanings.",
-  },
-  { id: 4, icon: "bulb", title: "Hints and Penalties", body: "Each hint costs points. Use them wisely." },
-  { id: 5, icon: "relic", title: "Five Relics", body: "Collect all relics to unlock the final face-off." },
-  {
-    id: 6,
-    icon: "shield",
-    title: "No Cheating",
-    body: "Fair play only. Use of external brute-force tools, flag-sharing, or malicious activity will lead to disqualification.",
-  },
-];
+// The final face-off. act: null keeps it out of every act (map, per-act counts, relic awards).
+// It is only reachable once the team holds every relic (see TeamState in services/teamState.js).
+export const FINAL_BOSS = toCheckpoint(content.finalBoss, { act: null, index: null, slotKey: "final" });
+
+// The 20 act checkpoints, in unlock order.
+export const ACT_CHECKPOINTS = content.checkpoints.map((cp) => toCheckpoint(cp));
+
+// Order in this array = unlock order: the 20 act checkpoints, then the final face-off as the 21st gate.
+// Each id needs a row in the `checkpoints` table (npm run db:seed:flags).
+export const CHECKPOINTS = [...ACT_CHECKPOINTS, FINAL_BOSS];
+
+export const RULES = content.rules;
+
+// ---------- Load-time sanity checks (fail fast on a broken content file) ----------
+{
+  const actIds = new Set(ACTS.map((a) => a.id));
+  const relicIds = new Set(RELICS.map((r) => r.id));
+  const seen = new Set();
+  let prev = null;
+
+  if (FINAL_BOSS.id !== "final") fail(`finalBoss.id must be "final"`);
+  if (CHECKPOINTS.at(-1) !== FINAL_BOSS) fail("the final boss must be the last gate");
+  for (const cp of CHECKPOINTS) {
+    if (typeof cp.id !== "string" || !cp.id) fail("a checkpoint has no string id");
+    if (seen.has(cp.id)) fail(`duplicate checkpoint id ${cp.id}`);
+    seen.add(cp.id);
+    if (!Number.isInteger(cp.points)) fail(`${cp.id}: points must be an integer`);
+    if (typeof cp.story !== "string" || typeof cp.body !== "string") fail(`${cp.id}: story and body must be strings`);
+    if (!cp.hints.every((h, i) => h.id === i + 1 && Number.isInteger(h.cost))) {
+      fail(`${cp.id}: hints must have ids 1..n in order and integer costs`);
+    }
+  }
+  for (const cp of ACT_CHECKPOINTS) {
+    if (!actIds.has(cp.act)) fail(`${cp.id}: unknown act ${cp.act}`);
+    if (cp.id !== `${cp.act}.${cp.index}`) fail(`${cp.id}: id must be "<act>.<index>"`);
+    if (prev && (cp.act < prev.act || (cp.act === prev.act && cp.index !== prev.index + 1))) {
+      fail(`${cp.id}: checkpoints must be listed in unlock order`);
+    }
+    prev = cp;
+  }
+  for (const a of ACTS) {
+    if (!relicIds.has(a.relicId)) fail(`act ${a.id}: unknown relicId ${a.relicId}`);
+    if (!ACT_CHECKPOINTS.some((c) => c.act === a.id)) fail(`act ${a.id} has no checkpoints`);
+  }
+}
