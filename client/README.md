@@ -7,8 +7,9 @@ npm run dev      # http://localhost:5173 (proxies /api to :5000)
 npm run build
 ```
 
-`client/.env.example` sets `VITE_USE_MOCKS=false`: the real server + Supabase (log in with `team1` / `1234`, see the
-root README). Set it to `true` (or leave it unset) for mock mode: fake data, no server, **any** Team ID and password.
+Vite reads the **root** `.env` (`envDir: ".."` in `vite.config.js`); there is no `client/.env`. The root `.env.example`
+sets `VITE_USE_MOCKS=false`: the real server + Supabase (log in with `team1` / `1234`, see the root README).
+Set it to `true` (or leave it unset) for mock mode: fake data, no server, **any** Team ID and password.
 
 ## Folder layout
 

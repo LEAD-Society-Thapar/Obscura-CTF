@@ -13,9 +13,11 @@ export const ART_SLOTS = [
   // Tall left panel of the act challenge list (design 3). One per act. Bottom half sits under a dark gradient + text.
   { pattern: /^act-\d+-banner$/, example: "act-2-banner", w: 480, h: 720, use: "Act challenge list side panel (design 3)" },
   // Poster on the challenge page (design 4). One per checkpoint: cp-<act>-<index>-poster.
-  { pattern: /^cp-\d+-\d+-poster$/, example: "cp-2-2-poster", w: 600, h: 800, use: "Challenge page poster (design 4)" },
+  // The final face-off uses cp-final-poster.
+  { pattern: /^cp-(\d+-\d+|final)-poster$/, example: "cp-2-2-poster", w: 600, h: 800, use: "Challenge page poster (design 4)" },
   // Film frame on the reel card (design 5). One per checkpoint: reel-<act>-<index>.
-  { pattern: /^reel-\d+-\d+$/, example: "reel-2-2", w: 320, h: 400, use: "Reel card film still (design 5)" },
+  // The final face-off uses reel-final.
+  { pattern: /^reel-(\d+-\d+|final)$/, example: "reel-2-2", w: 320, h: 400, use: "Reel card film still (design 5)" },
   // Relic artwork (designs 6, 7). Square, subject centred. relic-rusted-reel, relic-wax-seal, ...
   { pattern: /^relic-[\w-]+$/, example: "relic-rusted-reel", w: 400, h: 400, use: "Relic card (designs 6, 7)" },
   // Team avatar, shown in a circle (navbar, dashboard).

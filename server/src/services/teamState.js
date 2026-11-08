@@ -32,6 +32,21 @@ export function pointsOf(team, solves, hints) {
   return earned - spent + (team.points_adjust || 0);
 }
 
+// Leaderboard rows, ranked: points (high first); on equal points the team whose most recent solve came earlier
+// wins (no solves = last); then more solves first. Output shape: { teamId, team, points, solved, rank, isYou }.
+export function rankTeams(teams, solves, hints, youId = null) {
+  const lastSolveMs = (rows) =>
+    rows.length ? Math.max(...rows.map((s) => new Date(s.solved_at).getTime())) : Number.POSITIVE_INFINITY;
+  return teams
+    .map((t) => {
+      const s = solves.filter((x) => x.team_id === t.id);
+      const h = hints.filter((x) => x.team_id === t.id);
+      return { teamId: t.id, team: t.name, points: pointsOf(t, s, h), solved: s.length, last: lastSolveMs(s) };
+    })
+    .sort((a, b) => b.points - a.points || a.last - b.last || b.solved - a.solved)
+    .map(({ last, ...r }, i) => ({ ...r, rank: i + 1, isYou: r.teamId === youId }));
+}
+
 export async function loadTeamState(teamId) {
   const db = requireDb();
   const [teams, solves, hints, relics] = await Promise.all([

@@ -10,7 +10,9 @@
     "start": "npm run start --prefix server",
     "db:seed": "npm run db:seed --prefix server --",
     "db:seed:flags": "npm run db:seed:flags --prefix server",
-    "test": "npm run test --prefix server"
+    "test": "npm run test --prefix server",
+    "verify:content": "npm run verify:content --prefix server",
+    "e2e": "npm run e2e --prefix server --"
   },
   "devDependencies": {
     "concurrently": "^9.0.0"

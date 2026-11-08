@@ -12,7 +12,7 @@ import {
   isFinal,
   isLastOfAct,
   loadTeamState,
-  pointsOf,
+  rankTeams,
   relicOfAct,
 } from "../services/teamState.js";
 
@@ -183,20 +183,12 @@ export async function getLeaderboard(req, res) {
   const db = requireDb();
   const [teams, solves, hints, events] = await Promise.all([
     db.from("teams").select("id, name, points_adjust"),
-    db.from("team_solves").select("team_id, points"),
+    db.from("team_solves").select("team_id, points, solved_at"),
     db.from("team_hints").select("team_id, cost"),
     db.from("event_state").select("leaderboard_frozen").eq("id", 1),
   ]).then((results) => results.map(rowsOf));
 
-  const rows = teams
-    .map((t) => {
-      const s = solves.filter((x) => x.team_id === t.id);
-      const h = hints.filter((x) => x.team_id === t.id);
-      return { teamId: t.id, team: t.name, points: pointsOf(t, s, h), solved: s.length };
-    })
-    .sort((a, b) => b.points - a.points || b.solved - a.solved)
-    .map((r, i) => ({ ...r, rank: i + 1, isYou: r.teamId === req.team?.id }));
-
+  const rows = rankTeams(teams, solves, hints, req.team?.id ?? null);
   res.json({ rows, frozen: !!events[0]?.leaderboard_frozen });
 }
 

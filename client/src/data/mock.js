@@ -236,8 +236,8 @@ export const rules = [
   {
     id: 2,
     icon: "scroll",
-    title: "Five Acts, Twenty Checkpoints",
-    body: "Progress in order. Unlock new gates using Reel Cards.",
+    title: "Five Acts, One Face-off",
+    body: "Progress in order: every solved checkpoint opens the next gate. Clear all five acts to reach Mogambo. Submit answers as OBSCURA{answer}. Case and spaces don't matter, and the bare answer works too.",
   },
   {
     id: 3,

@@ -9,7 +9,9 @@
     "start": "node --env-file-if-exists=../.env src/index.js",
     "db:seed": "node --env-file-if-exists=../.env scripts/seed.js",
     "db:seed:flags": "node --env-file-if-exists=../.env scripts/seed.js --flags-only",
-    "test": "node --test"
+    "test": "node --test",
+    "verify:content": "node scripts/verify-content.js",
+    "e2e": "node --env-file-if-exists=../.env scripts/e2e.js"
   },
   "engines": {
     "node": ">=22.9"

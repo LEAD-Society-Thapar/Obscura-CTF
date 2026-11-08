@@ -70,7 +70,7 @@ export default function Landing() {
           The Acts
         </h2>
         <p className="mt-1 text-center font-type text-sm text-muted uppercase">
-          Five acts. Twenty checkpoints. One stolen archive.
+          Five acts. Twenty checkpoints. One final face-off.
         </p>
         <ol className="stagger mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {acts.map((act) => (
