@@ -232,26 +232,68 @@ export const activity = [
 
 // Design 8.
 export const rules = [
-  { id: 1, icon: "clock", title: "90 Minutes", body: "A single global countdown for all teams." },
+  {
+    id: 1,
+    section: "I. The Hunt",
+    icon: "clock",
+    title: "The 90-Minute Countdown",
+    body: "- The competition runs for 90 minutes under one shared global countdown.\n- All teams compete within the same time window.\n- Manage your time carefully. Every second counts.\n- The hunt ends when the official countdown reaches zero. Follow event staff instructions regarding the submission deadline.",
+  },
   {
     id: 2,
+    section: "I. The Hunt",
     icon: "scroll",
-    title: "Five Acts, One Face-off",
-    body: "Progress in order: every solved checkpoint opens the next gate. Clear all five acts to reach Mogambo. Submit answers as OBSCURA{answer}. Case and spaces don't matter, and the bare answer works too.",
+    title: "Five Acts, Twenty Checkpoints",
+    body: "- OBSCURA consists of five Acts, each containing four checkpoints.\n- Checkpoints must be completed in sequence. Solving a checkpoint unlocks the next one.\n- Complete all five Acts to unlock the final face-off against Mogambo.\n- Each completed Act rewards your team with one unique relic.\n- Collect all five relics to access the final challenge.",
   },
   {
     id: 3,
+    section: "I. The Hunt",
     icon: "mask",
-    title: "Memes, Movies and More",
-    body: "Clues are meme-based. Expect twists, references and hidden meanings.",
+    title: "Submitting Flags",
+    body: "- Submit answers in the format `OBSCURA{answer}`. You may also submit the bare answer without the wrapper.\n- Answers are case-insensitive, and spaces are ignored.\n- Read challenge instructions carefully and follow the requested format, including underscores or other specified separators.\n- Submissions are rate-limited. Five consecutive incorrect attempts trigger a temporary cooldown; follow the retry timer shown.",
   },
-  { id: 4, icon: "bulb", title: "Hints and Penalties", body: "Each hint costs points. Use them wisely." },
-  { id: 5, icon: "relic", title: "Five Relics", body: "Collect all relics to unlock the final face-off." },
+  {
+    id: 4,
+    section: "II. Scoring and Hints",
+    icon: "check",
+    title: "Points and Scoring",
+    body: "- Every checkpoint carries a predefined point value.\n- Points are awarded for correctly solving checkpoints.\n- Hint usage deducts points from the corresponding checkpoint.\n- Your team's score reflects points earned after applicable hint deductions.\n- The maximum available score across all checkpoints and the final boss is 4,500 points before penalties.",
+  },
+  {
+    id: 5,
+    section: "II. Scoring and Hints",
+    icon: "bulb",
+    title: "Hints and Penalties",
+    body: "- Each checkpoint provides two optional hints. Hints unlock sequentially.\n- Hint costs are fixed point deductions shown for each checkpoint; using a hint deducts that amount from its checkpoint.\n- Use hints strategically. Sometimes figuring things out yourself is worth more than the shortcut.",
+  },
   {
     id: 6,
+    section: "III. Tools and Fair Play",
+    icon: "scroll",
+    title: "Permitted Resources",
+    body: "- Internet access and external research resources are permitted.\n- External tools such as CyberChef, online decoders, calculators, programming environments, and reference documentation may be used.\n- AI assistants and AI-powered coding or research tools are permitted.\n- Verify the accuracy of information or solutions obtained using external tools. Tool use does not exempt your team from fair-play rules.",
+  },
+  {
+    id: 7,
+    section: "III. Tools and Fair Play",
+    icon: "user",
+    title: "Team Collaboration",
+    body: "- Collaboration among members of the same registered team is encouraged.\n- Each team must use its assigned team account.\n- Do not share team credentials with participants outside your registered team.\n- Sharing flags, answers, or solutions with other competing teams is prohibited.",
+  },
+  {
+    id: 8,
+    section: "III. Tools and Fair Play",
     icon: "shield",
-    title: "No Cheating",
-    body: "Fair play only. Use of external brute-force tools, flag-sharing, or malicious activity will lead to disqualification.",
+    title: "Fair Play and Prohibited Activities",
+    body: "- Do not share flags, hints, or solutions with other competing teams.\n- Do not attack the CTF platform, its infrastructure, or other teams' accounts.\n- Unauthorized access, exploitation, or disruption of competition infrastructure is prohibited.\n- Brute-force attacks against the platform or challenge infrastructure are prohibited.\n- Do not manipulate scores, alter game progress, or interfere with another team's participation.\n- Violations may result in disqualification at the organizers' discretion.",
+  },
+  {
+    id: 9,
+    section: "IV. Event Protocol",
+    icon: "clock",
+    title: "Technical Issues and Support",
+    body: "- Report technical issues to event staff immediately.\n- Do not exploit platform malfunctions or interfere with the system.\n- Event staff will assess reported issues and determine the appropriate resolution.\n- A technical issue does not automatically pause or extend the global countdown.",
   },
 ];
 

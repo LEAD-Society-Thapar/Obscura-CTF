@@ -1,0 +1,72 @@
+.rulebook {
+  --color-bone: #ede4d0;
+  --color-muted: #aaa08f;
+  --color-gold: #c9a45a;
+  --color-gold-soft: #c9a45a;
+  --color-blood-bright: #a92e29;
+}
+
+body:has(.rulebook) .noir-backdrop {
+  background-color: #0d0b0a;
+}
+
+.rulebook-document {
+  background-color: #1c1916;
+}
+
+.rulebook {
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+.rulebook-serif {
+  font-family: "IM Fell English", Georgia, serif;
+}
+
+.rulebook-mono,
+.rulebook code {
+  font-family: "Courier Prime", ui-monospace, monospace;
+}
+
+.rulebook-prose {
+  color: var(--color-muted);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.rulebook-prose p {
+  margin-block: 0.55rem;
+}
+
+.rulebook-prose ul {
+  margin-block: 0.55rem;
+}
+
+.rulebook-file {
+  font-family: "Courier Prime", ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+}
+
+.rulebook-section-heading {
+  font-family: "IM Fell English", Georgia, serif;
+  font-weight: 400;
+}
+
+.rulebook-warning-stamp {
+  border: 1px solid rgb(212 37 43 / 0.72);
+  color: #e25a50;
+  font-family: "Courier Prime", ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  padding: 0.4rem 0.5rem;
+  transform: rotate(-4deg);
+}
+
+@media (max-width: 639px) {
+  .rulebook-prose {
+    font-size: 0.875rem;
+  }
+}

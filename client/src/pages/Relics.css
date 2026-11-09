@@ -1,0 +1,381 @@
+.relics-page .relics-page-heading,
+.relics-page .relic-card-name,
+.relics-page .relic-card-act,
+.relics-page .relic-collection-message {
+  font-family: "IM Fell English", Georgia, serif;
+  font-weight: 400;
+}
+
+.relics-page .relics-page-heading {
+  letter-spacing: 0.045em;
+}
+
+.relics-page .relic-card-name {
+  letter-spacing: 0.01em;
+}
+
+.relics-page .relic-card-act {
+  color: #805927;
+  font-style: italic;
+  letter-spacing: 0.025em;
+}
+
+.relics-page .relic-card-caption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.35rem 1rem 0.8rem;
+}
+
+.relics-page .relic-card-name {
+  display: grid;
+  min-height: 2.35em;
+  width: 100%;
+  place-items: center;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.relics-page .relic-card-act {
+  min-height: 1.1rem;
+  line-height: 1.1rem;
+}
+
+.relics-page .relic-collection-card {
+  padding-bottom: 0;
+}
+
+.relics-page .relic-collection-card > div:first-child {
+  width: 94%;
+  margin-inline: auto;
+  aspect-ratio: 1.06 / 1;
+}
+
+.relics-page .relic-inscription {
+  display: grid;
+  min-height: 2.8rem;
+  width: 100%;
+  place-items: center;
+  margin-top: 0.45rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid rgb(139 46 39 / 48%);
+  background: rgb(139 46 39 / 4%);
+  color: #7d2721;
+  font-family: "Courier Prime", "IM Fell English", Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  text-align: center;
+  text-shadow: 0 0 0.4px currentColor;
+}
+
+.relics-page .relic-lore-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  width: 100%;
+  min-height: 2.15rem;
+  margin-top: 0.45rem;
+  padding: 0.25rem 0.5rem;
+  border: 0;
+  background: transparent;
+  color: #5b251b;
+  font-family: "IM Fell English", Georgia, serif;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.3;
+  transition: color 150ms ease-out;
+}
+
+.relics-page .relic-lore-chevron {
+  display: block;
+  width: 0.42rem;
+  height: 0.42rem;
+  flex: 0 0 auto;
+  transform: translateY(-0.1rem) rotate(45deg);
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transition: transform 220ms ease;
+}
+
+.relics-page .relic-lore-toggle:hover {
+  color: #8b2e27;
+}
+
+.relics-page .relic-lore-toggle:focus-visible {
+  outline-color: #8b2e27;
+  outline-offset: 2px;
+}
+
+.relics-page .relic-lore-disclosure.is-expanded .relic-lore-chevron {
+  transform: translateY(0.1rem) rotate(225deg);
+}
+
+.relics-page .relic-lore-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    grid-template-rows 260ms ease,
+    opacity 180ms ease,
+    visibility 0s linear 260ms;
+}
+
+.relics-page .relic-lore-disclosure.is-expanded .relic-lore-panel {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  visibility: visible;
+  transition:
+    grid-template-rows 260ms ease,
+    opacity 180ms ease,
+    visibility 0s;
+}
+
+.relics-page .relic-lore-panel-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.relics-page .relic-lore-content {
+  padding: 0.65rem 0.65rem 0.2rem;
+  border-top: 1px solid rgb(112 86 56 / 35%);
+  color: #302116;
+  font-family: "IM Fell English", Georgia, serif;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  text-align: left;
+}
+
+.relics-page .relic-grid > li {
+  min-width: 0;
+}
+
+.relics-page .relic-artwork {
+  object-fit: contain;
+  transition:
+    filter 180ms ease-out,
+    opacity 180ms ease-out;
+}
+
+.relics-page .relic-artwork--collected {
+  filter: drop-shadow(0 1px 5px rgb(143 99 36 / 22%));
+}
+
+.relics-page .relic-artwork--locked {
+  filter: grayscale(10%) contrast(1.06);
+  opacity: 0.7;
+}
+
+.relics-page .relic-artwork--wax-seal:not(.relic-artwork--locked) {
+  filter: contrast(1.15) saturate(1.12) sepia(5%) drop-shadow(0 1px 3px rgb(139 95 34 / 28%));
+}
+
+.relics-page .relic-artwork--wax-seal.relic-artwork--locked {
+  filter: grayscale(8%) contrast(1.13) saturate(1.08) sepia(4%) drop-shadow(0 1px 2px rgb(139 95 34 / 25%));
+}
+
+.relics-page .relic-artwork--directors-script:not(.relic-artwork--locked) {
+  filter: contrast(1.15) saturate(1.1) sepia(4%) drop-shadow(0 1px 3px rgb(139 95 34 / 25%));
+}
+
+.relics-page .relic-artwork--directors-script.relic-artwork--locked {
+  filter: grayscale(8%) contrast(1.13) saturate(1.06) sepia(3%) drop-shadow(0 1px 2px rgb(139 95 34 / 22%));
+}
+
+.relics-page .relic-artwork--love-letter:not(.relic-artwork--locked) {
+  filter: contrast(1.14) saturate(1.1) drop-shadow(0 1px 3px rgb(145 41 38 / 26%));
+}
+
+.relics-page .relic-artwork--love-letter.relic-artwork--locked {
+  filter: grayscale(8%) contrast(1.12) saturate(1.06) drop-shadow(0 1px 2px rgb(145 41 38 / 22%));
+}
+
+.relics-page .relic-lock-badge {
+  z-index: 1;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-color: rgb(166 122 53 / 55%);
+  color: #e0c58e;
+}
+
+.relics-page .relic-collection-card[data-collected="true"] .relic-card-caption::after {
+  display: block;
+  width: 1.4rem;
+  height: 1px;
+  margin: 0.2rem auto 0;
+  background: rgb(128 89 39 / 42%);
+  content: "";
+}
+
+.relics-page .relic-collection-message {
+  color: #302116;
+}
+
+.relics-page .relic-collection-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 0.55rem auto 0;
+  max-width: 22rem;
+}
+
+.relics-page .relic-collection-count {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: baseline;
+  gap: 0.35rem;
+  color: #6b291c;
+  font-family: "Inter", ui-sans-serif, sans-serif;
+  font-size: 0.75rem;
+}
+
+.relics-page .relic-collection-count span {
+  font-family: "IM Fell English", Georgia, serif;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.relics-page .relic-collection-meter {
+  display: grid;
+  flex: 1 1 10rem;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 0.25rem;
+  max-width: 13rem;
+  height: 0.22rem;
+}
+
+.relics-page .relic-collection-segment {
+  border-radius: 999px;
+  background: rgb(48 33 22 / 24%);
+}
+
+.relics-page .relic-collection-segment.is-collected {
+  background: #956a2e;
+}
+
+.relics-page .relic-collection-progress--dark .relic-collection-count {
+  color: #e2c482;
+}
+
+.relics-page .relic-collection-progress--dark .relic-collection-segment {
+  background: rgb(237 228 208 / 24%);
+}
+
+.relics-page .relic-collection-progress--dark .relic-collection-segment.is-collected {
+  background: #c9a45a;
+}
+
+.relics-page .relics-faceoff-panel {
+  border: 1px solid rgb(112 86 56 / 55%);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgb(139 46 39 / 8%), transparent 68%),
+    #171411;
+  box-shadow:
+    inset 0 1px 0 rgb(232 216 184 / 3%),
+    0 12px 24px rgb(0 0 0 / 24%);
+}
+
+.relics-page .relics-faceoff-eyebrow {
+  color: #b58b45;
+  line-height: 1.4;
+}
+
+.relics-page .relics-faceoff-panel .relic-collection-progress {
+  margin-top: 0.65rem;
+  max-width: 17rem;
+}
+
+.relics-page .relics-faceoff-panel .relic-collection-count {
+  align-items: baseline;
+  color: #d3c09a;
+  font-size: 0.68rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.relics-page .relics-faceoff-panel .relic-collection-count span {
+  color: #d2ad63;
+  font-size: 1.2rem;
+}
+
+.relics-page .relics-faceoff-panel .relic-collection-meter {
+  gap: 0.3rem;
+  height: 0.28rem;
+}
+
+.relics-page .relics-faceoff-panel .relic-collection-segment {
+  border-radius: 1px;
+  background: rgb(232 216 184 / 16%);
+}
+
+.relics-page .relics-faceoff-panel .relic-collection-segment.is-collected {
+  background: #b58b45;
+}
+
+.relics-page .relics-faceoff-heading {
+  color: #e8d8b8;
+  font-family: "Alfa Slab One", "Rockwell", Georgia, serif;
+  font-size: clamp(1.65rem, 4vw, 2.35rem);
+  font-weight: 400;
+  letter-spacing: 0.045em;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.relics-page .relics-faceoff-narrative {
+  color: #c2b59f;
+  font-family: "IM Fell English", Georgia, serif;
+  font-size: 1.08rem;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.relics-page .relics-faceoff-action {
+  border-color: rgb(139 46 39 / 68%);
+  background: #4a1d1b;
+  color: #eadcc2;
+  box-shadow: inset 0 1px 0 rgb(232 216 184 / 7%);
+  font-family: "Courier Prime", ui-monospace, monospace;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  transition:
+    background-color 160ms ease-out,
+    border-color 160ms ease-out,
+    transform 160ms ease-out;
+}
+
+.relics-page .relics-faceoff-action:hover {
+  transform: translateY(-1px);
+  border-color: rgb(181 139 69 / 72%);
+  background: #642522;
+}
+
+@media (max-width: 360px) {
+  .relics-page .relic-collection-progress {
+    gap: 0.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .relics-page .relic-grid {
+    width: calc(100% + 2.5rem);
+    margin-inline: -1.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .relics-page .relic-artwork,
+  .relics-page .relic-lore-chevron,
+  .relics-page .relic-lore-panel,
+  .relics-page .relic-lore-toggle,
+  .relics-page .relics-faceoff-action {
+    transition: none;
+  }
+}

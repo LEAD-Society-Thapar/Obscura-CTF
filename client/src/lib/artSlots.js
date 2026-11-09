@@ -26,7 +26,11 @@ export const ART_SLOTS = [
 
 // slot name -> image path (served from client/public). Empty = placeholders everywhere.
 export const ART_SOURCES = {
-  // "act-2-cover": "/art/act-2-cover.jpg",
+  "relic-rusted-reel": "/assets/mission-map/labels/Vintage%20Relic%20Icon%20Collection1.png",
+  "relic-wax-seal": "/assets/mission-map/labels/Vintage%20Relic%20Icon%20Collection2.png",
+  "relic-directors-script": "/assets/mission-map/labels/Vintage%20Relic%20Icon%20Collection3.png",
+  "relic-love-letter": "/assets/mission-map/labels/Vintage%20Relic%20Icon%20Collection4.png",
+  "relic-martian-orb": "/assets/mission-map/labels/Vintage%20Relic%20Icon%20Collection5.png",
 };
 
 const FALLBACK = { w: 4, h: 3, use: "Unregistered slot" };
