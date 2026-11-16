@@ -244,28 +244,28 @@ export const rules = [
     section: "I. The Hunt",
     icon: "scroll",
     title: "Five Acts, Twenty Checkpoints",
-    body: "- OBSCURA consists of five Acts, each containing four checkpoints.\n- Checkpoints must be completed in sequence. Solving a checkpoint unlocks the next one.\n- Complete all five Acts to unlock the final face-off against Mogambo.\n- Each completed Act rewards your team with one unique relic.\n- Collect all five relics to access the final challenge.",
+    body: "- OBSCURA consists of five Acts, each containing four checkpoints.\n- Checkpoints open in sequence. Closing a checkpoint, by solving it or by missing it with a wrong answer, opens the next one.\n- Finish all five Acts to unlock the final face-off against Mogambo.\n- Each finished Act rewards your team with one unique relic, even if you missed checkpoints in it.\n- Collect all five relics to access the final challenge.",
   },
   {
     id: 3,
     section: "I. The Hunt",
     icon: "mask",
     title: "Submitting Flags",
-    body: "- Submit answers in the format `OBSCURA{answer}`. You may also submit the bare answer without the wrapper.\n- Answers are case-insensitive, and spaces are ignored.\n- Read challenge instructions carefully and follow the requested format, including underscores or other specified separators.\n- Submissions are rate-limited. Five consecutive incorrect attempts trigger a temporary cooldown; follow the retry timer shown.",
+    body: "- Submit answers in the format `OBSCURA{answer}`. You may also submit the bare answer without the wrapper.\n- Answers are case-insensitive. Spaces, underscores, hyphens and commas are ignored, so `Red Door`, `red door` and `RED-DOOR` are the same answer.\n- Read challenge instructions carefully and give exactly what is asked for (the right numbers, words and order).\n- **You get one attempt per checkpoint.** A wrong answer closes that checkpoint with zero points and opens the next one. It cannot be answered again.\n- Agree on the answer as a team and check its format before you submit. You will be asked to confirm.",
   },
   {
     id: 4,
     section: "II. Scoring and Hints",
     icon: "check",
     title: "Points and Scoring",
-    body: "- Every checkpoint carries a predefined point value.\n- Points are awarded for correctly solving checkpoints.\n- Hint usage deducts points from the corresponding checkpoint.\n- Your team's score reflects points earned after applicable hint deductions.\n- The maximum available score across all checkpoints and the final boss is 4,500 points before penalties.",
+    body: "- Every checkpoint carries a predefined point value.\n- Points are awarded for correctly solving checkpoints. A missed checkpoint scores zero.\n- Hint usage deducts points from your score.\n- Your team's score reflects points earned after applicable hint deductions.\n- The maximum available score across all checkpoints and the final boss is 4,500 points before penalties.",
   },
   {
     id: 5,
     section: "II. Scoring and Hints",
     icon: "bulb",
     title: "Hints and Penalties",
-    body: "- Each checkpoint provides two optional hints. Hints unlock sequentially.\n- Hint costs are fixed point deductions shown for each checkpoint; using a hint deducts that amount from its checkpoint.\n- Use hints strategically. Sometimes figuring things out yourself is worth more than the shortcut.",
+    body: "- Each checkpoint provides two optional hints. Hints unlock sequentially.\n- Hint 1 costs 20% of that checkpoint's points. Hint 2 costs a further 40%, so using both costs 60%.\n- The cost is deducted from your score when you reveal the hint, whether or not you then solve the checkpoint.\n- Use hints strategically. Sometimes figuring things out yourself is worth more than the shortcut.",
   },
   {
     id: 6,
@@ -295,15 +295,4 @@ export const rules = [
     title: "Technical Issues and Support",
     body: "- Report technical issues to event staff immediately.\n- Do not exploit platform malfunctions or interfere with the system.\n- Event staff will assess reported issues and determine the appropriate resolution.\n- A technical issue does not automatically pause or extend the global countdown.",
   },
-];
-
-// Other teams (PLACEHOLDER). The logged-in team's row is merged in live by mockApi.getLeaderboard().
-export const leaderboard = [
-  { teamId: "team-03", team: "Team 03", points: 910, solved: 9 },
-  { teamId: "team-11", team: "Team 11", points: 780, solved: 8 },
-  { teamId: "team-01", team: "Team 01", points: 640, solved: 7 },
-  { teamId: "team-14", team: "Team 14", points: 505, solved: 6 },
-  { teamId: "team-05", team: "Team 05", points: 390, solved: 5 },
-  { teamId: "team-09", team: "Team 09", points: 300, solved: 4 },
-  { teamId: "team-12", team: "Team 12", points: 180, solved: 2 },
 ];

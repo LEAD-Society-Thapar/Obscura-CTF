@@ -1,4 +1,4 @@
-import { useFinale, useLeaderboard, useTeam } from "../../hooks/useGameData.js";
+import { useFinale, useTeam } from "../../hooks/useGameData.js";
 import { formatDuration, formatPoints } from "../../lib/format.js";
 import Button from "../ui/Button.jsx";
 import Icon from "../ui/Icon.jsx";
@@ -13,15 +13,11 @@ function Stat({ label, value }) {
 }
 
 // Shown once the team has solved the final face-off (ChallengesHub, Relics).
-// Rank and time taken are omitted when the leaderboard or event start time is unavailable.
+// No rank: standings are revealed by the organisers at the end. Time taken is omitted when unknown.
 export default function VictoryPanel({ className = "", showReelLink = true }) {
   const { finished, timeTakenMs } = useFinale();
   const { team } = useTeam();
-  const board = useLeaderboard();
   if (!finished || !team) return null;
-
-  const mine = board.rows.find((r) => r.isYou);
-  const rank = mine ? `#${mine.rank} of ${board.rows.length}` : null;
 
   return (
     <section
@@ -47,14 +43,11 @@ export default function VictoryPanel({ className = "", showReelLink = true }) {
         )}
       </div>
 
-      <dl className="mt-5 grid gap-3 sm:grid-cols-3">
+      <dl className="mt-5 grid gap-3 sm:grid-cols-2">
         <Stat label="Final score" value={formatPoints(team.points)} />
-        {rank && <Stat label="Leaderboard rank" value={rank} />}
         {timeTakenMs != null && <Stat label="Time taken" value={formatDuration(timeTakenMs)} />}
       </dl>
-      {board.frozen && rank && (
-        <p className="mt-3 text-xs text-muted">The leaderboard is frozen; your final rank is revealed at the end.</p>
-      )}
+      <p className="mt-3 text-xs text-muted">Final standings are revealed by the organisers when the hunt ends.</p>
     </section>
   );
 }

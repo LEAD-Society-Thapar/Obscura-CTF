@@ -12,15 +12,18 @@ export function deriveGateSlug(teamId, cpId = "") {
 }
 
 // Canonical form of an answer, used both when hashing stored flags and when checking submissions:
-// NFC, trimmed, lowercased, ONE optional OBSCURA{...} wrapper removed, then every whitespace character removed.
-// So "OBSCURA{ A B E F }", "abef" and "ABEF" are equal.
+// NFC, trimmed, lowercased, ONE optional OBSCURA{...} wrapper removed, then every separator removed:
+// whitespace, underscores, hyphens/dashes and commas. Teams get one attempt per checkpoint, so "RED DOOR",
+// "red-door" and "RED_DOOR" must all count, as must "A,B,C,D" and "1,024". Dots and % are kept ("0.5", "50%").
+// CHANGING THIS CHANGES EVERY STORED HASH: re-run `npm run db:seed:flags` and redeploy together.
 const WRAPPER = /^obscura\{([\s\S]*)\}$/;
+const SEPARATORS = /[\s_,\-‐-―−]+/g;
 
 export function normalizeAnswer(input) {
   let s = String(input ?? "").normalize("NFC").trim().toLowerCase();
   const m = WRAPPER.exec(s);
   if (m) s = m[1];
-  return s.replace(/\s+/g, "");
+  return s.replace(SEPARATORS, "");
 }
 
 // HMAC-SHA256(FLAG_PEPPER, "<cpId>:<normalized answer>"), hex. Binding the checkpoint id means the same

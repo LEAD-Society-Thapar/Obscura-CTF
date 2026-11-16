@@ -1,24 +1,52 @@
-import { useLeaderboard } from "../hooks/useGameData.js";
-import Icon from "../components/ui/Icon.jsx";
-import PageStatus from "../components/ui/PageStatus.jsx";
+import { useCallback, useEffect, useState } from "react";
+import { adminLeaderboard } from "../../api/endpoints.js";
+import Button from "../../components/ui/Button.jsx";
+import Icon from "../../components/ui/Icon.jsx";
+import PageStatus from "../../components/ui/PageStatus.jsx";
 
-// No design yet: simple themed table. Live scores; frozen for the last 20 minutes.
+const REFRESH_MS = 10_000;
+
+// Admin only (/admin/leaderboard): teams never see other teams' scores or ranks. Built to be put on the projector
+// for the winners reveal. Live; refreshes every 10 s.
 export default function Leaderboard() {
-  const { loading, error, rows, frozen } = useLeaderboard();
+  const [rows, setRows] = useState(null);
+  const [error, setError] = useState(null);
+
+  const load = useCallback(() => {
+    adminLeaderboard().then(
+      (d) => {
+        setRows(d.rows ?? []);
+        setError(null);
+      },
+      (e) => setError(e)
+    );
+  }, []);
+
+  useEffect(() => {
+    load();
+    const id = setInterval(load, REFRESH_MS);
+    return () => clearInterval(id);
+  }, [load]);
 
   return (
     <section aria-labelledby="board-heading" className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-0">
-      <header className="flex flex-wrap items-end justify-between gap-2">
-        <h1 id="board-heading" className="font-display text-4xl tracking-wide text-bone uppercase">
-          Leaderboard
-        </h1>
-        <p className="font-type text-xs text-muted">
-          {frozen ? "Frozen: final scores revealed at the end." : "Live. Freezes for the last 20 minutes."}
-        </p>
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="font-type text-xs tracking-[0.25em] text-gold-soft uppercase">OBSCURA / organisers only</p>
+          <h1 id="board-heading" className="font-display text-4xl tracking-wide text-bone uppercase">
+            Leaderboard
+          </h1>
+        </div>
+        <Button to="/admin" size="sm" variant="ghost" caps={false}>
+          Back to Projection Room
+        </Button>
       </header>
+      <p className="mt-2 font-type text-xs text-muted">
+        Live, refreshed every 10 s. Ties go to the team whose last solve came first.
+      </p>
 
-      {loading || error ? (
-        <PageStatus loading={loading} error={error} />
+      {!rows ? (
+        <PageStatus loading={!error} error={error} />
       ) : (
         <div className="panel-dark mt-6 overflow-x-auto">
           <table className="w-full text-left">
@@ -41,7 +69,7 @@ export default function Leaderboard() {
             </thead>
             <tbody className="divide-y divide-line/50">
               {rows.map((r) => (
-                <tr key={r.teamId} className={r.isYou ? "bg-blood-deep/40" : ""} aria-current={r.isYou || undefined}>
+                <tr key={r.teamId}>
                   <td className="px-4 py-3 font-type text-gold">
                     <span className="inline-flex items-center gap-1.5">
                       {r.rank === 1 && <Icon name="trophy" className="size-4" />}#{r.rank}
@@ -49,7 +77,6 @@ export default function Leaderboard() {
                   </td>
                   <th scope="row" className="px-4 py-3 font-heading font-semibold text-bone">
                     {r.team}
-                    {r.isYou && <span className="ml-2 text-xs font-normal text-blood-bright">(you)</span>}
                   </th>
                   <td className="px-4 py-3 text-right text-muted tabular-nums">{r.solved}</td>
                   <td className="px-4 py-3 text-right font-heading font-bold text-gold tabular-nums">{r.points}</td>
@@ -59,6 +86,7 @@ export default function Leaderboard() {
           </table>
         </div>
       )}
+      {rows && error && <p className="mt-3 text-xs text-blood-bright">Refresh failed; showing the last standings.</p>}
     </section>
   );
 }

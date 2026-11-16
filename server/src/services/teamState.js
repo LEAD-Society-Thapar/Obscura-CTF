@@ -1,9 +1,14 @@
 // Builds a team's view of the game from the DB rows + static content in data/game.js.
 // Response shapes follow the client's mock server (client/src/data/mockApi.js), which is the API contract.
+//
+// One attempt per checkpoint: a wrong submission closes the checkpoint ("failed", 0 points) and the next gate
+// opens. There is no separate table for that: a checkpoint is failed when the team has a wrong row in
+// `submissions` for it and no row in `team_solves`. An admin reopens it by deleting the wrong row.
 import { requireDb } from "../config/supabase.js";
 import { ACTS, CHECKPOINTS, FINAL_BOSS, RELICS } from "../data/game.js";
 import { deriveGateSlug } from "../utils/gate.js";
 import { HttpError } from "../utils/httpError.js";
+import { clockView, EVENT_ROW_ID } from "./eventClock.js";
 
 const rowsOf = ({ data, error }) => {
   if (error) throw error;
@@ -24,6 +29,14 @@ export const holdsAllRelics = (relicIds) => {
   const held = new Set(relicIds);
   return RELICS.every((r) => held.has(r.id));
 };
+
+// Relics a team has earned: one per act whose last checkpoint is closed (solved, or missed with a wrong answer).
+export function earnedRelicIds(closedCpIds) {
+  const closed = new Set(closedCpIds);
+  return CHECKPOINTS.filter((cp) => isLastOfAct(cp) && closed.has(cp.id))
+    .map((cp) => relicOfAct(cp.act)?.id)
+    .filter(Boolean);
+}
 
 // Points are derived, never stored, so they can't drift: solves - hints + manual adjustment.
 export function pointsOf(team, solves, hints) {
@@ -49,32 +62,65 @@ export function rankTeams(teams, solves, hints, youId = null) {
 
 export async function loadTeamState(teamId) {
   const db = requireDb();
-  const [teams, solves, hints, relics] = await Promise.all([
-    db.from("teams").select("id, name, points_adjust").eq("id", teamId),
+  const [teams, solves, hints, relics, misses, events] = await Promise.all([
+    // "*" so this keeps working before migration 002 (teams.extra_time_ms) has been applied.
+    db.from("teams").select("*").eq("id", teamId),
     db.from("team_solves").select("cp_id, points, solved_at").eq("team_id", teamId),
     db.from("team_hints").select("cp_id, hint_id, cost, revealed_at").eq("team_id", teamId),
     db.from("team_relics").select("relic_id, earned_at").eq("team_id", teamId),
+    db.from("submissions").select("cp_id, submitted, created_at").eq("team_id", teamId).eq("correct", false),
+    db.from("event_state").select("*").eq("id", EVENT_ROW_ID),
   ]).then((results) => results.map(rowsOf));
 
-  const team = teams[0];
-  if (!team) throw new HttpError(401, "Team no longer exists, log in again");
-  return new TeamState(team, solves, hints, relics);
+  if (!teams[0]) throw new HttpError(401, "Team no longer exists, log in again");
+  const { password_hash: _passwordHash, ...team } = teams[0];
+
+  // A relic row is written when the act's last checkpoint closes. If that write was lost (the solve and the relic
+  // are two separate inserts), put it back here so a team can never be locked out of the final by a failed request.
+  const held = new Set(relics.map((r) => r.relic_id));
+  const owed = earnedRelicIds([...solves, ...misses].map((r) => r.cp_id)).filter((id) => !held.has(id));
+  if (owed.length) {
+    rowsOf(
+      await db
+        .from("team_relics")
+        .upsert(owed.map((relic_id) => ({ team_id: teamId, relic_id })), { onConflict: "team_id,relic_id", ignoreDuplicates: true })
+    );
+    const earned_at = new Date().toISOString();
+    relics.push(...owed.map((relic_id) => ({ relic_id, earned_at })));
+  }
+
+  return new TeamState(team, solves, hints, relics, misses, clockView(events[0], team.extra_time_ms));
 }
 
 export class TeamState {
-  constructor(team, solves, hints, relics) {
+  // misses: this team's wrong rows from `submissions` ({ cp_id, submitted, created_at }).
+  // clock:  clockView() for this team, or null when the caller does not need it (unit tests).
+  constructor(team, solves, hints, relics, misses = [], clock = null) {
     this.team = team;
     this.solves = solves;
     this.hints = hints;
     this.relics = relics;
+    this.clock = clock;
 
-    // Strict order: everything before the first unsolved checkpoint is solved, it is current, the rest locked.
     const solved = new Set(solves.map((s) => s.cp_id));
+    // Latest wrong row per checkpoint, ignoring checkpoints that were solved (a solve always wins).
+    this.misses = [];
+    for (const m of [...misses].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))) {
+      if (solved.has(m.cp_id)) continue;
+      const i = this.misses.findIndex((x) => x.cp_id === m.cp_id);
+      if (i >= 0) this.misses[i] = m;
+      else this.misses.push(m);
+    }
+    const failed = new Set(this.misses.map((m) => m.cp_id));
+
+    // Strict order: closed checkpoints (solved or failed) stay closed, the first open one is current, the rest locked.
     let currentFound = false;
     this.status = new Map();
     for (const cp of CHECKPOINTS) {
       if (solved.has(cp.id)) {
         this.status.set(cp.id, "solved");
+      } else if (failed.has(cp.id)) {
+        this.status.set(cp.id, "failed");
       } else if (!currentFound) {
         this.status.set(cp.id, "current");
         currentFound = true;
@@ -84,7 +130,7 @@ export class TeamState {
     }
 
     // Defence in depth: the final gate stays locked without every relic, whatever the order logic says
-    // (e.g. an admin-inserted solve row). A solved final stays solved.
+    // (e.g. an admin-inserted solve row). A closed final stays closed.
     this.hasAllRelics = holdsAllRelics(relics.map((r) => r.relic_id));
     if (this.status.get(FINAL_BOSS.id) === "current" && !this.hasAllRelics) {
       this.status.set(FINAL_BOSS.id, "locked");
@@ -95,8 +141,25 @@ export class TeamState {
     return this.solves.find((s) => s.cp_id === FINAL_BOSS.id) || null;
   }
 
+  get finalMissed() {
+    return this.status.get(FINAL_BOSS.id) === "failed";
+  }
+
   get points() {
     return pointsOf(this.team, this.solves, this.hints);
+  }
+
+  // Solved or failed: either way the checkpoint takes no more answers.
+  isClosed(cp) {
+    const s = this.status.get(cp.id);
+    return s === "solved" || s === "failed";
+  }
+
+  // The Reel Card carries the story forward (and often the answer), so it is shown once a checkpoint is closed.
+  // Exception: a missed final. Its reel is the victory ending, which that team did not earn.
+  canSeeReel(cp) {
+    const s = this.status.get(cp.id);
+    return s === "solved" || (s === "failed" && !isFinal(cp));
   }
 
   slugOf(cp) {
@@ -134,7 +197,6 @@ export class TeamState {
   // Hint text is only sent once revealed.
   detail(cp) {
     const revealed = new Set(this.hints.filter((h) => h.cp_id === cp.id).map((h) => h.hint_id));
-    const solved = this.status.get(cp.id) === "solved";
     return {
       ...this.summary(cp),
       story: cp.story,
@@ -148,8 +210,8 @@ export class TeamState {
         revealed: revealed.has(h.id),
         text: revealed.has(h.id) ? h.text : null,
       })),
-      reel: solved ? this.reelOf(cp) : null,
-      next: solved ? this.nextOf(cp) : null,
+      reel: this.canSeeReel(cp) ? this.reelOf(cp) : null,
+      next: this.isClosed(cp) ? this.nextOf(cp) : null,
     };
   }
 
@@ -167,21 +229,22 @@ export class TeamState {
     });
   }
 
-  // Newest first, built from solves + hints + relics (no separate log table).
+  // Newest first, built from solves + misses + hints + relics (no separate log table).
   activity() {
     const entries = [
       ...this.solves.map((s) => ({ id: `solve-${s.cp_id}`, type: "solve", cpId: s.cp_id, delta: s.points, at: s.solved_at })),
+      ...this.misses.map((m) => ({ id: `miss-${m.cp_id}`, type: "miss", cpId: m.cp_id, delta: 0, at: m.created_at })),
       ...this.hints.map((h) => ({ id: `hint-${h.cp_id}-${h.hint_id}`, type: "hint", cpId: h.cp_id, delta: -h.cost, at: h.revealed_at })),
       ...this.relics.map((r) => ({ id: `relic-${r.relic_id}`, type: "relic", relicId: r.relic_id, delta: 0, at: r.earned_at })),
     ];
     return entries.sort((a, b) => new Date(b.at) - new Date(a.at));
   }
 
-  // Solves in a row since the last hint.
+  // Solves in a row since the last hint or miss.
   streak(activity) {
     let n = 0;
     for (const e of activity) {
-      if (e.type === "hint") break;
+      if (e.type === "hint" || e.type === "miss") break;
       if (e.type === "solve") n += 1;
     }
     return n;
@@ -199,6 +262,7 @@ export class TeamState {
         hintPointsSpent: this.hints.reduce((n, h) => n + h.cost, 0),
         streak: this.streak(activity),
         solved: this.solves.length, // includes the final face-off
+        missed: this.misses.length,
         totalCheckpoints: CHECKPOINTS.length, // 21
       },
       // Acts list only act checkpoints (c.act === a.id), so the final face-off never shows on the map or in counts.
@@ -218,12 +282,45 @@ export class TeamState {
       relicsTotal: relics.length,
       finished: !!finalSolve,
       finishedAt: finalSolve?.solved_at ?? null,
+      finalMissed: this.finalMissed,
       relics,
       activity: activity.map((e) => ({
         ...e,
         cp: checkpointById(e.cpId) ? this.summary(checkpointById(e.cpId)) : null,
         relic: e.relicId ? relics.find((r) => r.id === e.relicId) || null : null,
       })),
+    };
+  }
+
+  // One row of the admin overview. Unlike everything above, this is organiser-only: it includes what the team
+  // typed on a missed checkpoint so a dispute can be judged before reopening it.
+  adminRow(rank = null) {
+    const current = CHECKPOINTS.find((cp) => this.status.get(cp.id) === "current") || null;
+    const times = [
+      ...this.solves.map((s) => s.solved_at),
+      ...this.misses.map((m) => m.created_at),
+      ...this.hints.map((h) => h.revealed_at),
+    ].map((t) => new Date(t).getTime());
+    return {
+      id: this.team.id,
+      code: this.team.team_code ?? this.team.name,
+      name: this.team.name,
+      rank,
+      points: this.points,
+      solved: this.solves.length,
+      missed: this.misses.length,
+      hintsUsed: this.hints.length,
+      hintPointsSpent: this.hints.reduce((n, h) => n + h.cost, 0),
+      relics: this.relics.length,
+      current: current ? { id: current.id, title: current.title } : null,
+      finished: !!this.finalSolve,
+      finalMissed: this.finalMissed,
+      lastActivityAt: times.length ? new Date(Math.max(...times)).toISOString() : null,
+      clock: this.clock
+        ? { status: this.clock.status, remainingMs: this.clock.remainingMs, extraTimeMs: this.clock.extraTimeMs }
+        : null,
+      checkpoints: CHECKPOINTS.map((cp) => ({ id: cp.id, status: this.status.get(cp.id) })),
+      misses: this.misses.map((m) => ({ cpId: m.cp_id, submitted: m.submitted, at: m.created_at })),
     };
   }
 }

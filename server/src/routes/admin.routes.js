@@ -1,16 +1,18 @@
 import { Router } from "express";
 import * as admin from "../controllers/admin.controller.js";
-import { adminLogin } from "../controllers/auth.controller.js";
+import { adminLogin, adminLogout, adminMe } from "../controllers/auth.controller.js";
 import { requireAdmin } from "../middleware/auth.js";
 
 const r = Router();
 r.post("/login", adminLogin);
+r.post("/logout", adminLogout);
 
 r.use(requireAdmin);
+r.get("/me", adminMe);
 r.get("/overview", admin.overview);
-r.post("/ticker", admin.pushTicker);
-r.post("/event/status", admin.setEventStatus);
-r.post("/teams/:teamId/adjust", admin.adjustTeam);
-r.get("/submissions", admin.submissionLog);
-r.post("/leaderboard/freeze", admin.toggleFreeze);
+r.get("/leaderboard", admin.leaderboard);
+r.post("/event", admin.eventAction);
+r.post("/event/extend", admin.extendEvent);
+r.post("/teams/:teamId/time", admin.addTeamTime);
+r.post("/teams/:teamId/reopen", admin.reopenCheckpoint);
 export default r;

@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { useGameActions, useGate } from "../hooks/useGameData.js";
+import { useEventStatus, useGameActions, useGate } from "../hooks/useGameData.js";
 import { formatCp, isFinalCp } from "../lib/format.js";
 import EndingModal from "../components/game/EndingModal.jsx";
 import FlagForm from "../components/game/FlagForm.jsx";
@@ -13,6 +13,13 @@ import Icon from "../components/ui/Icon.jsx";
 import PageStatus from "../components/ui/PageStatus.jsx";
 import PointsBadge from "../components/ui/PointsBadge.jsx";
 import SafeMarkdown from "../components/ui/SafeMarkdown.jsx";
+
+// Why flags are not accepted right now (null while the clock is running).
+const CLOCK_NOTICE = {
+  idle: "The hunt has not started yet. Flags open when the clock starts.",
+  paused: "The clock is paused. Flags open again when it resumes.",
+  ended: "Time is up. The hunt is over and flags are closed.",
+};
 
 function BackLink({ act, final = false }) {
   const [to, label] = final
@@ -27,27 +34,36 @@ function BackLink({ act, final = false }) {
   );
 }
 
-// Shown instead of the challenge when the slug is unknown or the gate is still locked.
+// Shown instead of the challenge when the slug is unknown, the gate is still locked, or the hunt has not started.
 function GateBlocked({ error }) {
   const code = error?.data?.code;
   const locked = code === "LOCKED";
+  const notStarted = code === "EVENT_NOT_STARTED";
   const final = !!error?.data?.final;
   return (
     <div className="mx-auto max-w-lg py-12 text-center">
       <span className="mx-auto grid size-16 place-items-center rounded-full bg-ink-raised text-muted ring-1 ring-line">
-        <Icon name="lock" className="size-8" />
+        <Icon name={notStarted ? "clock" : "lock"} className="size-8" />
       </span>
       <h1 className="mt-5 font-heading text-3xl font-bold text-bone">
-        {locked ? "This gate is still sealed" : code === "NOT_FOUND" ? "No gate here" : "The projector jammed"}
+        {notStarted
+          ? "The hunt has not started"
+          : locked
+            ? "This gate is still sealed"
+            : code === "NOT_FOUND"
+              ? "No gate here"
+              : "The projector jammed"}
       </h1>
       <p className="mt-2 text-muted">
-        {locked && final
-          ? "Collect all five relics to face Mogambo."
-          : locked
-            ? "Solve the previous checkpoint first. Its Reel Card shows the way here."
-            : code === "NOT_FOUND"
-              ? "This gate doesn't exist, or it belongs to another team."
-              : error?.message}
+        {notStarted
+          ? "Gates open the moment the clock starts. This page will open by itself."
+          : locked && final
+            ? "Collect all five relics to face Mogambo."
+            : locked
+              ? "Close the previous checkpoint first. Its Reel Card shows the way here."
+              : code === "NOT_FOUND"
+                ? "This gate doesn't exist, or it belongs to another team."
+                : error?.message}
       </p>
       <div className="mt-6">
         <BackLink act={error?.data?.act} final={final} />
@@ -56,33 +72,43 @@ function GateBlocked({ error }) {
   );
 }
 
-// Design 4: challenge page at a per-team gate URL. Shows the Reel Card modal (design 5) after a solve.
+// Design 4: challenge page at a per-team gate URL. Shows the Reel Card modal (design 5) once the checkpoint
+// closes: after a solve, or (marked as missed) after the team's one wrong answer.
 export default function Gate() {
   const { slug } = useParams();
   const { loading, error, checkpoint: cp, reload } = useGate(slug);
   const { submitFlag, revealHint } = useGameActions();
-  const [solve, setSolve] = useState(null); // submit result while the reel modal is open
+  const clockStatus = useEventStatus();
+  const [result, setResult] = useState(null); // submit result while a modal is open
+
+  // The page was refused because the hunt had not started: open it as soon as the clock runs.
+  const waitingForStart = error?.data?.code === "EVENT_NOT_STARTED";
+  useEffect(() => {
+    if (waitingForStart && clockStatus && clockStatus !== "idle") reload();
+  }, [waitingForStart, clockStatus, reload]);
 
   // Also covers moving to the next gate: don't show the previous checkpoint while the new one loads.
   if (loading && cp?.slug !== slug) return <PageStatus loading label="Opening the gate" />;
   if (error) return <GateBlocked error={error} />;
 
   const solved = cp.status === "solved";
+  const missed = cp.status === "failed";
   const final = isFinalCp(cp);
   const paragraphs = cp.story.split("\n").filter(Boolean);
+  const clockNotice = CLOCK_NOTICE[clockStatus] ?? null;
 
-  const onSolved = (result) => {
-    setSolve(result);
+  const onClosed = (res) => {
+    setResult(res);
     reload();
   };
 
-  const closeReel = () => setSolve(null);
+  const closeModal = () => setResult(null);
   const nextAction = (next) =>
     next && isFinalCp(next)
-      ? { to: `/gate/${next.slug}`, label: "Face Mogambo", onClick: closeReel }
+      ? { to: `/gate/${next.slug}`, label: "Face Mogambo", onClick: closeModal }
       : next
-        ? { to: `/gate/${next.slug}`, label: "Go to next checkpoint", onClick: closeReel }
-        : { to: "/relics", label: "See your relics", onClick: closeReel };
+        ? { to: `/gate/${next.slug}`, label: "Go to next checkpoint", onClick: closeModal }
+        : { to: "/relics", label: "See your relics", onClick: closeModal };
 
   return (
     <article aria-labelledby="cp-title">
@@ -101,6 +127,11 @@ export default function Gate() {
             {solved && (
               <span className="inline-flex items-center gap-1 rounded-chip bg-gold/15 px-2.5 py-0.5 font-heading text-sm font-semibold text-gold">
                 <Icon name="check" className="size-4" /> Solved
+              </span>
+            )}
+            {missed && (
+              <span className="inline-flex items-center gap-1 rounded-chip bg-blood-deep/60 px-2.5 py-0.5 font-heading text-sm font-semibold text-blood-bright">
+                <Icon name="close" className="size-4" /> Missed
               </span>
             )}
           </div>
@@ -140,7 +171,11 @@ export default function Gate() {
           )}
 
           <div className="mt-6">
-            <HintPanel hints={cp.hints} readOnly={solved} onReveal={(id) => revealHint(slug, id).then(reload)} />
+            <HintPanel
+              hints={cp.hints}
+              readOnly={solved || missed || !!clockNotice}
+              onReveal={(id) => revealHint(slug, id).then(reload)}
+            />
           </div>
         </div>
 
@@ -152,15 +187,30 @@ export default function Gate() {
       </div>
 
       <div className="mt-8">
-        {solved ? (
-          <div className="flex flex-col items-start gap-4 rounded-card border border-gold-soft/50 bg-ink-soft/90 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-bone">
-              <strong className="font-heading text-gold">Already solved.</strong> Your team cracked this one.
-            </p>
+        {solved || missed ? (
+          <div
+            className={`flex flex-col items-start gap-4 rounded-card border bg-ink-soft/90 p-4 sm:flex-row sm:items-center sm:justify-between ${
+              solved ? "border-gold-soft/50" : "border-blood/60"
+            }`}
+          >
+            {solved ? (
+              <p className="text-bone">
+                <strong className="font-heading text-gold">Already solved.</strong> Your team cracked this one.
+              </p>
+            ) : (
+              <p className="text-bone">
+                <strong className="font-heading text-blood-bright">Missed.</strong>{" "}
+                {final
+                  ? "Your team's one answer was wrong. Mogambo slips away, and the final face-off is closed."
+                  : "Your team's one answer was wrong, so this checkpoint is closed with 0 points."}
+              </p>
+            )}
             <div className="flex flex-wrap gap-2">
-              <Button to={`/reel/${cp.id}`} variant="outline" size="sm" caps={false}>
-                View Reel Card
-              </Button>
+              {cp.reel && (
+                <Button to={`/reel/${cp.id}`} variant="outline" size="sm" caps={false}>
+                  View Reel Card
+                </Button>
+              )}
               {cp.next && (
                 <Button to={`/gate/${cp.next.slug}`} size="sm" caps={false}>
                   {isFinalCp(cp.next) ? "Face Mogambo" : "Next checkpoint"} <Icon name="arrowRight" className="size-4" />
@@ -168,28 +218,36 @@ export default function Gate() {
               )}
               {final && (
                 <Button to="/challenges" size="sm" caps={false}>
-                  See your victory <Icon name="arrowRight" className="size-4" />
+                  {solved ? "See your victory" : "Back to your dossier"} <Icon name="arrowRight" className="size-4" />
                 </Button>
               )}
             </div>
           </div>
         ) : (
-          <FlagForm onSubmit={(flag) => submitFlag(slug, flag)} onSolved={onSolved} onStale={reload} />
+          <FlagForm
+            onSubmit={(flag) => submitFlag(slug, flag)}
+            onSolved={onClosed}
+            onMissed={onClosed}
+            onStale={reload}
+            disabledReason={clockNotice}
+          />
         )}
       </div>
 
+      {/* After a solve, or after a miss on any checkpoint but the final (a missed final has no reel to show). */}
       <ReelCardModal
-        open={!!solve && !solve.finished}
-        onClose={closeReel}
-        reel={solve?.reel}
-        relic={solve?.relic}
-        action={solve && !solve.finished ? nextAction(solve.next) : null}
+        open={!!result?.reel && !result.finished}
+        onClose={closeModal}
+        reel={result?.reel}
+        relic={result?.relic}
+        missed={!!result?.missed}
+        action={result && !result.finished ? nextAction(result.next) : null}
       />
       <EndingModal
-        open={!!solve?.finished}
-        onClose={closeReel}
-        title={solve?.endingTitle}
-        ending={solve?.ending}
+        open={!!result?.finished}
+        onClose={closeModal}
+        title={result?.endingTitle}
+        ending={result?.ending}
       />
     </article>
   );

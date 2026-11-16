@@ -4,11 +4,8 @@ import PageStatus from "../components/ui/PageStatus.jsx";
 import "./Rules.css";
 
 // Design 8: rulebook. Public page; shows the game navbar when a team is logged in.
-const CORRECTED_RULE_BODIES = {
-  3: "- Submit answers in the format `OBSCURA{answer}`. You may also submit the bare answer without the wrapper.\n- Answers are case-insensitive, and spaces are ignored.\n- Read challenge instructions carefully and follow the requested format, including underscores or other specified separators.\n- Incorrect submissions do not incur a score penalty or submission limit. You may retry until you find the correct answer.",
-  5: "- Each checkpoint provides two optional hints. Hints are unlocked sequentially.\n- Hint 1: 20% deduction from that checkpoint's maximum points.\n- Hint 2: Additional 40% deduction.\n- Using both hints: 60% cumulative deduction.\n- Use hints strategically. Sometimes figuring things out yourself is worth more than the shortcut.",
-};
-
+// Rule text comes from the API (server/src/data/content/challenges.json). Do not override or add rule wording
+// here, and never put a line from the ending on this page: it is public, and the ending contains an answer.
 export default function Rules() {
   const { loading, error, rules } = useRules();
   const sections = rules.reduce((groups, rule) => {
@@ -69,7 +66,7 @@ export default function Rules() {
                       n={rule.id}
                       icon={rule.icon}
                       title={rule.title}
-                      body={CORRECTED_RULE_BODIES[rule.id] || rule.body}
+                      body={rule.body}
                     />
                   ))}
                 </ol>
@@ -89,7 +86,7 @@ export default function Rules() {
               <p className="rulebook-serif mt-2 text-lg font-bold text-blood-bright sm:text-xl">
                 Recover the Archive. Defeat Mogambo.
               </p>
-              <p className="rulebook-serif mt-5 text-xl text-gold sm:text-2xl">MOGAMBO DUKHI HUA!</p>
+              <p className="rulebook-serif mt-5 text-xl text-gold sm:text-2xl">MOGAMBO KO KHUSH MAT HONE DO!</p>
               <p className="rulebook-serif mt-2 text-lg italic text-muted">Picture abhi baaki hai, mere dost.</p>
               <p className="rulebook-file rulebook-mono mt-5 text-muted uppercase">OBSCURA / ARCHIVE COPY / 01</p>
             </section>

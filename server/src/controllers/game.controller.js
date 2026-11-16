@@ -2,9 +2,10 @@
 // Response shapes follow the client's mock server (client/src/data/mockApi.js).
 import { requireDb } from "../config/supabase.js";
 import { ACTS, RULES } from "../data/game.js";
-import { recordResult } from "../middleware/submitLimiter.js";
 import { flagMatches, normalizeAnswer } from "../utils/gate.js";
+import { releaseAttempt } from "../middleware/submitLimiter.js";
 import { HttpError } from "../utils/httpError.js";
+import { assertRunning, assertStarted, clockView, EVENT_ROW_ID } from "../services/eventClock.js";
 import {
   checkpointAfter,
   checkpointById,
@@ -12,7 +13,6 @@ import {
   isFinal,
   isLastOfAct,
   loadTeamState,
-  rankTeams,
   relicOfAct,
 } from "../services/teamState.js";
 
@@ -28,7 +28,7 @@ export function openGate(state, slug) {
   const cp = state.bySlug(slug);
   if (!cp) throw new HttpError(404, "No gate here.", { code: "NOT_FOUND" });
   // Defence in depth for the final face-off: refuse without every relic, independent of the status map.
-  if (isFinal(cp) && !state.hasAllRelics && state.status.get(cp.id) !== "solved") {
+  if (isFinal(cp) && !state.hasAllRelics && !state.isClosed(cp)) {
     throw new HttpError(403, "Collect every relic to face Mogambo.", { code: "LOCKED", act: null, final: true });
   }
   if (state.status.get(cp.id) === "locked") {
@@ -37,23 +37,15 @@ export function openGate(state, slug) {
   return cp;
 }
 
-// GET /api/game/state
-export async function getEventState(_req, res) {
-  const [ev] = rowsOf(await requireDb().from("event_state").select("*").eq("id", 1));
-  const durationMinutes = ev?.duration_minutes ?? 90;
-  if (!ev?.started_at || ev.status === "idle") {
-    return res.json({ status: ev?.status ?? "idle", endsAt: null, startedAt: null, totalPausedMs: 0, durationMinutes });
-  }
-  const pausedMs =
-    Number(ev.total_paused_ms) + (ev.status === "paused" && ev.paused_at ? Date.now() - new Date(ev.paused_at) : 0);
-  const endsAt = new Date(new Date(ev.started_at).getTime() + durationMinutes * 60_000 + pausedMs);
-  res.json({
-    status: ev.status,
-    endsAt: endsAt.toISOString(),
-    startedAt: new Date(ev.started_at).toISOString(), // for "time taken" on the Victory panel
-    totalPausedMs: pausedMs,
-    durationMinutes,
-  });
+// GET /api/game/state   This team's clock: the global clock plus any extra time the admin gave the team.
+// Clients count down from remainingMs (not endsAt), so a wrong device clock does not matter.
+export async function getEventState(req, res) {
+  const db = requireDb();
+  const [events, teams] = await Promise.all([
+    db.from("event_state").select("*").eq("id", EVENT_ROW_ID),
+    db.from("teams").select("*").eq("id", req.team.id), // "*": extra_time_ms may not exist before migration 002
+  ]).then((results) => results.map(rowsOf));
+  res.json(clockView(events[0], teams[0]?.extra_time_ms));
 }
 
 // GET /api/game/progress
@@ -66,40 +58,56 @@ export async function getProgress(req, res) {
 export async function getCheckpoint(req, res) {
   const state = await loadTeamState(req.team.id);
   const cp = openGate(state, req.params.slug);
+  assertStarted(state.clock); // no challenge text before the hunt starts
   res.json({ checkpoint: state.detail(cp) });
 }
 
 // POST /api/game/gate/:slug/submit  { flag }   (rate limited by submitLimiter)
+// One attempt per checkpoint. A wrong answer closes the checkpoint with 0 points and opens the next gate; the act's
+// relic is still granted when its last checkpoint closes, so every team can reach the final face-off.
 export async function submitFlag(req, res) {
-  const flag = String(req.body?.flag || "");
-  if (!normalizeAnswer(flag)) throw new HttpError(400, "Enter a flag first.");
-
   const db = requireDb();
   const teamId = req.team.id;
-  const state = await loadTeamState(teamId);
-  const cp = openGate(state, req.params.slug);
-  if (state.status.get(cp.id) === "solved") {
-    throw new HttpError(409, "Your team already solved this checkpoint.", { code: "ALREADY_SOLVED" });
+  let state;
+  let cp;
+  // Any refusal before the flag is checked gives the 10 s submit slot back (see releaseAttempt).
+  try {
+    if (!normalizeAnswer(req.body?.flag)) throw new HttpError(400, "Enter a flag first.");
+    state = await loadTeamState(teamId);
+    cp = openGate(state, req.params.slug);
+    if (state.status.get(cp.id) === "solved") {
+      throw new HttpError(409, "Your team already solved this checkpoint.", { code: "ALREADY_SOLVED" });
+    }
+    if (state.status.get(cp.id) === "failed") {
+      throw new HttpError(409, "Your team already used its one attempt on this checkpoint.", { code: "ALREADY_ATTEMPTED" });
+    }
+    assertRunning(state.clock);
+  } catch (e) {
+    releaseAttempt(req);
+    throw e;
   }
+  const flag = String(req.body.flag);
 
   // select("*") so this keeps working if migration 001 (accepted_hashes) has not been applied yet.
   const [row] = rowsOf(await db.from("checkpoints").select("*").eq("id", cp.id));
   if (!row) throw new Error(`Checkpoint ${cp.id} has no flag in the DB. Run npm run db:seed:flags.`);
 
   const correct = flagMatches(cp.id, flag, [row.flag_hash, ...(row.accepted_hashes ?? [])]);
-  // Never store a correct answer in plain text.
+  // Never store a correct answer in plain text. A wrong one is kept: it is what marks the checkpoint as missed,
+  // and it lets an organiser judge a dispute before reopening the checkpoint.
   const submitted = correct ? "[correct]" : flag.trim().slice(0, 200);
   rowsOf(await db.from("submissions").insert({ team_id: teamId, cp_id: cp.id, submitted, correct }));
-  const limit = recordResult(teamId, correct);
-  if (!correct) return res.json({ correct: false, ...limit });
 
-  // The primary key (team_id, cp_id) stops a double award if two requests race.
-  const { error } = await db.from("team_solves").insert({ team_id: teamId, cp_id: cp.id, points: cp.points });
-  if (error?.code === UNIQUE_VIOLATION) {
-    throw new HttpError(409, "Your team already solved this checkpoint.", { code: "ALREADY_SOLVED" });
+  if (correct) {
+    // The primary key (team_id, cp_id) stops a double award if two requests race.
+    const { error } = await db.from("team_solves").insert({ team_id: teamId, cp_id: cp.id, points: cp.points });
+    if (error?.code === UNIQUE_VIOLATION) {
+      throw new HttpError(409, "Your team already solved this checkpoint.", { code: "ALREADY_SOLVED" });
+    }
+    if (error) throw error;
   }
-  if (error) throw error;
 
+  // Solved or missed, the last checkpoint of an act hands over the act's relic.
   const relic = isLastOfAct(cp) ? relicOfAct(cp.act) : null;
   if (relic) {
     rowsOf(
@@ -117,16 +125,19 @@ export async function submitFlag(req, res) {
   }
   const final = isFinal(cp);
   res.json({
-    correct: true,
-    pointsAwarded: cp.points,
-    reel: state.reelOf(cp),
+    correct,
+    missed: !correct,
+    pointsAwarded: correct ? cp.points : 0,
+    // A missed final does not get its reel: that reel is the victory ending.
+    reel: correct || !final ? state.reelOf(cp) : null,
     next: next ? { id: next.id, act: next.act, index: next.index, slug: state.slugOf(next) } : null,
     relic: relic ? { ...relic, collected: true } : null,
-    finished: final,
+    finished: final && correct,
+    finalMissed: final && !correct,
     // Sent only after the final solve. The title comes from the server (not the client bundle) because it
     // matches an accepted answer for the final checkpoint.
-    ending: final ? cp.reel.clue : null,
-    endingTitle: final ? cp.reel.quote || null : null,
+    ending: final && correct ? cp.reel.clue : null,
+    endingTitle: final && correct ? cp.reel.quote || null : null,
   });
 }
 
@@ -138,6 +149,7 @@ export async function useHint(req, res) {
   if (state.status.get(cp.id) !== "current") {
     throw new HttpError(409, "Hints are only available on your current gate.", { code: "NOT_ACTIVE" });
   }
+  assertRunning(state.clock);
 
   const hint = cp.hints.find((h) => h.id === level);
   if (!hint) throw new HttpError(404, "No such hint.", { code: "NOT_FOUND" });
@@ -155,41 +167,21 @@ export async function useHint(req, res) {
   res.json({ hint: { id: hint.id, cost: hint.cost, text: hint.text }, points: state.points });
 }
 
-// POST /api/game/gate/:slug/skip
-export const skipCheckpoint = () => {
-  throw new HttpError(501, "skipCheckpoint is not implemented yet"); // -40%, no flag/relic
-};
-
-// GET /api/game/reel/:cpId   Only for checkpoints this team has solved.
+// GET /api/game/reel/:cpId   Only for checkpoints this team has closed (solved, or missed; never a missed final).
 export async function getReel(req, res) {
   const state = await loadTeamState(req.team.id);
   const cp = checkpointById(req.params.cpId);
   if (!cp) throw new HttpError(404, "No reel with that number.", { code: "NOT_FOUND" });
-  if (state.status.get(cp.id) !== "solved") {
+  if (!state.canSeeReel(cp)) {
     throw new HttpError(403, "Solve this checkpoint to see its Reel Card.", { code: "LOCKED", act: cp.act });
   }
-  res.json({ reel: state.reelOf(cp), next: state.nextOf(cp) });
+  res.json({ reel: state.reelOf(cp), next: state.nextOf(cp), missed: state.status.get(cp.id) === "failed" });
 }
 
 // GET /api/game/inventory
 export async function getInventory(req, res) {
   const state = await loadTeamState(req.team.id);
   res.json({ relics: state.relicList() });
-}
-
-// GET /api/game/leaderboard   Public; isYou is set when a team is logged in.
-// TODO: when frozen, serve the snapshot taken at freeze time instead of live points.
-export async function getLeaderboard(req, res) {
-  const db = requireDb();
-  const [teams, solves, hints, events] = await Promise.all([
-    db.from("teams").select("id, name, points_adjust"),
-    db.from("team_solves").select("team_id, points, solved_at"),
-    db.from("team_hints").select("team_id, cost"),
-    db.from("event_state").select("leaderboard_frozen").eq("id", 1),
-  ]).then((results) => results.map(rowsOf));
-
-  const rows = rankTeams(teams, solves, hints, req.team?.id ?? null);
-  res.json({ rows, frozen: !!events[0]?.leaderboard_frozen });
 }
 
 // GET /api/game/acts   Public: titles only, for the landing page.

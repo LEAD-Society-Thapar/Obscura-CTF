@@ -14,7 +14,7 @@ import Gate from "./pages/Gate.jsx";
 import ReelCard from "./pages/ReelCard.jsx";
 import Relics from "./pages/Relics.jsx";
 import Rules from "./pages/Rules.jsx";
-import Leaderboard from "./pages/Leaderboard.jsx";
+import Leaderboard from "./pages/admin/Leaderboard.jsx";
 import AdminLogin from "./pages/admin/AdminLogin.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import NotFound from "./pages/NotFound.jsx";
@@ -29,13 +29,13 @@ export default function App() {
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route element={<AdminRoute />}>
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/leaderboard" element={<Leaderboard />} />
         </Route>
       </Route>
 
       {/* Game shell when logged in, public shell otherwise */}
       <Route element={<AutoLayout />}>
         <Route path="/rules" element={<Rules />} />
-        <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="*" element={<NotFound />} />
       </Route>
 

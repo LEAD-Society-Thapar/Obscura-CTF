@@ -11,7 +11,9 @@
     "db:seed:flags": "node --env-file-if-exists=../.env scripts/seed.js --flags-only",
     "test": "node --test",
     "verify:content": "node scripts/verify-content.js",
-    "e2e": "node --env-file-if-exists=../.env scripts/e2e.js"
+    "e2e": "node --env-file-if-exists=../.env scripts/e2e.js",
+    "db:teams": "node --env-file-if-exists=../.env scripts/teams.js",
+    "db:clear-progress": "node --env-file-if-exists=../.env scripts/clear-progress.js"
   },
   "engines": {
     "node": ">=22.9"

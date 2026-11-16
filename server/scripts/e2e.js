@@ -154,6 +154,13 @@ try {
   );
   ok(rows.every((r) => Array.isArray(r.accepted_hashes)), "preflight: accepted_hashes column missing (apply migration 001)");
   log(`preflight: ${CHECKPOINTS.length} checkpoint rows present, hashes match FLAG_PEPPER`);
+  // Flags are only accepted while the clock runs, and this script never touches the clock.
+  const [ev] = rowsOf(await db.from("event_state").select("*").eq("id", 1));
+  const { clockView } = await import("../src/services/eventClock.js");
+  must(
+    clockView(ev).status === "running",
+    `preflight: the event clock is "${clockView(ev).status}"; start it from /admin first (flags are refused unless it is running)`
+  );
 
   await deleteE2eTeam(); // leftovers from a crashed run (own team only)
   const [team] = rowsOf(
@@ -222,16 +229,16 @@ try {
     const isFinal = cp.id === FINAL_BOSS.id;
 
     if (isFinal) {
-      // Defence in depth: remove one of our own relic rows -> the final must refuse, then restore it.
+      // Relics are owed when an act's last checkpoint closes. A missing relic row is re-created on the next load, so
+      // deleting one must not lock the team out of the final, and the row must come back.
       const [held] = rowsOf(await db.from("team_relics").select("*").eq("team_id", teamId).eq("relic_id", "martian-orb"));
-      must(!!held, "final: e2e team holds the Martian Orb before the guard test");
+      must(!!held, "final: e2e team holds the Martian Orb before the heal test");
       rowsOf(await db.from("team_relics").delete().eq("team_id", teamId).eq("relic_id", "martian-orb"));
-      r = await call("GET", `/game/gate/${slug(cp)}`);
-      ok(r.status === 403 && r.data?.final === true, `final guard: 4 relics -> ${r.status} (expected 403)`);
       p = (await call("GET", "/game/progress")).data;
-      ok(p.finalBoss.status === "locked" && p.finalBoss.slug === null, "final guard: progress shows final locked with 4 relics");
-      rowsOf(await db.from("team_relics").insert(held));
-      log("final guard: 403 with 4 relics, restored the 5th");
+      ok(p.finalBoss.status === "current" && !!p.finalBoss.slug, "relic heal: final stays open after a relic row was deleted");
+      const [healed] = rowsOf(await db.from("team_relics").select("*").eq("team_id", teamId).eq("relic_id", "martian-orb"));
+      ok(!!healed, "relic heal: the missing relic row was re-created");
+      log("relic heal: deleted relic row restored by the server");
     }
 
     r = await call("GET", `/game/gate/${slug(cp)}`);
@@ -258,8 +265,7 @@ try {
     if (cp.id === "1.1") {
       r = await call("POST", `/game/gate/${slug(cp)}/hint`, { level: 1 }); // again: must not charge twice
       ok(r.status === 200, "1.1: re-revealing hint 1 -> 200");
-      r = await submit(slug(cp), "definitely-not-the-answer");
-      ok(r.status === 200 && r.data?.correct === false && r.data?.attemptsLeft === 4, `1.1: wrong answer -> correct:false, attemptsLeft ${r.data?.attemptsLeft}`);
+      // No wrong answer here: a team gets one attempt per checkpoint, so it would close 1.1 (see test/clock.test.js).
     }
 
     // The final must be refused before 5.4 is solved (strict order + relic guard).
@@ -324,11 +330,13 @@ try {
   const totalPts = CHECKPOINTS.reduce((n, c) => n + c.points, 0);
   ok(p.team.points === totalPts - hintCost, `end: points ${p.team.points}, expected ${totalPts} - ${hintCost}`);
   ok(p.stats.hintPointsSpent === hintCost && p.stats.hintsUsed === revealed.size, "end: hint stats");
-  const lb = (await call("GET", "/game/leaderboard")).data;
-  const me = lb?.rows?.find((x) => x.isYou);
-  ok(me?.solved === 21 && me?.points === p.team.points, `end: leaderboard row solved=${me?.solved} points=${me?.points}`);
+  // The leaderboard is admin only: a team must not be able to read other teams' scores.
+  r = await call("GET", "/game/leaderboard");
+  ok(r.status === 404 && !r.data?.rows, `end: team can read the leaderboard (${r.status}, expected 404)`);
+  r = await call("GET", "/admin/leaderboard");
+  ok(r.status === 401 || r.status === 403, `end: team cookie opens the admin leaderboard (${r.status})`);
   ok(alternatesTested >= 3, `alternates tested: ${alternatesTested}`);
-  log(`end: finished, ${p.stats.solved}/21 solved, ${p.team.points} pts (= ${totalPts} - ${hintCost} hints), leaderboard rank #${me?.rank}`);
+  log(`end: finished, ${p.stats.solved}/21 solved, ${p.team.points} pts (= ${totalPts} - ${hintCost} hints), leaderboard closed to teams`);
 } catch (e) {
   if (!(e instanceof Fatal)) failures.push(`crashed: ${e.message}`);
   log(`STOPPED: ${e.message}`);
