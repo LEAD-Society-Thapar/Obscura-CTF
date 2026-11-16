@@ -60,7 +60,7 @@ export default function ChallengesHub() {
   const { relics, collected, total } = useRelics();
   const { activity } = useActivity();
 
-  const { finalBoss, unlocked: finalOpen, finished } = useFinale();
+  const { finalBoss, unlocked: finalOpen, finished, finalMissed } = useFinale();
 
   if (loading || error) return <PageStatus loading={loading} error={error} label="Loading your dossier" />;
 
@@ -120,6 +120,11 @@ export default function ChallengesHub() {
                     <p className="mt-4 flex w-full items-center gap-3 rounded-[12px] border border-[#b58a42] bg-[#24170F] px-4 py-3 font-heading text-sm font-bold text-[#d9a441]">
                       <Icon name="trophy" className="size-4" />
                       <span>Victory. Mogambo is defeated and the Archive is restored.</span>
+                    </p>
+                  ) : finalMissed ? (
+                    <p className="mt-4 flex w-full items-center gap-3 rounded-[12px] border border-[#5f2a26]/70 bg-[#24170F] px-4 py-3 font-heading text-sm font-bold text-[#f7efe6]">
+                      <Icon name="close" className="size-4" />
+                      <span>The hunt is over. Your final answer was wrong, and Mogambo slipped away.</span>
                     </p>
                   ) : (
                     resume && (

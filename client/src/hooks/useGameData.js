@@ -3,6 +3,7 @@
 // Every hook returns an object with `loading` (and `error` where a request can fail).
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useGameStore } from "../context/GameDataContext.jsx";
+import { formatClock } from "../lib/format.js";
 import { useCountdown } from "./useCountdown.js";
 import { source } from "./dataSource.js";
 
@@ -27,20 +28,35 @@ function useResource(fetcher, deps) {
   return { ...state, reload };
 }
 
-// Adds solvedCount / total / status ("done" | "current" | "locked") to each act, from its checkpoints.
+// Adds solvedCount / missedCount / total / status ("done" | "current" | "locked") to each act, from its checkpoints.
+// An act is done when every checkpoint is closed: solved, or missed with a wrong answer ("failed").
 function withActStats(act) {
   const total = act.checkpoints.length;
   const solvedCount = act.checkpoints.filter((c) => c.status === "solved").length;
+  const missedCount = act.checkpoints.filter((c) => c.status === "failed").length;
   const current = act.checkpoints.find((c) => c.status === "current") || null;
-  const status = total > 0 && solvedCount === total ? "done" : current ? "current" : "locked";
-  return { ...act, total, solvedCount, current, status };
+  const status = total > 0 && solvedCount + missedCount === total ? "done" : current ? "current" : "locked";
+  return { ...act, total, solvedCount, missedCount, current, status };
 }
 
 // ---------- Progress snapshot (shared, refreshed after actions) ----------
 
+// The event clock for this team. status: null (loading) | "idle" | "running" | "paused" | "ended".
+// While running it ticks every second; otherwise it shows the time the server reported, frozen.
 export function useEventClock() {
   const { event } = useGameStore();
-  return useCountdown(event?.endsAt);
+  const running = event?.status === "running";
+  const cd = useCountdown(running ? event.deadline : null);
+  if (!event) return { status: null, remaining: null, label: "--:--:--" };
+  if (running) return { status: cd.expired ? "ended" : "running", remaining: cd.remaining, label: cd.label };
+  const remaining = event.status === "ended" ? 0 : event.remainingMs;
+  return { status: event.status, remaining, label: formatClock(remaining) };
+}
+
+// Only the status, without a re-render every second (for pages that just need to know if flags are accepted).
+export function useEventStatus() {
+  const { event } = useGameStore();
+  return event?.status ?? null;
 }
 
 export function useTeam() {
@@ -93,6 +109,7 @@ export function useFinale() {
     relicsCollected: progress?.relicsCollected ?? relics.filter((r) => r.collected).length,
     relicsTotal: progress?.relicsTotal ?? relics.length,
     unlocked: finalBoss?.status === "current" && !!finalBoss.slug,
+    finalMissed: finalBoss?.status === "failed", // wrong answer on the final: the run is over, no victory
     finished,
     finishedAt,
     timeTakenMs: Number.isFinite(timeTakenMs) ? timeTakenMs : null,
@@ -114,7 +131,7 @@ export function useGate(slug) {
 
 export function useReel(cpId) {
   const { data, error, loading } = useResource(() => source.getReel(cpId), [cpId]);
-  return { loading, error, reel: data?.reel ?? null, next: data?.next ?? null };
+  return { loading, error, reel: data?.reel ?? null, next: data?.next ?? null, missed: !!data?.missed };
 }
 
 export function useActTitles() {
@@ -127,21 +144,18 @@ export function useRules() {
   return { loading, error, rules: data?.rules ?? [] };
 }
 
-export function useLeaderboard() {
-  const { data, error, loading, reload } = useResource(() => source.getLeaderboard(), []);
-  return { loading, error, rows: data?.rows ?? [], frozen: !!data?.frozen, reload };
-}
-
 // ---------- Actions ----------
 
 export function useGameActions() {
   const { refresh } = useGameStore();
 
-  // Resolves { correct, ... }; rejects with ApiError (data.code: TOO_FAST | COOLDOWN | ALREADY_SOLVED | LOCKED).
+  // One attempt per checkpoint. Resolves { correct, missed, reel, next, relic, ... }; a wrong answer closes the
+  // checkpoint too, so progress is refreshed either way. Rejects with ApiError (data.code: TOO_FAST |
+  // ALREADY_SOLVED | ALREADY_ATTEMPTED | LOCKED | EVENT_NOT_STARTED | EVENT_PAUSED | EVENT_ENDED).
   const submitFlag = useCallback(
     async (slug, flag) => {
       const result = await source.submitFlag(slug, flag);
-      if (result.correct) await refresh();
+      await refresh();
       return result;
     },
     [refresh]

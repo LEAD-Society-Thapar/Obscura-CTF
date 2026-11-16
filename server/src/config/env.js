@@ -20,6 +20,8 @@ export const env = {
   supabaseUrl: process.env.SUPABASE_URL || "",
   supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY || "",
   jwtSecret: process.env.JWT_SECRET || "dev-only-secret",
+  // Admin login is refused unless BOTH are set (see controllers/auth.controller.js).
+  adminUsername: process.env.ADMIN_USERNAME || "",
   adminPassword: process.env.ADMIN_PASSWORD || "",
   gateSecret: process.env.GATE_SECRET || "dev-only-gate-secret",
   // Key for flag hashes. Must be identical wherever the seed runs and wherever the API runs.

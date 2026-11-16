@@ -12,6 +12,15 @@ const STYLES = {
     label: "text-gold",
     sr: "Solved",
   },
+  // Missed: the team's one attempt was wrong. Still opens (read-only) so the story and Reel Card can be read.
+  failed: {
+    row: "border-line bg-ink-soft/70 hover:border-blood/70",
+    circle: "bg-ink-raised text-blood-bright ring-1 ring-blood/60",
+    icon: "close",
+    label: "text-blood-bright",
+    sr: "Missed",
+    note: "Missed",
+  },
   current: {
     row: "border-blood-bright bg-blood-deep/45 shadow-glow-red hover:bg-blood-deep/70",
     circle: "bg-blood text-bone",
@@ -28,7 +37,7 @@ const STYLES = {
   },
 };
 
-// One checkpoint in the act list (design 3). States: solved, current, locked.
+// One checkpoint in the act list (design 3). States: solved, failed (missed), current, locked.
 export default function CheckpointRow({ cp }) {
   const s = STYLES[cp.status] || STYLES.locked;
 
@@ -38,7 +47,10 @@ export default function CheckpointRow({ cp }) {
         <Icon name={s.icon} className="size-5" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className={`block font-type text-sm ${s.label}`}>{formatCp(cp)}</span>
+        <span className={`block font-type text-sm ${s.label}`}>
+          {formatCp(cp)}
+          {s.note && <span aria-hidden="true"> &middot; {s.note}</span>}
+        </span>
         <span className="block truncate font-heading text-base font-semibold text-bone sm:text-lg">{cp.title}</span>
       </span>
       <CategoryTag category={cp.category} />

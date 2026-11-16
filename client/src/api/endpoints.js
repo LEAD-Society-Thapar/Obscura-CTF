@@ -14,13 +14,18 @@ export const getProgress = () => api.get("/game/progress");
 export const getCheckpoint = (slug) => api.get(`/game/gate/${slug}`);
 export const submitFlag = (slug, flag) => api.post(`/game/gate/${slug}/submit`, { flag });
 export const useHint = (slug, level) => api.post(`/game/gate/${slug}/hint`, { level });
-export const skipCheckpoint = (slug) => api.post(`/game/gate/${slug}/skip`);
 export const getInventory = () => api.get("/game/inventory");
-export const getLeaderboard = () => api.get("/game/leaderboard");
 export const getReel = (cpId) => api.get(`/game/reel/${cpId}`);
 export const getRules = () => api.get("/game/rules");
 export const getActs = () => api.get("/game/acts"); // public: titles only, for the landing page
 
-// Admin
-export const adminLogin = (password) => api.post("/admin/login", { password });
+// Admin (always the real API, also in mock mode)
+export const adminLogin = (username, password) => api.post("/admin/login", { username, password });
+export const adminLogout = () => api.post("/admin/logout");
+export const adminMe = () => api.get("/admin/me");
 export const adminOverview = () => api.get("/admin/overview");
+export const adminLeaderboard = () => api.get("/admin/leaderboard");
+export const adminEvent = (action) => api.post("/admin/event", { action }); // start | pause | resume | end | reset
+export const adminExtendEvent = (minutes) => api.post("/admin/event/extend", { minutes });
+export const adminTeamTime = (teamId, minutes) => api.post(`/admin/teams/${teamId}/time`, { minutes });
+export const adminReopen = (teamId, cpId) => api.post(`/admin/teams/${teamId}/reopen`, { cpId });

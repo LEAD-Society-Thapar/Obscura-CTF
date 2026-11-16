@@ -9,7 +9,9 @@ import StampLabel from "../ui/StampLabel.jsx";
 // reel: { cpId, act, index, title, quote, clue, frameSlot }   quote may be "" (then the quote block is hidden).
 // relic (optional, only right after the solve that awarded it): { name, inscription, lore, ... }
 // action: { to, label, onClick? } for the bottom button.
-export default function ReelCardBody({ reel, relic, action, headingId, headingAs: Heading = "h2" }) {
+// missed: the team's one attempt was wrong. The card still tells the story (and hands over a relic at the end of
+// an act), but it says so plainly and awards nothing.
+export default function ReelCardBody({ reel, relic, action, headingId, headingAs: Heading = "h2", missed = false }) {
   const hasQuote = typeof reel.quote === "string" && reel.quote !== "";
 
   return (
@@ -18,17 +20,22 @@ export default function ReelCardBody({ reel, relic, action, headingId, headingAs
         animate
         className="absolute top-4 right-3 text-xs [--stamp-rotate:12deg] sm:top-5 sm:right-6 sm:text-base"
       >
-        Clue
+        {missed ? "Gate" : "Clue"}
         <br />
-        Unlocked
+        {missed ? "Closed" : "Unlocked"}
       </StampLabel>
 
       <Heading
         id={headingId}
         className="pr-16 text-center font-heading text-2xl font-bold tracking-wide text-blood uppercase sm:px-16 sm:text-3xl"
       >
-        Reel Card Collected
+        {missed ? "Checkpoint Missed" : "Reel Card Collected"}
       </Heading>
+      {missed && (
+        <p className="mt-2 text-center text-sm font-semibold text-parchment-ink">
+          Wrong answer: 0 points for this checkpoint. The story moves on without it.
+        </p>
+      )}
       <p className="mt-1 text-center font-type text-sm text-parchment-ink/80">
         {isFinalCp(reel) ? reel.title : <>{formatCp(reel)} &mdash; {reel.title}</>}
       </p>

@@ -15,6 +15,7 @@ create table if not exists teams (
   password_hash  text not null,                 -- scrypt, see server/src/utils/password.js
   members        jsonb not null default '[]',   -- 3 to 4 member names
   points_adjust  int  not null default 0,       -- manual admin award/deduction
+  extra_time_ms  bigint not null default 0,     -- extra time for this team, admin page (migration 002)
   created_at     timestamptz not null default now()
 );
 

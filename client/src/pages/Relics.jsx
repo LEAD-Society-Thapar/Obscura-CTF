@@ -40,8 +40,18 @@ function CollectionProgress({ relics, tone = "paper" }) {
 
 function FaceOffPanel({ relics }) {
   const relicsTotal = relics.length;
-  const { finalBoss, unlocked, finished } = useFinale();
+  const { finalBoss, unlocked, finished, finalMissed } = useFinale();
   if (finished) return null;
+
+  // The team used its one answer on the final and it was wrong.
+  if (finalMissed) {
+    return (
+      <PaperCard className="mx-auto mt-10 max-w-2xl -rotate-1" innerClassName="px-6 py-4 text-center">
+        <p className="relic-collection-message text-2xl leading-snug sm:text-3xl">The final face-off is closed</p>
+        <p className="mt-2 text-sm text-parchment-ink">Your team&rsquo;s one answer was wrong, and Mogambo slipped away.</p>
+      </PaperCard>
+    );
+  }
 
   if (unlocked) {
     return (

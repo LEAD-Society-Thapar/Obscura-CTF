@@ -7,7 +7,7 @@ import PageStatus from "../components/ui/PageStatus.jsx";
 // Design 5 as a standalone page (/reel/2.2), so the card can be revisited and styled without solving.
 export default function ReelCard() {
   const { cpId } = useParams();
-  const { loading, error, reel, next } = useReel(cpId);
+  const { loading, error, reel, next, missed } = useReel(cpId);
 
   if (loading || error) {
     return (
@@ -30,7 +30,7 @@ export default function ReelCard() {
 
   return (
     <div className="mx-auto max-w-2xl py-4">
-      <ReelCardBody reel={reel} action={action} headingAs="h1" />
+      <ReelCardBody reel={reel} action={action} headingAs="h1" missed={missed} />
     </div>
   );
 }

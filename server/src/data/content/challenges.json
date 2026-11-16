@@ -105,7 +105,7 @@
       ],
       "reel": {
         "quote": "",
-        "clue": "*“Sardar, teen aadmi the!”* Kaalia lied about the count, and Gabbar has noticed."
+        "clue": "*“Sardar, do aadmi the!”* Kaalia swore it was two, but the screen shows three, and Gabbar has noticed."
       }
     },
     {
@@ -424,7 +424,7 @@
       "category": "Web",
       "points": 250,
       "story": "Raj has to find Simran’s coach before the train leaves. The Bollywood Express booking portal builds its login query by pasting in whatever you type, so Raj tries the oldest trick in the book.",
-      "body": "The portal’s query:\n\n```sql\nSELECT * FROM bookings\nWHERE passenger = '<name box>' AND pnr = '<pnr box>';\n```\n\nRaj types `' OR '1'='1` in the name box and leaves the PNR box empty. The portal lists every row the query returns. Here is the table:\n\n| passenger | pnr | coach |\n| --- | --- | --- |\n| Raj Malhotra | 4521873690 | S3 |\n| Simran Singh | 8820417735 | S7 |\n| Kuljeet Singh | 1093847562 | A1 |\n| Baldev Singh | *(blank)* | H1 |\n| Chutki Singh | 6602938471 | B2 |\n\nHow many bookings appear, and in which coach? Submit as `COUNT_COACH`.",
+      "body": "The portal’s query:\n\n```sql\nSELECT * FROM bookings\nWHERE passenger = '<name box>' AND pnr = '<pnr box>';\n```\n\nRaj types `' OR '1'='1` in the name box and leaves the PNR box empty. The portal lists every row the query returns. Here is the table:\n\n| passenger | pnr | coach |\n| --- | --- | --- |\n| Raj Malhotra | 4521873690 | S3 |\n| Simran Singh | 8820417735 | S7 |\n| Kuljeet Singh | 1093847562 | A1 |\n| Baldev Singh | `''` *(empty string)* | H1 |\n| Chutki Singh | 6602938471 | B2 |\n\nHow many bookings appear, and in which coach? Submit as `COUNT_COACH`.",
       "hints": [
         {
           "id": 1,
@@ -680,28 +680,28 @@
       "section": "I. The Hunt",
       "icon": "scroll",
       "title": "Five Acts, Twenty Checkpoints",
-      "body": "- OBSCURA consists of five Acts, each containing four checkpoints.\n- Checkpoints must be completed in sequence. Solving a checkpoint unlocks the next one.\n- Complete all five Acts to unlock the final face-off against Mogambo.\n- Each completed Act rewards your team with one unique relic.\n- Collect all five relics to access the final challenge."
+      "body": "- OBSCURA consists of five Acts, each containing four checkpoints.\n- Checkpoints open in sequence. Closing a checkpoint, by solving it or by missing it with a wrong answer, opens the next one.\n- Finish all five Acts to unlock the final face-off against Mogambo.\n- Each finished Act rewards your team with one unique relic, even if you missed checkpoints in it.\n- Collect all five relics to access the final challenge."
     },
     {
       "id": 3,
       "section": "I. The Hunt",
       "icon": "mask",
       "title": "Submitting Flags",
-      "body": "- Submit answers in the format `OBSCURA{answer}`. You may also submit the bare answer without the wrapper.\n- Answers are case-insensitive, and spaces are ignored.\n- Read challenge instructions carefully and follow the requested format, including underscores or other specified separators.\n- Submissions are rate-limited. Five consecutive incorrect attempts trigger a temporary cooldown; follow the retry timer shown."
+      "body": "- Submit answers in the format `OBSCURA{answer}`. You may also submit the bare answer without the wrapper.\n- Answers are case-insensitive. Spaces, underscores, hyphens and commas are ignored, so `Red Door`, `red door` and `RED-DOOR` are the same answer.\n- Read challenge instructions carefully and give exactly what is asked for (the right numbers, words and order).\n- **You get one attempt per checkpoint.** A wrong answer closes that checkpoint with zero points and opens the next one. It cannot be answered again.\n- Agree on the answer as a team and check its format before you submit. You will be asked to confirm."
     },
     {
       "id": 4,
       "section": "II. Scoring and Hints",
       "icon": "check",
       "title": "Points and Scoring",
-      "body": "- Every checkpoint carries a predefined point value.\n- Points are awarded for correctly solving checkpoints.\n- Hint usage deducts points from the corresponding checkpoint.\n- Your team's score reflects points earned after applicable hint deductions.\n- The maximum available score across all checkpoints and the final boss is 4,500 points before penalties."
+      "body": "- Every checkpoint carries a predefined point value.\n- Points are awarded for correctly solving checkpoints. A missed checkpoint scores zero.\n- Hint usage deducts points from your score.\n- Your team's score reflects points earned after applicable hint deductions.\n- The maximum available score across all checkpoints and the final boss is 4,500 points before penalties."
     },
     {
       "id": 5,
       "section": "II. Scoring and Hints",
       "icon": "bulb",
       "title": "Hints and Penalties",
-      "body": "- Each checkpoint provides two optional hints. Hints unlock sequentially.\n- Hint costs are fixed point deductions shown for each checkpoint; using a hint deducts that amount from its checkpoint.\n- Use hints strategically. Sometimes figuring things out yourself is worth more than the shortcut."
+      "body": "- Each checkpoint provides two optional hints. Hints unlock sequentially.\n- Hint 1 costs 20% of that checkpoint's points. Hint 2 costs a further 40%, so using both costs 60%.\n- The cost is deducted from your score when you reveal the hint, whether or not you then solve the checkpoint.\n- Use hints strategically. Sometimes figuring things out yourself is worth more than the shortcut."
     },
     {
       "id": 6,

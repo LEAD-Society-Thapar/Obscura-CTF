@@ -7,37 +7,46 @@ const { normalizeAnswer, hashFlag, flagMatches } = await import("../src/utils/ga
 const { buildCheckpointRows, loadFlagsFile } = await import("../src/utils/flagRows.js");
 
 test("normalizeAnswer: wrapper, case and whitespace", () => {
-  const same = ["OBSCURA{ A B E F }", "abef", "ABEF", "obscura{abef}", "  ObScUrA{AbEf}  ", "a b\te\nf", "OBSCURA{abef}\n"];
-  for (const s of same) assert.equal(normalizeAnswer(s), "abef", JSON.stringify(s));
+  const same = ["OBSCURA{ A B C D }", "abcd", "ABCD", "obscura{abcd}", "  ObScUrA{AbCd}  ", "a b\tc\nd", "OBSCURA{abcd}\n"];
+  for (const s of same) assert.equal(normalizeAnswer(s), "abcd", JSON.stringify(s));
 });
 
 test("normalizeAnswer: punctuation is kept", () => {
-  assert.equal(normalizeAnswer("87%"), "87%");
-  assert.equal(normalizeAnswer("OBSCURA{87%}"), "87%");
-  assert.equal(normalizeAnswer(".87"), ".87");
-  assert.notEqual(normalizeAnswer(".87"), normalizeAnswer("87"));
-  assert.notEqual(normalizeAnswer("87%"), normalizeAnswer("87"));
+  assert.equal(normalizeAnswer("42%"), "42%");
+  assert.equal(normalizeAnswer("OBSCURA{42%}"), "42%");
+  assert.equal(normalizeAnswer(".42"), ".42");
+  assert.notEqual(normalizeAnswer(".42"), normalizeAnswer("42"));
+  assert.notEqual(normalizeAnswer("42%"), normalizeAnswer("42"));
 });
 
 test("normalizeAnswer: multi-word answers", () => {
-  assert.equal(normalizeAnswer("mogambo dukhi hua"), "mogambodukhihua");
-  assert.equal(normalizeAnswer("OBSCURA{Mogambo Dukhi Hua}"), "mogambodukhihua");
-  assert.equal(normalizeAnswer("MOGAMBO   DUKHI HUA"), "mogambodukhihua"); // non-breaking space
+  assert.equal(normalizeAnswer("kitne aadmi the"), "kitneaadmithe");
+  assert.equal(normalizeAnswer("OBSCURA{Kitne Aadmi The}"), "kitneaadmithe");
+  assert.equal(normalizeAnswer("KITNE  AADMI THE"), "kitneaadmithe"); // non-breaking space
+});
+
+test("normalizeAnswer: underscores, hyphens, dashes and commas are ignored like spaces", () => {
+  const same = ["KAJAL_42", "kajal 42", "Kajal-42", "KAJAL__42", "kajal – 42", "OBSCURA{kajal_42}", "kajal42", "k,a,j,a,l,4,2"];
+  for (const s of same) assert.equal(normalizeAnswer(s), "kajal42", JSON.stringify(s));
+  assert.equal(normalizeAnswer("A,B,C,D"), "abcd");
+  assert.equal(normalizeAnswer("7,214"), "7214");
+  assert.equal(normalizeAnswer("0.42"), "0.42"); // dots are kept
+  assert.notEqual(normalizeAnswer("0.42"), normalizeAnswer("042"));
 });
 
 test("normalizeAnswer: wrong or partial wrappers are not stripped", () => {
-  assert.equal(normalizeAnswer("SAT{abef}"), "sat{abef}");
-  assert.equal(normalizeAnswer("OBSCURA(abef)"), "obscura(abef)");
-  assert.equal(normalizeAnswer("OBSCURA{abef"), "obscura{abef");
-  assert.equal(normalizeAnswer("abef}"), "abef}");
-  assert.equal(normalizeAnswer("xOBSCURA{abef}"), "xobscura{abef}");
-  assert.equal(normalizeAnswer("OBSCURA{{abef}}"), "{abef}"); // only ONE wrapper is removed
+  assert.equal(normalizeAnswer("SAT{abcd}"), "sat{abcd}");
+  assert.equal(normalizeAnswer("OBSCURA(abcd)"), "obscura(abcd)");
+  assert.equal(normalizeAnswer("OBSCURA{abcd"), "obscura{abcd");
+  assert.equal(normalizeAnswer("abcd}"), "abcd}");
+  assert.equal(normalizeAnswer("xOBSCURA{abcd}"), "xobscura{abcd}");
+  assert.equal(normalizeAnswer("OBSCURA{{abcd}}"), "{abcd}"); // only ONE wrapper is removed
   assert.equal(normalizeAnswer("OBSCURA{}"), "");
 });
 
 test("normalizeAnswer: NFC, and Cyrillic look-alikes stay distinct from Latin", () => {
   assert.equal(normalizeAnswer("café"), normalizeAnswer("café")); // e + combining acute == é
-  assert.notEqual(normalizeAnswer("аbef"), normalizeAnswer("abef")); // Cyrillic а vs Latin a
+  assert.notEqual(normalizeAnswer("аbcd"), normalizeAnswer("abcd")); // Cyrillic а vs Latin a
 });
 
 test("normalizeAnswer: non-string input", () => {
@@ -48,15 +57,15 @@ test("normalizeAnswer: non-string input", () => {
 
 test("hashFlag: keyed per checkpoint, equal for equivalent answers", () => {
   assert.match(hashFlag("1.1", "x"), /^[0-9a-f]{64}$/);
-  assert.equal(hashFlag("1.1", "OBSCURA{ A B E F }"), hashFlag("1.1", "abef"));
-  assert.notEqual(hashFlag("1.1", "abef"), hashFlag("1.2", "abef"));
+  assert.equal(hashFlag("1.1", "OBSCURA{ A B C D }"), hashFlag("1.1", "abcd"));
+  assert.notEqual(hashFlag("1.1", "abcd"), hashFlag("1.2", "abcd"));
 });
 
 test("flagMatches: primary or any accepted hash, nothing else", () => {
-  const stored = [hashFlag("2.1", "OBSCURA{one}"), hashFlag("2.1", "two"), hashFlag("2.1", "three")];
+  const stored = [hashFlag("2.1", "OBSCURA{one}"), hashFlag("2.1", "two"), hashFlag("2.1", "six")];
   assert.ok(flagMatches("2.1", "ONE", stored));
   assert.ok(flagMatches("2.1", "OBSCURA{ two }", stored));
-  assert.ok(flagMatches("2.1", "three", stored));
+  assert.ok(flagMatches("2.1", "six", stored));
   assert.ok(!flagMatches("2.1", "four", stored));
   assert.ok(!flagMatches("2.2", "one", stored)); // same answer, wrong checkpoint
   assert.ok(!flagMatches("2.1", "one", [])); // no hashes stored
