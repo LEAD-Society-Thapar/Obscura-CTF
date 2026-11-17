@@ -3,7 +3,7 @@
 // State is kept in sessionStorage so progress survives a reload; resetMock() (called on logout) clears it.
 import { ApiError } from "../api/client.js";
 import * as seed from "./mock.js";
-import { MOCK_LATENCY_MS, MOCK_SUBMIT_INTERVAL_MS } from "../lib/config.js";
+import { MOCK_FULLSCREEN, MOCK_LATENCY_MS, MOCK_SUBMIT_INTERVAL_MS } from "../lib/config.js";
 
 const STORE_KEY = "obscura_mock_db";
 
@@ -16,7 +16,9 @@ const fresh = () => ({
   relics: structuredClone(seed.relics),
   activity: structuredClone(seed.activity),
   lastSubmitAt: 0,
+  fs: { violations: 0, lockedRemainingMs: null }, // full-screen invigilation (only when MOCK_FULLSCREEN)
 });
+const FS_MAX = 3;
 
 function load() {
   try {
@@ -98,9 +100,38 @@ const log = (entry) => db.activity.unshift({ id: nextActivityId++, at: new Date(
 
 // ---------- Endpoints ----------
 
-// Same shape as GET /api/game/state. The mock clock is always running (no admin page in mock mode).
+const fsLocked = () => db.fs?.lockedRemainingMs != null;
+const fsView = () => ({
+  supported: true,
+  required: MOCK_FULLSCREEN,
+  violations: db.fs?.violations ?? 0,
+  max: FS_MAX,
+  locked: fsLocked(),
+  lockedAt: null,
+});
+
+// Same shape as GET /api/game/state. The mock clock is always running (no admin page in mock mode), except that a
+// team locked out for leaving full screen sees it frozen. There is no admin to unlock it: log out to reset.
 export async function getEventState() {
   await wait(150);
+  if (fsLocked()) {
+    return { ...clockNow(), status: "paused", remainingMs: db.fs.lockedRemainingMs, endsAt: null, fsLocked: true, fullscreen: fsView() };
+  }
+  return { ...clockNow(), fullscreen: fsView() };
+}
+
+// Same shape as POST /api/game/fullscreen/violation.
+export async function reportViolation() {
+  await wait(150);
+  const clock = clockNow();
+  if (!MOCK_FULLSCREEN || fsLocked() || clock.status !== "running") return { counted: false, ...(await getEventState()) };
+  db.fs = { ...db.fs, violations: (db.fs?.violations ?? 0) + 1 };
+  if (db.fs.violations >= FS_MAX) db.fs.lockedRemainingMs = clock.remainingMs;
+  save();
+  return { counted: true, ...(await getEventState()) };
+}
+
+function clockNow() {
   const remainingMs = Math.max(0, new Date(db.event.endsAt).getTime() - Date.now());
   return {
     status: remainingMs > 0 ? "running" : "ended",
@@ -147,6 +178,7 @@ export async function submitFlag(slug, flag) {
   if (cp.status === "locked") fail(403, "LOCKED", "This gate is still sealed.");
   if (cp.status === "solved") fail(409, "ALREADY_SOLVED", "Your team already solved this checkpoint.");
   if (cp.status === "failed") fail(409, "ALREADY_ATTEMPTED", "Your team already used its one attempt on this checkpoint.");
+  if (fsLocked()) fail(403, "FULLSCREEN_LOCKED", "Your team is locked out for leaving full screen too many times.");
 
   const now = Date.now();
   if (now - db.lastSubmitAt < MOCK_SUBMIT_INTERVAL_MS) {
@@ -205,6 +237,7 @@ export async function useHint(slug, level) {
   const cp = bySlug(slug);
   if (!cp) fail(404, "NOT_FOUND", "No gate here.");
   if (cp.status !== "current") fail(409, "NOT_ACTIVE", "Hints are only available on your current gate.");
+  if (fsLocked()) fail(403, "FULLSCREEN_LOCKED", "Your team is locked out for leaving full screen too many times.");
   const hint = cp.hints.find((h) => h.id === level);
   if (!hint) fail(404, "NOT_FOUND", "No such hint.");
   if (cp.hints.some((h) => h.id < level && !h.revealed)) fail(400, "OUT_OF_ORDER", "Reveal the earlier hint first.");

@@ -16,6 +16,10 @@ create table if not exists teams (
   members        jsonb not null default '[]',   -- 3 to 4 member names
   points_adjust  int  not null default 0,       -- manual admin award/deduction
   extra_time_ms  bigint not null default 0,     -- extra time for this team, admin page (migration 002)
+  fs_violations  int    not null default 0,     -- full-screen exits (migration 003)
+  fs_last_violation_at   timestamptz,
+  fs_locked_at           timestamptz,           -- set while locked out for leaving full screen
+  fs_locked_remaining_ms bigint,                -- time left when locked; restored on unlock
   created_at     timestamptz not null default now()
 );
 
@@ -71,7 +75,8 @@ create table if not exists event_state (
   paused_at           timestamptz,
   total_paused_ms     bigint not null default 0,
   duration_minutes    int not null default 90,
-  leaderboard_frozen  boolean not null default false
+  leaderboard_frozen  boolean not null default false,
+  fullscreen_required boolean not null default true  -- full-screen invigilation (migration 003)
 );
 insert into event_state (id) values (1) on conflict do nothing;
 

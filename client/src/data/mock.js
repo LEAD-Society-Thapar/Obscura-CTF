@@ -286,7 +286,7 @@ export const rules = [
     section: "III. Tools and Fair Play",
     icon: "shield",
     title: "Fair Play and Prohibited Activities",
-    body: "- Do not share flags, hints, or solutions with other competing teams.\n- Do not attack the CTF platform, its infrastructure, or other teams' accounts.\n- Unauthorized access, exploitation, or disruption of competition infrastructure is prohibited.\n- Brute-force attacks against the platform or challenge infrastructure are prohibited.\n- Do not manipulate scores, alter game progress, or interfere with another team's participation.\n- Violations may result in disqualification at the organizers' discretion.",
+    body: "- Do not share flags, hints, or solutions with other competing teams.\n- Do not attack the CTF platform, its infrastructure, or other teams' accounts.\n- Unauthorized access, exploitation, or disruption of competition infrastructure is prohibited.\n- Brute-force attacks against the platform or challenge infrastructure are prohibited.\n- Do not manipulate scores, alter game progress, or interfere with another team's participation.\n- **Stay in full screen while the clock is running.** Every exit from full screen is a violation. After 3, your team is disqualified: its timer stops and no flags or hints are accepted. Only event staff can restore access.\n- Violations may result in disqualification at the organizers' discretion.",
   },
   {
     id: 9,

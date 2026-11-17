@@ -18,10 +18,14 @@ import Leaderboard from "./pages/admin/Leaderboard.jsx";
 import AdminLogin from "./pages/admin/AdminLogin.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import NotFound from "./pages/NotFound.jsx";
+import FullscreenGuard from "./components/game/FullscreenGuard.jsx";
 
 export default function App() {
   return (
-    <Routes>
+    <>
+      {/* Full-screen invigilation for logged-in teams, on every page except /admin. */}
+      <FullscreenGuard />
+      <Routes>
       {/* Public shell */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<Landing />} />
@@ -52,6 +56,7 @@ export default function App() {
           <Route path="/inventory" element={<Navigate to="/relics" replace />} />
         </Route>
       </Route>
-    </Routes>
+      </Routes>
+    </>
   );
 }

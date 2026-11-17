@@ -8,7 +8,8 @@ import { requireDb } from "../config/supabase.js";
 import { ACTS, CHECKPOINTS, FINAL_BOSS, RELICS } from "../data/game.js";
 import { deriveGateSlug } from "../utils/gate.js";
 import { HttpError } from "../utils/httpError.js";
-import { clockView, EVENT_ROW_ID } from "./eventClock.js";
+import { EVENT_ROW_ID } from "./eventClock.js";
+import { fullscreenView, teamClock } from "./fullscreen.js";
 
 const rowsOf = ({ data, error }) => {
   if (error) throw error;
@@ -89,18 +90,21 @@ export async function loadTeamState(teamId) {
     relics.push(...owed.map((relic_id) => ({ relic_id, earned_at })));
   }
 
-  return new TeamState(team, solves, hints, relics, misses, clockView(events[0], team.extra_time_ms));
+  const state = new TeamState(team, solves, hints, relics, misses, teamClock(events[0], team));
+  state.event = events[0] ?? null;
+  return state;
 }
 
 export class TeamState {
   // misses: this team's wrong rows from `submissions` ({ cp_id, submitted, created_at }).
-  // clock:  clockView() for this team, or null when the caller does not need it (unit tests).
+  // clock:  teamClock() for this team (frozen while locked out for leaving full screen), or null in unit tests.
   constructor(team, solves, hints, relics, misses = [], clock = null) {
     this.team = team;
     this.solves = solves;
     this.hints = hints;
     this.relics = relics;
     this.clock = clock;
+    this.event = null; // the event_state row, set by loadTeamState and the admin overview
 
     const solved = new Set(solves.map((s) => s.cp_id));
     // Latest wrong row per checkpoint, ignoring checkpoints that were solved (a solve always wins).
@@ -147,6 +151,11 @@ export class TeamState {
 
   get points() {
     return pointsOf(this.team, this.solves, this.hints);
+  }
+
+  // The final is closed (solved or missed): nothing left to answer, so full screen is no longer enforced.
+  get done() {
+    return this.isClosed(FINAL_BOSS);
   }
 
   // Solved or failed: either way the checkpoint takes no more answers.
@@ -319,6 +328,11 @@ export class TeamState {
       clock: this.clock
         ? { status: this.clock.status, remainingMs: this.clock.remainingMs, extraTimeMs: this.clock.extraTimeMs }
         : null,
+      fullscreen: {
+        ...fullscreenView(this.event, this.team),
+        lastViolationAt: this.team.fs_last_violation_at ?? null,
+        frozenRemainingMs: this.team.fs_locked_at ? Number(this.team.fs_locked_remaining_ms ?? 0) : null,
+      },
       checkpoints: CHECKPOINTS.map((cp) => ({ id: cp.id, status: this.status.get(cp.id) })),
       misses: this.misses.map((m) => ({ cpId: m.cp_id, submitted: m.submitted, at: m.created_at })),
     };

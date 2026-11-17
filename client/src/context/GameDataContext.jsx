@@ -6,7 +6,10 @@ import { source } from "../hooks/dataSource.js";
 const GameDataContext = createContext(null);
 
 // The clock is polled so a start, pause, resume or extra time from the admin page reaches every screen.
+// Faster while waiting for the start (the "Round 1 has started" prompt) or for an organiser to lift a full-screen
+// lock, so teams are not left waiting.
 const CLOCK_POLL_MS = 20_000;
+const CLOCK_POLL_WAITING_MS = 5_000;
 
 // The server sends remainingMs; `deadline` is that turned into a time on THIS device, so the countdown is right
 // even when the device clock is wrong. Only set while the clock is running.
@@ -44,15 +47,31 @@ export function GameDataProvider({ children }) {
       return undefined;
     }
     refresh();
-    const poll = setInterval(refreshEvent, CLOCK_POLL_MS);
     // Coming back to the tab: a team-mate may have closed a checkpoint on another device.
     const onVisible = () => document.visibilityState === "visible" && refresh();
     document.addEventListener("visibilitychange", onVisible);
-    return () => {
-      clearInterval(poll);
-      document.removeEventListener("visibilitychange", onVisible);
-    };
+    return () => document.removeEventListener("visibilitychange", onVisible);
   }, [team, refresh, refreshEvent]);
+
+  const waiting = !event || event.status === "idle" || !!event.fullscreen?.locked;
+  useEffect(() => {
+    if (!team) return undefined;
+    const poll = setInterval(refreshEvent, waiting ? CLOCK_POLL_WAITING_MS : CLOCK_POLL_MS);
+    return () => clearInterval(poll);
+  }, [team, waiting, refreshEvent]);
+
+  // A device left full screen: the server counts it and answers with the team's clock and full-screen state.
+  const reportViolation = useCallback(async () => {
+    try {
+      const res = await source.reportViolation();
+      const { counted: _counted, ...clock } = res;
+      setEvent(withDeadline(clock));
+      return res;
+    } catch {
+      refreshEvent();
+      return null;
+    }
+  }, [refreshEvent]);
 
   // When the local countdown reaches zero, ask the server (the clock may have been paused or extended meanwhile).
   const deadline = event?.deadline ?? null;
@@ -63,7 +82,9 @@ export function GameDataProvider({ children }) {
   }, [deadline, refreshEvent]);
 
   return (
-    <GameDataContext.Provider value={{ progress, event, error, refresh, refreshEvent }}>{children}</GameDataContext.Provider>
+    <GameDataContext.Provider value={{ progress, event, error, refresh, refreshEvent, reportViolation }}>
+      {children}
+    </GameDataContext.Provider>
   );
 }
 

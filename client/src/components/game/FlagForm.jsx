@@ -5,7 +5,15 @@ import Button from "../ui/Button.jsx";
 import Spinner from "../ui/Spinner.jsx";
 
 // Codes that mean the page is out of date (a team-mate closed the gate, or the clock changed): reload it.
-const STALE = new Set(["ALREADY_SOLVED", "ALREADY_ATTEMPTED", "LOCKED", "EVENT_NOT_STARTED", "EVENT_PAUSED", "EVENT_ENDED"]);
+const STALE = new Set([
+  "ALREADY_SOLVED",
+  "ALREADY_ATTEMPTED",
+  "LOCKED",
+  "EVENT_NOT_STARTED",
+  "EVENT_PAUSED",
+  "EVENT_ENDED",
+  "FULLSCREEN_LOCKED",
+]);
 
 // Flag input + submit (design 4). A team gets ONE attempt per checkpoint, so the first click only asks for
 // confirmation and the second click sends the answer.

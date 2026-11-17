@@ -10,6 +10,7 @@ export const getMe = () => api.get("/auth/me");
 
 // Game
 export const getEventState = () => api.get("/game/state");
+export const reportViolation = () => api.post("/game/fullscreen/violation"); // this device left full screen
 export const getProgress = () => api.get("/game/progress");
 export const getCheckpoint = (slug) => api.get(`/game/gate/${slug}`);
 export const submitFlag = (slug, flag) => api.post(`/game/gate/${slug}/submit`, { flag });
@@ -29,3 +30,5 @@ export const adminEvent = (action) => api.post("/admin/event", { action }); // s
 export const adminExtendEvent = (minutes) => api.post("/admin/event/extend", { minutes });
 export const adminTeamTime = (teamId, minutes) => api.post(`/admin/teams/${teamId}/time`, { minutes });
 export const adminReopen = (teamId, cpId) => api.post(`/admin/teams/${teamId}/reopen`, { cpId });
+export const adminForgiveViolation = (teamId) => api.post(`/admin/teams/${teamId}/fullscreen/forgive`);
+export const adminFullscreenRule = (required) => api.post("/admin/fullscreen", { required });

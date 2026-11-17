@@ -43,9 +43,24 @@ const BLOCKED = {
   paused: [403, "The clock is paused. Hold your answer until it resumes.", "EVENT_PAUSED"],
   ended: [403, "Time is up. The hunt is over.", "EVENT_ENDED"],
 };
+const FS_LOCKED = [
+  403,
+  "Your team is locked out for leaving full screen too many times. Your timer is paused; speak to the organisers.",
+  "FULLSCREEN_LOCKED",
+];
+
+// A team locked out for leaving full screen (services/fullscreen.js) can neither read nor submit until an
+// organiser restores it. Once the hunt is over for everyone, the normal "ended" message wins.
+function assertNotLocked(clock) {
+  if (clock?.fsLocked && clock.status !== "ended") {
+    const [status, message, code] = FS_LOCKED;
+    throw new HttpError(status, message, { code });
+  }
+}
 
 // Challenge text may only be read once the hunt has started (paused and ended clocks still allow reading).
 export function assertStarted(clock) {
+  assertNotLocked(clock);
   if (clock?.status === "idle") {
     const [status, message, code] = BLOCKED.idle;
     throw new HttpError(status, message, { code });
@@ -54,6 +69,7 @@ export function assertStarted(clock) {
 
 // Flags and hints need a running clock.
 export function assertRunning(clock) {
+  assertNotLocked(clock);
   const blocked = BLOCKED[clock?.status];
   if (blocked) {
     const [status, message, code] = blocked;

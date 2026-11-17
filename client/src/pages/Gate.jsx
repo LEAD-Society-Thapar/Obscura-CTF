@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { useEventStatus, useGameActions, useGate } from "../hooks/useGameData.js";
+import { useEventStatus, useFullscreen, useGameActions, useGate } from "../hooks/useGameData.js";
 import { formatCp, isFinalCp } from "../lib/format.js";
 import EndingModal from "../components/game/EndingModal.jsx";
 import FlagForm from "../components/game/FlagForm.jsx";
@@ -20,6 +20,7 @@ const CLOCK_NOTICE = {
   paused: "The clock is paused. Flags open again when it resumes.",
   ended: "Time is up. The hunt is over and flags are closed.",
 };
+const LOCKED_NOTICE = "Your team is locked out for leaving full screen. Flags open again if an organiser restores your access.";
 
 function BackLink({ act, final = false }) {
   const [to, label] = final
@@ -39,6 +40,7 @@ function GateBlocked({ error }) {
   const code = error?.data?.code;
   const locked = code === "LOCKED";
   const notStarted = code === "EVENT_NOT_STARTED";
+  const fsLocked = code === "FULLSCREEN_LOCKED";
   const final = !!error?.data?.final;
   return (
     <div className="mx-auto max-w-lg py-12 text-center">
@@ -48,7 +50,9 @@ function GateBlocked({ error }) {
       <h1 className="mt-5 font-heading text-3xl font-bold text-bone">
         {notStarted
           ? "The hunt has not started"
-          : locked
+          : fsLocked
+            ? "Your team is locked out"
+            : locked
             ? "This gate is still sealed"
             : code === "NOT_FOUND"
               ? "No gate here"
@@ -57,7 +61,9 @@ function GateBlocked({ error }) {
       <p className="mt-2 text-muted">
         {notStarted
           ? "Gates open the moment the clock starts. This page will open by itself."
-          : locked && final
+          : fsLocked
+            ? "Your team left full screen too many times. This page opens again by itself if an organiser restores your access."
+            : locked && final
             ? "Collect all five relics to face Mogambo."
             : locked
               ? "Close the previous checkpoint first. Its Reel Card shows the way here."
@@ -79,6 +85,7 @@ export default function Gate() {
   const { loading, error, checkpoint: cp, reload } = useGate(slug);
   const { submitFlag, revealHint } = useGameActions();
   const clockStatus = useEventStatus();
+  const fullscreen = useFullscreen();
   const [result, setResult] = useState(null); // submit result while a modal is open
 
   // The page was refused because the hunt had not started: open it as soon as the clock runs.
@@ -86,6 +93,13 @@ export default function Gate() {
   useEffect(() => {
     if (waitingForStart && clockStatus && clockStatus !== "idle") reload();
   }, [waitingForStart, clockStatus, reload]);
+
+  // Refused because the team was locked out for leaving full screen: reopen once an organiser restores it.
+  const waitingForUnlock = error?.data?.code === "FULLSCREEN_LOCKED";
+  const fsLocked = !!fullscreen?.locked;
+  useEffect(() => {
+    if (waitingForUnlock && fullscreen && !fsLocked) reload();
+  }, [waitingForUnlock, fullscreen, fsLocked, reload]);
 
   // Also covers moving to the next gate: don't show the previous checkpoint while the new one loads.
   if (loading && cp?.slug !== slug) return <PageStatus loading label="Opening the gate" />;
@@ -95,7 +109,7 @@ export default function Gate() {
   const missed = cp.status === "failed";
   const final = isFinalCp(cp);
   const paragraphs = cp.story.split("\n").filter(Boolean);
-  const clockNotice = CLOCK_NOTICE[clockStatus] ?? null;
+  const clockNotice = fsLocked && clockStatus !== "ended" ? LOCKED_NOTICE : (CLOCK_NOTICE[clockStatus] ?? null);
 
   const onClosed = (res) => {
     setResult(res);

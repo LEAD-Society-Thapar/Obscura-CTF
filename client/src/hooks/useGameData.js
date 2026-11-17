@@ -59,6 +59,12 @@ export function useEventStatus() {
   return event?.status ?? null;
 }
 
+// Full-screen invigilation state for this team: { required, violations, max, locked } or null (loading / old API).
+export function useFullscreen() {
+  const { event } = useGameStore();
+  return event?.fullscreen ?? null;
+}
+
 export function useTeam() {
   const { progress, error } = useGameStore();
   return { loading: !progress && !error, error, team: progress?.team ?? null, stats: progress?.stats ?? null };

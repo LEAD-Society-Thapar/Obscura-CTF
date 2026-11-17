@@ -1,5 +1,5 @@
-// Wipes the progress of the named teams only: solves, hints, relics and submissions. Teams, passwords, flags and
-// the event clock are not touched. Use it after test runs, e.g. to clean the TEST-LEAD teams before the event.
+// Wipes the progress of the named teams only: solves, hints, relics, submissions and full-screen violations/locks.
+// Teams, passwords, flags and the event clock are not touched. Use it after test runs, e.g. to clean the TEST-LEAD teams before the event.
 //
 //   npm run db:clear-progress -- TEST-LEAD-1 TEST-LEAD-2 TEST-LEAD-3
 //
@@ -30,4 +30,10 @@ for (const table of ["team_solves", "team_hints", "team_relics", "submissions"])
   const gone = rowsOf(await db.from(table).delete().in("team_id", ids).select("team_id"));
   console.log(`${table}: ${gone.length} rows deleted`);
 }
+const fs = await db
+  .from("teams")
+  .update({ fs_violations: 0, fs_last_violation_at: null, fs_locked_at: null, fs_locked_remaining_ms: null })
+  .in("id", ids);
+if (fs.error && fs.error.code !== "42703" && fs.error.code !== "PGRST204") throw new Error(fs.error.message);
+console.log(fs.error ? "full-screen violations: skipped (migration 003 not applied)" : "full-screen violations: cleared");
 console.log(`Cleared progress for ${codes.join(", ")}.`);
