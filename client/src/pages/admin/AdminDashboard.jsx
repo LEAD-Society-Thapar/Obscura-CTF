@@ -11,6 +11,7 @@ import {
   adminTeamTime,
 } from "../../api/endpoints.js";
 import { formatClock } from "../../lib/format.js";
+import { subscribeToChanges } from "../../lib/live.js";
 import Button from "../../components/ui/Button.jsx";
 import Icon from "../../components/ui/Icon.jsx";
 import PageStatus from "../../components/ui/PageStatus.jsx";
@@ -113,7 +114,12 @@ export default function AdminDashboard() {
   useEffect(() => {
     load();
     const id = setInterval(load, REFRESH_MS);
-    return () => clearInterval(id);
+    // Instant refresh when anything changes (another organiser's action, a team's full-screen violation).
+    const off = subscribeToChanges(() => load());
+    return () => {
+      clearInterval(id);
+      off();
+    };
   }, [load]);
 
   // Runs an admin action, then refreshes. `confirmText` asks first (for anything that affects every team).

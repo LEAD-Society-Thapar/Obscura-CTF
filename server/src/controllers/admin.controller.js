@@ -10,6 +10,7 @@ import { requireDb } from "../config/supabase.js";
 import { CHECKPOINTS } from "../data/game.js";
 import { clockView, DEFAULT_DURATION_MINUTES, EVENT_ROW_ID } from "../services/eventClock.js";
 import { fullscreenSupported, FS_MAX_VIOLATIONS, forgivePatch, teamClock } from "../services/fullscreen.js";
+import { notifyChange } from "../services/live.js";
 import { checkpointById, isLastOfAct, rankTeams, relicOfAct, TeamState } from "../services/teamState.js";
 import { HttpError } from "../utils/httpError.js";
 
@@ -124,6 +125,7 @@ export async function eventAction(req, res) {
   }
 
   rowsOf(await db.from("event_state").update(patch).eq("id", EVENT_ROW_ID));
+  await notifyChange("clock");
   res.json({ event: clockView({ ...ev, ...patch }) });
 }
 
@@ -142,6 +144,7 @@ export async function extendEvent(req, res) {
     const fs_locked_remaining_ms = Math.max(0, Number(t.fs_locked_remaining_ms || 0) + minutes * 60_000);
     rowsOf(await db.from("teams").update({ fs_locked_remaining_ms }).eq("id", t.id));
   }
+  await notifyChange("clock");
   res.json({ event: clockView({ ...ev, duration_minutes }) });
 }
 
@@ -157,12 +160,14 @@ export async function addTeamTime(req, res) {
   if (team.fs_locked_at) {
     const fs_locked_remaining_ms = Math.max(0, Number(team.fs_locked_remaining_ms || 0) + minutes * 60_000);
     rowsOf(await db.from("teams").update({ fs_locked_remaining_ms }).eq("id", team.id));
+    await notifyChange("clock", team.id);
     return res.json({ teamId: team.id, extraTimeMs: Number(team.extra_time_ms || 0), frozenRemainingMs: fs_locked_remaining_ms });
   }
   const extra_time_ms = Number(team.extra_time_ms || 0) + minutes * 60_000;
   const { error } = await db.from("teams").update({ extra_time_ms }).eq("id", team.id);
   if (error && MISSING_COLUMN.has(error.code)) throw new HttpError(409, MIGRATION_HINT, { code: "MIGRATION_NEEDED" });
   if (error) throw error;
+  await notifyChange("clock", team.id);
   res.json({ teamId: team.id, extraTimeMs: extra_time_ms });
 }
 
@@ -190,6 +195,7 @@ export async function reopenCheckpoint(req, res) {
     const relic = relicOfAct(cp.act);
     if (relic) rowsOf(await db.from("team_relics").delete().eq("team_id", teamId).eq("relic_id", relic.id));
   }
+  await notifyChange("progress", teamId);
   res.json({ ok: true, teamId, cpId: cp.id });
 }
 
@@ -210,6 +216,7 @@ export async function forgiveViolation(req, res) {
     await db.from("teams").update(patch).eq("id", team.id).eq("fs_violations", Number(team.fs_violations || 0)).select("id")
   );
   if (!updated.length) throw new HttpError(409, "That team's violations just changed. Check the table and try again.", { code: "BAD_STATE" });
+  await notifyChange("clock", team.id);
   res.json({ teamId: team.id, violations: patch.fs_violations, unlocked: !!team.fs_locked_at && patch.fs_locked_at === null });
 }
 
@@ -221,5 +228,6 @@ export async function setFullscreenRule(req, res) {
   const ev = await readEvent(db);
   if (!("fullscreen_required" in ev)) throw new HttpError(409, FS_MIGRATION_HINT, { code: "MIGRATION_NEEDED" });
   rowsOf(await db.from("event_state").update({ fullscreen_required: req.body.required }).eq("id", EVENT_ROW_ID));
+  await notifyChange("clock");
   res.json({ required: req.body.required });
 }

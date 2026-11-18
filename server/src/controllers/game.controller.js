@@ -7,6 +7,7 @@ import { releaseAttempt } from "../middleware/submitLimiter.js";
 import { HttpError } from "../utils/httpError.js";
 import { assertRunning, assertStarted, EVENT_ROW_ID } from "../services/eventClock.js";
 import { fullscreenSupported, fullscreenView, teamClock, violationPatch } from "../services/fullscreen.js";
+import { notifyChange } from "../services/live.js";
 import {
   checkpointAfter,
   checkpointById,
@@ -79,7 +80,10 @@ export async function reportViolation(req, res) {
         .is("fs_locked_at", null)
         .select("*")
     );
-    if (updated.length) return res.json({ counted: true, ...clockPayload(state.event, updated[0]) });
+    if (updated.length) {
+      await notifyChange("clock", team.id);
+      return res.json({ counted: true, ...clockPayload(state.event, updated[0]) });
+    }
   }
   throw new HttpError(409, "Could not record that, try again.", { code: "BUSY" });
 }

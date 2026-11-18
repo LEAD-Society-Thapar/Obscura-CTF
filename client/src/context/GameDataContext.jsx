@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { useAuth } from "./AuthContext.jsx";
 import { source } from "../hooks/dataSource.js";
+import { USE_MOCKS } from "../lib/config.js";
+import { subscribeToChanges } from "../lib/live.js";
 
 // Holds the logged-in team's progress snapshot + event clock. Pages read it through hooks/useGameData.js.
 const GameDataContext = createContext(null);
@@ -52,6 +54,27 @@ export function GameDataProvider({ children }) {
     document.addEventListener("visibilitychange", onVisible);
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, [team, refresh, refreshEvent]);
+
+  // Instant updates: the server says "changed" right after an organiser acts (lib/live.js). A small random delay
+  // spreads the refetches of every screen over half a second instead of all at the same instant.
+  const teamId = team?.id ?? null;
+  useEffect(() => {
+    if (!teamId || USE_MOCKS) return undefined;
+    const timers = new Set();
+    const off = subscribeToChanges(({ kind, teamId: target }) => {
+      if (target && target !== teamId) return; // another team's change
+      const id = setTimeout(() => {
+        timers.delete(id);
+        if (kind === "progress") refresh();
+        else refreshEvent();
+      }, Math.random() * 500);
+      timers.add(id);
+    });
+    return () => {
+      off();
+      timers.forEach(clearTimeout);
+    };
+  }, [teamId, refresh, refreshEvent]);
 
   const waiting = !event || event.status === "idle" || !!event.fullscreen?.locked;
   useEffect(() => {
