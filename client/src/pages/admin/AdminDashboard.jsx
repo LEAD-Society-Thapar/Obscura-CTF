@@ -3,12 +3,15 @@ import { useNavigate } from "react-router-dom";
 import {
   adminEvent,
   adminExtendEvent,
+  adminForgiveViolation,
+  adminFullscreenRule,
   adminLogout,
   adminOverview,
   adminReopen,
   adminTeamTime,
 } from "../../api/endpoints.js";
 import { formatClock } from "../../lib/format.js";
+import { subscribeToChanges } from "../../lib/live.js";
 import Button from "../../components/ui/Button.jsx";
 import Icon from "../../components/ui/Icon.jsx";
 import PageStatus from "../../components/ui/PageStatus.jsx";
@@ -111,7 +114,12 @@ export default function AdminDashboard() {
   useEffect(() => {
     load();
     const id = setInterval(load, REFRESH_MS);
-    return () => clearInterval(id);
+    // Instant refresh when anything changes (another organiser's action, a team's full-screen violation).
+    const off = subscribeToChanges(() => load());
+    return () => {
+      clearInterval(id);
+      off();
+    };
   }, [load]);
 
   // Runs an admin action, then refreshes. `confirmText` asks first (for anything that affects every team).
@@ -158,6 +166,8 @@ export default function AdminDashboard() {
   const finishedCount = data.teams.filter((t) => t.finished).length;
   const topScore = data.teams.reduce((m, t) => Math.max(m, t.points), 0);
   const started = data.teams.filter((t) => t.solved + t.missed > 0).length;
+  const fsRule = data.fullscreen ?? { supported: false, required: false, max: 3 };
+  const lockedCount = data.teams.filter((t) => t.fullscreen?.locked).length;
 
   return (
     <section aria-labelledby="admin-heading" className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
@@ -268,8 +278,8 @@ export default function AdminDashboard() {
                   onClick={() =>
                     run(
                       () => adminEvent("reset"),
-                      "Clock reset to not started. Team progress was not touched.",
-                      "Reset the clock to NOT STARTED?\n\nThe duration goes back to 90 minutes and every team's extra time is cleared. Scores and progress are kept."
+                      "Clock reset to not started. Extra time and full-screen violations cleared; team progress was not touched.",
+                      "Reset the clock to NOT STARTED?\n\nThe duration goes back to 90 minutes, and every team's extra time and full-screen violations are cleared. Scores and progress are kept."
                     )
                   }
                 >
@@ -298,11 +308,55 @@ export default function AdminDashboard() {
         </p>
       )}
 
-      <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      {!fsRule.supported ? (
+        <p role="alert" className="mt-4 rounded-card border border-gold/60 bg-gold/10 px-4 py-3 text-sm text-bone">
+          <strong className="text-gold">Full-screen invigilation is switched off.</strong> It needs one database change: run{" "}
+          <code className="font-mono text-gold">supabase/migrations/003_fullscreen.sql</code> in the Supabase SQL editor.
+        </p>
+      ) : (
+        <div className="panel-dark mt-4 flex flex-wrap items-center justify-between gap-4 p-4 sm:px-6">
+          <div className="max-w-3xl">
+            <div className="flex items-center gap-3">
+              <h2 className="font-heading text-base font-bold text-bone uppercase">Full-screen rule</h2>
+              <span
+                className={`rounded-chip border px-2.5 py-0.5 font-type text-xs uppercase ${
+                  fsRule.required ? "border-gold/70 text-gold" : "border-line text-muted"
+                }`}
+              >
+                {fsRule.required ? "On" : "Off"}
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-muted">
+              While the clock runs, every device logged in as a team must stay in full screen. Each exit is a violation; at{" "}
+              {fsRule.max} the team is locked: its timer stops and it cannot submit. Use <em>Manage</em> &rarr;{" "}
+              <em>Ignore one violation</em> to restore a team; its timer resumes from where it stopped. Turning the rule off
+              stops new violations; locked teams stay locked until you restore them.
+            </p>
+          </div>
+          <Button
+            size="sm"
+            variant={fsRule.required ? "outline" : "primary"}
+            caps={false}
+            disabled={busy}
+            onClick={() =>
+              run(
+                () => adminFullscreenRule(!fsRule.required),
+                fsRule.required ? "Full-screen rule switched off. Exits are no longer counted." : "Full-screen rule switched on.",
+                fsRule.required ? "Switch the full-screen rule OFF for every team?" : undefined
+              )
+            }
+          >
+            {fsRule.required ? "Switch off" : "Switch on"}
+          </Button>
+        </div>
+      )}
+
+      <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
         <Tile label="Teams" value={data.teams.length} />
         <Tile label="Have answered" value={started} />
         <Tile label="Cleared the final" value={finishedCount} />
         <Tile label="Top score" value={topScore} />
+        <Tile label="Locked out" value={lockedCount} />
       </dl>
 
       {/* ---------- Teams ---------- */}
@@ -342,7 +396,7 @@ export default function AdminDashboard() {
       </p>
 
       <div className="panel-dark mt-3 overflow-x-auto">
-        <table className="w-full min-w-[60rem] text-left text-sm">
+        <table className="w-full min-w-[66rem] text-left text-sm">
           <caption className="sr-only">Every team: score, progress and time left</caption>
           <thead className="border-b border-line font-heading text-xs text-muted uppercase">
             <tr>
@@ -352,6 +406,9 @@ export default function AdminDashboard() {
               <th scope="col" className="px-3 py-3 text-right">Solved</th>
               <th scope="col" className="px-3 py-3 text-right">Missed</th>
               <th scope="col" className="px-3 py-3 text-right">Hints</th>
+              <th scope="col" className="px-3 py-3 text-center" title="Full-screen violations">
+                Full screen
+              </th>
               <th scope="col" className="px-3 py-3">Progress</th>
               <th scope="col" className="px-3 py-3">Now at</th>
               <th scope="col" className="px-3 py-3 text-right">Time left</th>
@@ -364,9 +421,10 @@ export default function AdminDashboard() {
             {teams.map((t) => {
               const isOpen = open === t.id;
               const left = t.clock ? live(t.clock) : null;
+              const fs = t.fullscreen;
               return (
                 <Fragment key={t.id}>
-                  <tr className={isOpen ? "bg-ink-raised/60" : ""}>
+                  <tr className={isOpen ? "bg-ink-raised/60" : fs?.locked ? "bg-blood-deep/30" : ""}>
                     <td className="px-3 py-2.5 font-type text-gold">{t.rank}</td>
                     <th scope="row" className="px-3 py-2.5 font-heading text-base font-semibold whitespace-nowrap text-bone">
                       {t.code}
@@ -379,6 +437,19 @@ export default function AdminDashboard() {
                     <td className="px-3 py-2.5 text-right whitespace-nowrap text-muted tabular-nums">
                       {t.hintsUsed}
                       {t.hintPointsSpent > 0 && <> (−{t.hintPointsSpent})</>}
+                    </td>
+                    <td className="px-3 py-2.5 text-center whitespace-nowrap">
+                      {!fs?.supported ? (
+                        <span className="text-muted">—</span>
+                      ) : fs.locked ? (
+                        <span className="rounded-chip border border-blood-bright/70 bg-blood-deep/60 px-2 py-0.5 font-type text-xs text-blood-bright uppercase">
+                          Locked {fs.violations}/{fs.max}
+                        </span>
+                      ) : (
+                        <span className={`tabular-nums ${fs.violations ? "text-blood-bright" : "text-muted"}`}>
+                          {fs.violations}/{fs.max}
+                        </span>
+                      )}
                     </td>
                     <td className="px-3 py-2.5">
                       <span className="flex gap-0.5" role="img" aria-label={`${t.solved} solved, ${t.missed} missed of ${total}`}>
@@ -405,7 +476,10 @@ export default function AdminDashboard() {
                       )}
                     </td>
                     <td className="px-3 py-2.5 text-right font-mono whitespace-nowrap tabular-nums">
-                      <span className={t.clock?.status === "running" ? "text-bone" : "text-muted"}>{left == null ? "—" : formatClock(left)}</span>
+                      <span className={fs?.locked ? "text-blood-bright" : t.clock?.status === "running" ? "text-bone" : "text-muted"}>
+                        {left == null ? "—" : formatClock(left)}
+                      </span>
+                      {fs?.locked && <span className="ml-1.5 font-sans text-xs text-blood-bright">stopped</span>}
                       {t.clock?.extraTimeMs !== 0 && t.clock && (
                         <span className="ml-1.5 font-sans text-xs text-gold">
                           {t.clock.extraTimeMs > 0 ? "+" : "−"}
@@ -421,7 +495,7 @@ export default function AdminDashboard() {
                   </tr>
                   {isOpen && (
                     <tr className="bg-ink-raised/60">
-                      <td colSpan={10} className="px-3 pt-1 pb-5">
+                      <td colSpan={11} className="px-3 pt-1 pb-5">
                         <div className="grid gap-5 rounded-card border border-line bg-ink/60 p-4 lg:grid-cols-2">
                           <div>
                             <h3 className="font-heading text-sm font-bold text-bone uppercase">Time for {t.code}</h3>
@@ -475,6 +549,42 @@ export default function AdminDashboard() {
                               </ul>
                             )}
                           </div>
+                          {fs?.supported && (
+                            <div className="border-t border-line/60 pt-4 lg:col-span-2">
+                              <h3 className="font-heading text-sm font-bold text-bone uppercase">Full screen</h3>
+                              <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+                                <p className="text-sm text-bone">
+                                  {fs.violations}/{fs.max} violations
+                                  {fs.lastViolationAt && <span className="text-muted"> &middot; last at {timeOf(fs.lastViolationAt)}</span>}
+                                  {fs.locked && (
+                                    <span className="text-blood-bright">
+                                      {" "}
+                                      &middot; locked since {timeOf(fs.lockedAt)}, timer stopped at {formatClock(fs.frozenRemainingMs ?? 0)}
+                                    </span>
+                                  )}
+                                </p>
+                                <Button
+                                  size="sm"
+                                  variant={fs.locked ? "primary" : "outline"}
+                                  caps={false}
+                                  disabled={busy || fs.violations === 0}
+                                  onClick={() =>
+                                    run(
+                                      () => adminForgiveViolation(t.id),
+                                      fs.locked
+                                        ? `${t.code} is restored at ${fs.violations - 1}/${fs.max}. Their timer is running again from ${formatClock(fs.frozenRemainingMs ?? 0)}.`
+                                        : `${t.code} is now at ${fs.violations - 1}/${fs.max} violations.`,
+                                      fs.locked
+                                        ? `Ignore one violation for ${t.code}?\n\nThey go from ${fs.violations} to ${fs.violations - 1} of ${fs.max}, are unlocked, and their timer resumes from ${formatClock(fs.frozenRemainingMs ?? 0)}. One more exit locks them again.`
+                                        : `Ignore one violation for ${t.code}? (${fs.violations} -> ${fs.violations - 1})`
+                                    )
+                                  }
+                                >
+                                  {fs.locked ? "Ignore violation & restore" : "Ignore one violation"}
+                                </Button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -484,7 +594,7 @@ export default function AdminDashboard() {
             })}
             {teams.length === 0 && (
               <tr>
-                <td colSpan={10} className="px-3 py-8 text-center text-muted">
+                <td colSpan={11} className="px-3 py-8 text-center text-muted">
                   No team matches &ldquo;{query}&rdquo;.
                 </td>
               </tr>

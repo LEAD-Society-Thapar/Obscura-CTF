@@ -59,7 +59,7 @@ const state = new TeamState({ id: "t1", name: "T", points_adjust: 0 }, solves, h
 test("/progress: checkpoint summaries carry no story, body, hints or reel", () => {
   const p = state.progress();
   const keys = new Set(p.acts.flatMap((a) => a.checkpoints.flatMap(Object.keys)));
-  for (const k of ["story", "body", "hints", "reel", "downloads"]) assert.ok(!keys.has(k), `summary leaks ${k}`);
+  for (const k of ["story", "body", "hints", "reel", "downloads", "tools"]) assert.ok(!keys.has(k), `summary leaks ${k}`);
   const locked = p.acts.flatMap((a) => a.checkpoints).filter((c) => c.status === "locked");
   assert.ok(locked.length > 0 && locked.every((c) => c.slug === null));
   assert.ok(!JSON.stringify(p).includes(CHECKPOINTS[5].body), "a body text appears somewhere in /progress");

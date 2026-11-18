@@ -15,3 +15,6 @@ export const FLAG_PLACEHOLDER = `${FLAG_PREFIX}{...}`;
 // Mock "server" behaviour (client/src/data/mockApi.js). Shortened so states are easy to see.
 export const MOCK_LATENCY_MS = 600;
 export const MOCK_SUBMIT_INTERVAL_MS = 3_000; // real server: 1 submission per 10 s
+// Full-screen invigilation in mock mode. Off by default so UI work isn't interrupted; set VITE_MOCK_FULLSCREEN=true
+// to try the overlay without a server.
+export const MOCK_FULLSCREEN = import.meta.env.VITE_MOCK_FULLSCREEN === "true";

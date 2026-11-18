@@ -156,7 +156,7 @@
           "id": 2,
           "cost": 40,
           "teaser": "Pichhle gate se kuch saath le aao.",
-          "text": "The shift is your answer to CP 1.1. Spaces and punctuation don’t move. dcode.fr’s Caesar tool, or CyberChef’s ROT13 with a custom amount, will do the work."
+          "text": "The shift is your answer to CP 1.1. Spaces and punctuation don’t move. Write the alphabet out and count back that many letters for each one; you can stop once the password appears."
         }
       ],
       "reel": {
@@ -255,6 +255,7 @@
       "title": "Lal Diary",
       "category": "Crypto",
       "points": 150,
+      "tools": ["base64"],
       "story": "Don’s red diary holds every name in his network. Its last page looks like gibberish, and in the mayajaal nothing reads the right way round.",
       "body": "What is the code word?\n\n```text\nQUxBV1NBUkFOQUIgOkRST1cgRURPQyAuREFFRCBTSSBOT0QgTEFFUiBFSFQ=\n```",
       "hints": [
@@ -268,7 +269,7 @@
           "id": 2,
           "cost": 60,
           "teaser": "Decode ke baad bhi kaam baaki hai.",
-          "text": "Decode it first (CyberChef: From Base64). What comes out is still scrambled, the way a mirror scrambles writing."
+          "text": "Paste it into the decoder under the challenge. What comes out is still scrambled, the way a mirror scrambles writing."
         }
       ],
       "reel": {
@@ -283,6 +284,7 @@
       "title": "Hamshakal Akshar",
       "category": "Stego",
       "points": 150,
+      "tools": ["unicode"],
       "story": "A telegram signed “Don” is waiting inside the den. But this Don is a lookalike, and so are some of his letters.",
       "body": "What word do the impostor letters spell?\n\n> Bosѕ, the police are watcһing every road out of Bombay. Kеep the shipment hiddеn until the morning tide. Trust nobody who calls himѕelf Don today, not even me. The seal waits wһere every face looks bаck at itself. Stop.",
       "hints": [
@@ -296,7 +298,7 @@
           "id": 2,
           "cost": 60,
           "teaser": "Dikhne se zyada, code point dekho.",
-          "text": "Paste the telegram, untouched, into CyberChef’s “Escape Unicode Characters” or any Unicode inspector. Ordinary letters come out unchanged and the impostors don’t. Read their Latin twins in order."
+          "text": "Copy the whole telegram, untouched, into the inspector under the challenge. Ordinary letters pass and the impostors are flagged. Read their Latin twins in order."
         }
       ],
       "reel": {
@@ -367,6 +369,7 @@
       "title": "Jale Hue Panne",
       "category": "Crypto",
       "points": 200,
+      "tools": ["vigenere"],
       "story": "The first page of the Director’s Script survived the fire, but Mukesh locked it with a cipher once nicknamed *“le chiffre indéchiffrable”*. His key is the name still painted on the charred dressing-room door: SHANTI.",
       "body": "Where is the script hidden? (one word)\n\n```text\nLOE FVZAWT FEMWWS VGAAKE GAM XHLYXV UOAAWMDPEE\n```",
       "hints": [
@@ -380,7 +383,7 @@
           "id": 2,
           "cost": 80,
           "teaser": "Chaabi darwaaze pe likhi hai.",
-          "text": "The key is on the dressing-room door, and spaces don’t use up key letters. CyberChef’s Vigenère Decode or dcode.fr will do the arithmetic."
+          "text": "The key is on the dressing-room door, and spaces don’t use up key letters. Once you have it, the decoder under the challenge does the arithmetic."
         }
       ],
       "reel": {
@@ -395,8 +398,9 @@
       "title": "Naam Badla, Aatma Wahi",
       "category": "Stego",
       "points": 200,
+      "tools": ["hex"],
       "story": "Inside the chandelier is Mukesh’s old pen drive. Om Shanti Om is a story of rebirth, a new name with the same soul, and Mukesh tried the same trick: he renamed every file so nobody would find the script. But a file’s first bytes remember its past life.",
-      "body": "What is each file really? Submit the four real file types in table order, joined by underscores.\n\n| File (the name it claims) | First bytes (hex) |\n| --- | --- |\n| `shanti_1977.mp4` | `25 50 44 46 2D 31 2E 34` |\n| `dard_e_disco.mp3` | `89 50 4E 47 0D 0A 1A 0A` |\n| `mukesh_alibi.pdf` | `47 49 46 38 39 61 20 03` |\n| `om_kapoor_poster.jpg` | `49 44 33 04 00 00 00 00` |",
+      "body": "What is each file really? Each one is a PDF, PNG, GIF, JPG, MP3, MP4, ZIP or WAV file. Submit the four real file types in table order, joined by underscores.\n\n| File (the name it claims) | First bytes (hex) |\n| --- | --- |\n| `shanti_1977.mp4` | `25 50 44 46 2D 31 2E 34` |\n| `dard_e_disco.mp3` | `89 50 4E 47 0D 0A 1A 0A` |\n| `mukesh_alibi.pdf` | `47 49 46 38 39 61 20 03` |\n| `om_kapoor_poster.jpg` | `49 44 33 04 00 00 00 00` |",
       "hints": [
         {
           "id": 1,
@@ -408,7 +412,7 @@
           "id": 2,
           "cost": 80,
           "teaser": "Naam nahi, shuruaati bytes.",
-          "text": "Convert each row from hex to text (CyberChef: From Hex). Three formats spell out their own name; for the fourth, look up which file type begins with the letters you see."
+          "text": "Convert each row with the decoder under the challenge. Three formats spell out their own name. The fourth begins with “ID3”, the tag block that music players read at the start of one very common audio format."
         }
       ],
       "reel": {
@@ -492,7 +496,7 @@
           "id": 2,
           "cost": 100,
           "teaser": "Teen patriyaan, ek raasta.",
-          "text": "Three berths, three rails. A rail fence decoder (CyberChef’s Rail Fence Cipher Decode with key 3, or dcode.fr) gives the sentence without spaces; add them back yourself."
+          "text": "Three berths, three rails. The 46 letters split 12 / 23 / 11: the first 12 are the upper berth, the next 23 the middle and the last 11 the lower. Write the rows out, read them in the zig-zag order, then add the spaces back yourself."
         }
       ],
       "reel": {
@@ -507,6 +511,7 @@
       "title": "Aa... Aa... Aa...",
       "category": "Stego",
       "points": 250,
+      "tools": ["morse"],
       "story": "At every stop, “Baldev Singh” steps off to feed the pigeons and calls them in, just as he did in London. The Archive’s microphones noticed that his calls come short and long, with the pigeons fluttering between them like punctuation.",
       "body": "What word are the pigeons carrying?\n\n```text\naa aa aa aa (flutter) aa aa aaaa (flutter) aaaa aaaa (flutter) aa aa aa (flutter) aa aaaa (flutter) aa aa aaaa aa (flutter) aa aaaa (flutter) aa aaaa aa\n```",
       "hints": [
@@ -520,7 +525,7 @@
           "id": 2,
           "cost": 100,
           "teaser": "Chhoti awaaz aur lambi awaaz.",
-          "text": "Turn every short call into a dot and every long call into a dash; each flutter ends a letter. Then decode with a Morse chart or CyberChef’s From Morse Code."
+          "text": "Turn every short call into a dot and every long call into a dash; each flutter ends a letter. Then run the dots and dashes through the decoder under the challenge."
         }
       ],
       "reel": {
@@ -564,7 +569,7 @@
       "category": "Misc",
       "points": 300,
       "story": "The Martian Orb runs a language model that finishes one sentence all day: “Mogambo ___ hua.” For the blank it outputs the logits khush = 2.0, dukhi = 1.0 and naraz = 0.0. Mogambo turns the sampling temperature down to 0.5 so that he stays happy.",
-      "body": "At temperature 0.5, what is the probability that the Orb says “khush”? Round to two decimal places.",
+      "body": "At temperature 0.5, what is the probability that the Orb says “khush”? Round to two decimal places.\n\nValues of eˣ you may need:\n\n| x | 0 | 0.5 | 1 | 1.5 | 2 | 2.5 | 3 | 3.5 | 4 |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| eˣ | 1 | 1.649 | 2.718 | 4.482 | 7.389 | 12.18 | 20.09 | 33.12 | 54.60 |",
       "hints": [
         {
           "id": 1,
@@ -576,7 +581,7 @@
           "id": 2,
           "cost": 120,
           "teaser": "Pehle taapmaan, phir softmax.",
-          "text": "Divide each logit by 0.5 first, then apply softmax to the three new numbers. A calculator with an eˣ key is all you need."
+          "text": "Divide each logit by 0.5 first, then apply softmax to the three new numbers. Take the eˣ values from the table in the question; the rest is one division."
         }
       ],
       "reel": {
@@ -591,6 +596,7 @@
       "title": "Mogambo Ki Chhoti Chaabi",
       "category": "Crypto",
       "points": 300,
+      "tools": ["modpow"],
       "story": "Mogambo locked the Orb’s vault code with RSA, the public-key cipher behind much of internet security. Arrogant as ever, he picked a key so small that a pocket calculator could break it. *“Mogambo ki chaabi koi nahi tod sakta!”*",
       "body": "Public key: n = 91, e = 5. Mogambo turned each letter into a number (A = 1, B = 2 … Z = 26) and encrypted each one separately as c = m⁵ mod 91. What is the vault code?\n\n```text\n38 1 1 38 32 1 76 76 81\n```",
       "hints": [
@@ -604,7 +610,7 @@
           "id": 2,
           "cost": 120,
           "teaser": "Pehle n ko todo.",
-          "text": "91 only looks prime, so try small primes. Once you have d, Python’s `pow(c, d, 91)` decrypts each number instantly; then turn 1 into A, 2 into B, and so on."
+          "text": "91 only looks prime, so try small primes. Once you have d, the calculator under the challenge decrypts every number at once (c^d mod 91); then turn 1 into A, 2 into B, and so on."
         }
       ],
       "reel": {
@@ -620,7 +626,7 @@
       "category": "Stego",
       "points": 300,
       "story": "The Orb’s sensor sends back a tiny 8 × 6 grayscale picture of itself. It looks like an ordinary glowing orb, but Mogambo hid one word in the least significant place possible.",
-      "body": "What word is hidden in the Orb’s pixels?\n\n```text\n 42  69  86  96  99  88  62  37\n 76 107 136 152 145 129 107  72\n 90 127 170 203 192 170 133  95\n 98 135 172 194 202 162 134  89\n 68 101 130 146 152 126 106  73\n 42  69  82  98  92  91  65  42\n```",
+      "body": "What word is hidden in the Orb’s pixels? *(ASCII: 01000001 = 65 = A, and every letter after it is one more, up to Z = 90.)*\n\n```text\n 42  69  86  96  99  88  62  37\n 76 107 136 152 145 129 107  72\n 90 127 170 203 192 170 133  95\n 98 135 172 194 202 162 134  89\n 68 101 130 146 152 126 106  73\n 42  69  82  98  92  91  65  42\n```",
       "hints": [
         {
           "id": 1,
@@ -632,7 +638,7 @@
           "id": 2,
           "cost": 120,
           "teaser": "Odd ya even, bas itna.",
-          "text": "A number’s LSB is 1 if it is odd and 0 if it is even. Each row of 8 pixels gives 8 bits, which make one ASCII character (CyberChef: From Binary)."
+          "text": "A number’s LSB is 1 if it is odd and 0 if it is even. Each row of 8 pixels gives 8 bits, which make one ASCII character: turn the bits into a number, then use the ASCII note in the question."
         }
       ],
       "reel": {
@@ -707,8 +713,8 @@
       "id": 6,
       "section": "III. Tools and Fair Play",
       "icon": "scroll",
-      "title": "Permitted Resources",
-      "body": "- Internet access and external research resources are permitted.\n- External tools such as CyberChef, online decoders, calculators, programming environments, and reference documentation may be used.\n- AI assistants and AI-powered coding or research tools are permitted.\n- Verify the accuracy of information or solutions obtained using external tools. Tool use does not exempt your team from fair-play rules."
+      "title": "No Outside Help",
+      "body": "- No internet searches, other websites, apps or AI assistants during the hunt. It is played on this site only, in full screen.\n- Where a checkpoint needs a tool, such as a decoder or a calculator, it is built into that checkpoint's page. Built-in tools are free and never cost points.\n- Pen and paper are allowed for working things out.\n- Using any other device, tool or outside help may result in disqualification at event staff discretion."
     },
     {
       "id": 7,
@@ -722,7 +728,7 @@
       "section": "III. Tools and Fair Play",
       "icon": "shield",
       "title": "Fair Play and Prohibited Activities",
-      "body": "- Do not share flags, hints, or solutions with other competing teams.\n- Do not attack the CTF platform, its infrastructure, or other teams' accounts.\n- Unauthorized access, exploitation, or disruption of competition infrastructure is prohibited.\n- Brute-force attacks against the platform or challenge infrastructure are prohibited.\n- Do not manipulate scores, alter game progress, or interfere with another team's participation.\n- Violations may result in disqualification at event staff discretion."
+      "body": "- Do not share flags, hints, or solutions with other competing teams.\n- Do not attack the CTF platform, its infrastructure, or other teams' accounts.\n- Unauthorized access, exploitation, or disruption of competition infrastructure is prohibited.\n- Brute-force attacks against the platform or challenge infrastructure are prohibited.\n- Do not manipulate scores, alter game progress, or interfere with another team's participation.\n- **Stay in full screen while the clock is running.** Every exit from full screen is a violation. After 3, your team is disqualified: its timer stops and no flags or hints are accepted. Only event staff can restore access.\n- Violations may result in disqualification at event staff discretion."
     },
     {
       "id": 9,

@@ -15,4 +15,6 @@ r.post("/event", admin.eventAction);
 r.post("/event/extend", admin.extendEvent);
 r.post("/teams/:teamId/time", admin.addTeamTime);
 r.post("/teams/:teamId/reopen", admin.reopenCheckpoint);
+r.post("/teams/:teamId/fullscreen/forgive", admin.forgiveViolation);
+r.post("/fullscreen", admin.setFullscreenRule);
 export default r;

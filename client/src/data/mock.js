@@ -271,8 +271,8 @@ export const rules = [
     id: 6,
     section: "III. Tools and Fair Play",
     icon: "scroll",
-    title: "Permitted Resources",
-    body: "- Internet access and external research resources are permitted.\n- External tools such as CyberChef, online decoders, calculators, programming environments, and reference documentation may be used.\n- AI assistants and AI-powered coding or research tools are permitted.\n- Verify the accuracy of information or solutions obtained using external tools. Tool use does not exempt your team from fair-play rules.",
+    title: "No Outside Help",
+    body: "- No internet searches, other websites, apps or AI assistants during the hunt. It is played on this site only, in full screen.\n- Where a checkpoint needs a tool, such as a decoder or a calculator, it is built into that checkpoint's page. Built-in tools are free and never cost points.\n- Pen and paper are allowed for working things out.\n- Using any other device, tool or outside help may result in disqualification at event staff discretion.",
   },
   {
     id: 7,
@@ -286,7 +286,7 @@ export const rules = [
     section: "III. Tools and Fair Play",
     icon: "shield",
     title: "Fair Play and Prohibited Activities",
-    body: "- Do not share flags, hints, or solutions with other competing teams.\n- Do not attack the CTF platform, its infrastructure, or other teams' accounts.\n- Unauthorized access, exploitation, or disruption of competition infrastructure is prohibited.\n- Brute-force attacks against the platform or challenge infrastructure are prohibited.\n- Do not manipulate scores, alter game progress, or interfere with another team's participation.\n- Violations may result in disqualification at the organizers' discretion.",
+    body: "- Do not share flags, hints, or solutions with other competing teams.\n- Do not attack the CTF platform, its infrastructure, or other teams' accounts.\n- Unauthorized access, exploitation, or disruption of competition infrastructure is prohibited.\n- Brute-force attacks against the platform or challenge infrastructure are prohibited.\n- Do not manipulate scores, alter game progress, or interfere with another team's participation.\n- **Stay in full screen while the clock is running.** Every exit from full screen is a violation. After 3, your team is disqualified: its timer stops and no flags or hints are accepted. Only event staff can restore access.\n- Violations may result in disqualification at the organizers' discretion.",
   },
   {
     id: 9,

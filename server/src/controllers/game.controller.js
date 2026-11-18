@@ -5,7 +5,9 @@ import { ACTS, RULES } from "../data/game.js";
 import { flagMatches, normalizeAnswer } from "../utils/gate.js";
 import { releaseAttempt } from "../middleware/submitLimiter.js";
 import { HttpError } from "../utils/httpError.js";
-import { assertRunning, assertStarted, clockView, EVENT_ROW_ID } from "../services/eventClock.js";
+import { assertRunning, assertStarted, EVENT_ROW_ID } from "../services/eventClock.js";
+import { fullscreenSupported, fullscreenView, teamClock, violationPatch } from "../services/fullscreen.js";
+import { notifyChange } from "../services/live.js";
 import {
   checkpointAfter,
   checkpointById,
@@ -37,15 +39,53 @@ export function openGate(state, slug) {
   return cp;
 }
 
-// GET /api/game/state   This team's clock: the global clock plus any extra time the admin gave the team.
-// Clients count down from remainingMs (not endsAt), so a wrong device clock does not matter.
+// This team's clock + full-screen state, the shape of GET /api/game/state.
+const clockPayload = (ev, team) => {
+  const { password_hash: _passwordHash, ...safe } = team ?? {};
+  return { ...teamClock(ev, team ? safe : null), fullscreen: fullscreenView(ev, team) };
+};
+
+// GET /api/game/state   This team's clock: the global clock plus any extra time the admin gave the team, frozen
+// while the team is locked out for leaving full screen. Clients count down from remainingMs (not endsAt), so a
+// wrong device clock does not matter. `fullscreen` tells every device whether to demand full screen.
 export async function getEventState(req, res) {
   const db = requireDb();
   const [events, teams] = await Promise.all([
     db.from("event_state").select("*").eq("id", EVENT_ROW_ID),
-    db.from("teams").select("*").eq("id", req.team.id), // "*": extra_time_ms may not exist before migration 002
+    db.from("teams").select("*").eq("id", req.team.id), // "*": works before migrations 002 and 003
   ]).then((results) => results.map(rowsOf));
-  res.json(clockView(events[0], teams[0]?.extra_time_ms));
+  res.json(clockPayload(events[0], teams[0]));
+}
+
+// POST /api/game/fullscreen/violation   A device of this team left full screen while the clock was running.
+// Counted at most once per FS_DUPLICATE_MS; the third one locks the team (services/fullscreen.js).
+// The update only applies if nobody else changed the counter meanwhile, so two devices reporting at the same
+// moment are both counted, never lost.
+export async function reportViolation(req, res) {
+  const db = requireDb();
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const state = await loadTeamState(req.team.id);
+    const team = state.team;
+    if (!fullscreenSupported(team)) return res.json({ counted: false, ...clockPayload(state.event, team) });
+
+    const patch = violationPatch(state.event, team, { finished: state.done });
+    if (!patch) return res.json({ counted: false, ...clockPayload(state.event, team) });
+
+    const updated = rowsOf(
+      await db
+        .from("teams")
+        .update(patch)
+        .eq("id", team.id)
+        .eq("fs_violations", Number(team.fs_violations || 0))
+        .is("fs_locked_at", null)
+        .select("*")
+    );
+    if (updated.length) {
+      await notifyChange("clock", team.id);
+      return res.json({ counted: true, ...clockPayload(state.event, updated[0]) });
+    }
+  }
+  throw new HttpError(409, "Could not record that, try again.", { code: "BUSY" });
 }
 
 // GET /api/game/progress

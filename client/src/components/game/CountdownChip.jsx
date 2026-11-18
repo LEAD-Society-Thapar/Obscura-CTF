@@ -1,4 +1,4 @@
-import { useEventClock } from "../../hooks/useGameData.js";
+import { useEventClock, useFullscreen } from "../../hooks/useGameData.js";
 
 const URGENT_MS = 10 * 60 * 1000;
 const CAPTION = { idle: "Not Started", running: "Time Remaining", paused: "Clock Paused", ended: "Time Up" };
@@ -8,8 +8,9 @@ const CAPTION = { idle: "Not Started", running: "Time Remaining", paused: "Clock
 // role="timer" is not announced every second; the label is read on focus/navigation.
 export default function CountdownChip() {
   const { label, remaining, status } = useEventClock();
-  const urgent = status === "ended" || (status === "running" && remaining != null && remaining < URGENT_MS);
-  const caption = CAPTION[status] || "Time Remaining";
+  const fsLocked = !!useFullscreen()?.locked && status !== "ended";
+  const urgent = fsLocked || status === "ended" || (status === "running" && remaining != null && remaining < URGENT_MS);
+  const caption = fsLocked ? "Timer Stopped" : CAPTION[status] || "Time Remaining";
   const tone = urgent ? "text-blood-bright" : status === "paused" ? "text-gold" : status === "idle" ? "text-muted" : "text-bone";
 
   return (
