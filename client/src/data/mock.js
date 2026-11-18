@@ -271,8 +271,8 @@ export const rules = [
     id: 6,
     section: "III. Tools and Fair Play",
     icon: "scroll",
-    title: "Permitted Resources",
-    body: "- Internet access and external research resources are permitted.\n- External tools such as CyberChef, online decoders, calculators, programming environments, and reference documentation may be used.\n- AI assistants and AI-powered coding or research tools are permitted.\n- Verify the accuracy of information or solutions obtained using external tools. Tool use does not exempt your team from fair-play rules.",
+    title: "No Outside Help",
+    body: "- No internet searches, other websites, apps or AI assistants during the hunt. It is played on this site only, in full screen.\n- Where a checkpoint needs a tool, such as a decoder or a calculator, it is built into that checkpoint's page. Built-in tools are free and never cost points.\n- Pen and paper are allowed for working things out.\n- Using any other device, tool or outside help may result in disqualification at event staff discretion.",
   },
   {
     id: 7,

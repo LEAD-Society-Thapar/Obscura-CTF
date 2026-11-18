@@ -6,6 +6,7 @@ import EndingModal from "../components/game/EndingModal.jsx";
 import FlagForm from "../components/game/FlagForm.jsx";
 import HintPanel from "../components/game/HintPanel.jsx";
 import ReelCardModal from "../components/game/ReelCardModal.jsx";
+import ToolPanel from "../components/game/ToolPanel.jsx";
 import ArtSlot from "../components/ui/ArtSlot.jsx";
 import Button from "../components/ui/Button.jsx";
 import CategoryTag from "../components/ui/CategoryTag.jsx";
@@ -183,6 +184,8 @@ export default function Gate() {
               </ul>
             </section>
           )}
+
+          <ToolPanel tools={cp.tools} />
 
           <div className="mt-6">
             <HintPanel

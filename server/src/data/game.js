@@ -7,6 +7,9 @@
 // Art slot names are derived from ids; see client/src/lib/artSlots.js for the slot registry.
 import content from "./content/challenges.json" with { type: "json" };
 
+// Built-in tools a checkpoint may list ("tools": [...]); the client renders them (client/src/lib/tools.js).
+export const KNOWN_TOOLS = new Set(["base64", "vigenere", "hex", "morse", "unicode", "modpow"]);
+
 function fail(message) {
   throw new Error(`[content] challenges.json: ${message}`);
 }
@@ -26,6 +29,7 @@ function toCheckpoint(cp, { act = cp.act, index = cp.index, slotKey = `${cp.act}
     body: cp.body,
     posterSlot: `cp-${slotKey}-poster`,
     downloads: cp.downloads ?? [],
+    tools: cp.tools ?? [],
     hints: cp.hints.map(toHint),
     reel: {
       quote: cp.reel.quote,
@@ -85,6 +89,9 @@ export const RULES = content.rules;
     seen.add(cp.id);
     if (!Number.isInteger(cp.points)) fail(`${cp.id}: points must be an integer`);
     if (typeof cp.story !== "string" || typeof cp.body !== "string") fail(`${cp.id}: story and body must be strings`);
+    if (!Array.isArray(cp.tools) || !cp.tools.every((t) => KNOWN_TOOLS.has(t))) {
+      fail(`${cp.id}: tools must be a list of ${[...KNOWN_TOOLS].join(", ")}`);
+    }
     if (!cp.hints.every((h, i) => h.id === i + 1 && Number.isInteger(h.cost))) {
       fail(`${cp.id}: hints must have ids 1..n in order and integer costs`);
     }

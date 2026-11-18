@@ -84,6 +84,7 @@ const detail = (cp) => ({
   body: cp.body ?? "",
   posterSlot: cp.posterSlot,
   downloads: cp.downloads,
+  tools: cp.tools ?? [],
   hints: cp.hints.map((h) => ({
     id: h.id,
     cost: h.cost,
