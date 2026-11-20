@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 process.env.FLAG_PEPPER ??= "test-pepper";
 const { clockView, assertRunning, assertStarted, DEFAULT_DURATION_MINUTES } = await import("../src/services/eventClock.js");
 const { ACTS, ACT_CHECKPOINTS, CHECKPOINTS, FINAL_BOSS, RELICS } = await import("../src/data/game.js");
-const { TeamState, earnedRelicIds } = await import("../src/services/teamState.js");
+const { TeamState, earnedRelicIds, missedCpIds, MAX_ATTEMPTS } = await import("../src/services/teamState.js");
 const { openGate } = await import("../src/controllers/game.controller.js");
 
 const T0 = Date.parse("2026-11-20T10:00:00Z");
@@ -77,16 +77,37 @@ test("clock: flags need a running clock; reading needs a started one", () => {
   assert.equal(code(() => assertStarted({ status: "ended" })), null);
 });
 
-// ---------- one attempt per checkpoint ----------
+// ---------- three attempts per checkpoint ----------
 const team = { id: "t9", name: "T9", team_code: "T9", points_adjust: 0 };
 const at = (n) => iso(T0 + n * MIN);
 const solve = (cp, n = 1) => ({ cp_id: cp.id, points: cp.points, solved_at: at(n) });
 const miss = (cp, n = 1, submitted = "wrong") => ({ cp_id: cp.id, submitted, created_at: at(n) });
+// Every attempt used: MAX_ATTEMPTS wrong rows, the last one at minute n.
+const missAll = (cp, n = 1, submitted = "wrong") =>
+  Array.from({ length: MAX_ATTEMPTS }, (_, i) => miss(cp, n - (MAX_ATTEMPTS - 1 - i) * 0.1, i === MAX_ATTEMPTS - 1 ? submitted : `try-${i + 1}`));
 const relicRows = (ids) => ids.map((relic_id) => ({ relic_id, earned_at: at(0) }));
 const cp = (id) => CHECKPOINTS.find((c) => c.id === id);
 
-test("one attempt: a wrong answer closes the checkpoint with 0 points and opens the next gate", () => {
-  const s = new TeamState(team, [solve(cp("1.1"))], [], [], [miss(cp("1.2"), 2)]);
+test("attempts: there are three, the final included", () => {
+  assert.equal(MAX_ATTEMPTS, 3);
+});
+
+test("attempts: a wrong answer with attempts left keeps the gate open and counts down", () => {
+  for (const used of [1, 2]) {
+    const misses = Array.from({ length: used }, (_, i) => miss(cp("1.1"), i + 1));
+    const s = new TeamState(team, [], [], [], misses);
+    assert.equal(s.status.get("1.1"), "current");
+    assert.equal(s.status.get("1.2"), "locked");
+    assert.deepEqual(s.detail(cp("1.1")).attempts, { used, max: 3, left: 3 - used });
+    assert.equal(s.detail(cp("1.1")).reel, null);
+    assert.equal(s.progress().stats.missed, 0);
+    assert.deepEqual(s.adminRow().attempts, [{ cpId: "1.1", used, max: 3, closed: false, answers: misses.map((m) => ({ submitted: m.submitted, at: m.created_at })) }]);
+  }
+  assert.deepEqual(new TeamState(team, [], [], [], []).detail(cp("1.1")).attempts, { used: 0, max: 3, left: 3 });
+});
+
+test("attempts: the third wrong answer closes the checkpoint with 0 points and opens the next gate", () => {
+  const s = new TeamState(team, [solve(cp("1.1"))], [], [], missAll(cp("1.2"), 2));
   assert.equal(s.status.get("1.1"), "solved");
   assert.equal(s.status.get("1.2"), "failed");
   assert.equal(s.status.get("1.3"), "current");
@@ -102,8 +123,8 @@ test("one attempt: a wrong answer closes the checkpoint with 0 points and opens 
   assert.equal(p.activity[0].delta, 0);
 });
 
-test("one attempt: a missed checkpoint shows its reel but never the text the team typed", () => {
-  const s = new TeamState(team, [], [], [], [miss(cp("1.1"), 1, "my-secret-guess")]);
+test("attempts: a missed checkpoint shows its reel but never the text the team typed", () => {
+  const s = new TeamState(team, [], [], [], missAll(cp("1.1"), 1, "my-secret-guess"));
   const d = s.detail(cp("1.1"));
   assert.equal(d.status, "failed");
   assert.equal(d.reel.clue, cp("1.1").reel.clue);
@@ -111,30 +132,43 @@ test("one attempt: a missed checkpoint shows its reel but never the text the tea
   assert.ok(!JSON.stringify(s.progress()).includes("my-secret-guess"));
   assert.ok(!JSON.stringify(d).includes("my-secret-guess"));
   assert.equal(s.adminRow().misses[0].submitted, "my-secret-guess"); // organisers do see it
+  assert.deepEqual(s.adminRow().attempts[0].answers.map((a) => a.submitted), ["try-1", "try-2", "my-secret-guess"]);
+  assert.equal(s.adminRow().attempts[0].closed, true);
 });
 
-test("one attempt: a solve wins over a wrong row for the same checkpoint (two requests racing)", () => {
-  const s = new TeamState(team, [solve(cp("1.1"), 2)], [], [], [miss(cp("1.1"), 1)]);
+test("attempts: a solve wins over wrong rows for the same checkpoint (solved on a later attempt, or a race)", () => {
+  const s = new TeamState(team, [solve(cp("1.1"), 5)], [], [], missAll(cp("1.1"), 4));
   assert.equal(s.status.get("1.1"), "solved");
   assert.equal(s.progress().stats.missed, 0);
 });
 
-test("one attempt: relics are earned when an act's last checkpoint closes, solved or missed", () => {
+test("attempts: a wrong answer with attempts left is not a miss, so it never earns (or heals) a relic", () => {
+  // One or two wrong answers on 1.3 (the last checkpoint of act 1): still open, no relic owed.
+  assert.deepEqual(missedCpIds([], [miss(cp("1.3"), 1)]), []);
+  assert.deepEqual(missedCpIds([], [miss(cp("1.3"), 1), miss(cp("1.3"), 2)]), []);
+  assert.deepEqual(earnedRelicIds(missedCpIds([], [miss(cp("1.3"), 1), miss(cp("1.3"), 2)])), []);
+  // The third closes it; a solve always wins over wrong rows.
+  assert.deepEqual(missedCpIds([], missAll(cp("1.3"), 3)), ["1.3"]);
+  assert.deepEqual(earnedRelicIds(missedCpIds([], missAll(cp("1.3"), 3))), [ACTS[0].relicId]);
+  assert.deepEqual(missedCpIds([solve(cp("1.3"), 4)], missAll(cp("1.3"), 3)), []);
+});
+
+test("attempts: relics are earned when an act's last checkpoint closes, solved or missed", () => {
   assert.deepEqual(earnedRelicIds(["1.1", "1.2"]), []);
   assert.deepEqual(earnedRelicIds(["1.3"]), [ACTS[0].relicId]);
   assert.deepEqual(earnedRelicIds(ACT_CHECKPOINTS.map((c) => c.id)).sort(), RELICS.map((r) => r.id).sort());
   assert.deepEqual(earnedRelicIds(["final"]), []);
 });
 
-test("one attempt: a team that missed every act checkpoint still reaches the final", () => {
-  const s = new TeamState(team, [], [], relicRows(RELICS.map((r) => r.id)), ACT_CHECKPOINTS.map((c, i) => miss(c, i)));
+test("attempts: a team that missed every act checkpoint still reaches the final", () => {
+  const s = new TeamState(team, [], [], relicRows(RELICS.map((r) => r.id)), ACT_CHECKPOINTS.flatMap((c, i) => missAll(c, i + 1)));
   assert.equal(s.points, 0);
   assert.equal(s.status.get(FINAL_BOSS.id), "current");
   assert.equal(openGate(s, s.slugOf(FINAL_BOSS)), FINAL_BOSS);
 });
 
-test("one attempt: a missed final ends the run without the victory ending", () => {
-  const s = new TeamState(team, ACT_CHECKPOINTS.map((c, i) => solve(c, i)), [], relicRows(RELICS.map((r) => r.id)), [miss(FINAL_BOSS, 50)]);
+test("attempts: a missed final (all three wrong) ends the run without the victory ending", () => {
+  const s = new TeamState(team, ACT_CHECKPOINTS.map((c, i) => solve(c, i)), [], relicRows(RELICS.map((r) => r.id)), missAll(FINAL_BOSS, 50));
   const p = s.progress();
   assert.equal(p.finalBoss.status, "failed");
   assert.equal(p.finished, false);
@@ -145,9 +179,10 @@ test("one attempt: a missed final ends the run without the victory ending", () =
   assert.equal(openGate(s, s.slugOf(FINAL_BOSS)), FINAL_BOSS); // the gate page still opens, read-only
 });
 
-test("one attempt: reopening (the wrong row is gone) makes that checkpoint current again", () => {
-  // Team missed 1.2 and went on to solve 1.3; an admin then deletes the wrong row for 1.2.
-  const s = new TeamState(team, [solve(cp("1.1")), solve(cp("1.3"), 3)], [], [], []);
+test("attempts: ignoring one attempt on a missed checkpoint makes it current again with one attempt left", () => {
+  // Team used all 3 attempts on 1.2 and went on to solve 1.3; an organiser then ignores the latest wrong row.
+  const s = new TeamState(team, [solve(cp("1.1")), solve(cp("1.3"), 3)], [], [], missAll(cp("1.2"), 2).slice(0, -1));
+  assert.deepEqual(s.detail(cp("1.2")).attempts, { used: 2, max: 3, left: 1 });
   assert.equal(s.status.get("1.2"), "current");
   assert.equal(s.status.get("1.3"), "solved");
   assert.equal(s.status.get("2.1"), "locked"); // waits until 1.2 is closed again
@@ -155,11 +190,12 @@ test("one attempt: reopening (the wrong row is gone) makes that checkpoint curre
 
 test("admin row: counts, current gate and per-checkpoint statuses", () => {
   const clock = clockView(running, 5 * MIN, T0 + 10 * MIN);
-  const s = new TeamState(team, [solve(cp("1.1"))], [{ cp_id: "1.1", hint_id: 1, cost: 20, revealed_at: at(1) }], [], [miss(cp("1.2"), 4)], clock);
+  const s = new TeamState(team, [solve(cp("1.1"))], [{ cp_id: "1.1", hint_id: 1, cost: 10, revealed_at: at(1) }], [], missAll(cp("1.2"), 4), clock);
   const row = s.adminRow(3);
   assert.equal(row.rank, 3);
   assert.equal(row.code, "T9");
-  assert.equal(row.points, cp("1.1").points - 20);
+  assert.equal(row.points, cp("1.1").points); // hints cost coins, not points
+  assert.deepEqual(row.coins, { total: 120, spent: 10, left: 110 });
   assert.deepEqual([row.solved, row.missed, row.hintsUsed, row.relics], [1, 1, 1, 0]);
   assert.deepEqual(row.current, { id: "1.3", title: cp("1.3").title });
   assert.equal(row.lastActivityAt, at(4));

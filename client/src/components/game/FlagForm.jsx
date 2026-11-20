@@ -15,15 +15,16 @@ const STALE = new Set([
   "FULLSCREEN_LOCKED",
 ]);
 
-// Flag input + submit (design 4). A team gets ONE attempt per checkpoint, so the first click only asks for
-// confirmation and the second click sends the answer.
+// Flag input + submit (design 4). A team gets a few attempts per checkpoint (attempts = { used, max, left } from the
+// server), so the first click only asks for confirmation and the second click sends the answer.
 //   correct              -> onSolved(result)
-//   wrong                -> onMissed(result): the checkpoint is closed with 0 points and the next gate opens
+//   wrong, attempts left -> message "N attempts left" + onWrong(result) so the page can refresh its counter
+//   wrong, last attempt  -> onMissed(result): the checkpoint is closed with 0 points and the next gate opens
 //   TOO_FAST (429, retryAfter s) -> input locked with a live countdown; the attempt was NOT used
 //   stale / clock errors -> message + onStale() so the page can reload
 // onSubmit(flag) must resolve { correct, ... } or reject with ApiError.
 // disabledReason: text shown instead of accepting input (clock not running).
-export default function FlagForm({ onSubmit, onSolved, onMissed, onStale, disabledReason = null }) {
+export default function FlagForm({ onSubmit, onSolved, onMissed, onWrong, onStale, attempts = null, disabledReason = null }) {
   const id = useId();
   const [flag, setFlag] = useState("");
   const [state, setState] = useState({ kind: "idle" });
@@ -53,9 +54,16 @@ export default function FlagForm({ onSubmit, onSolved, onMissed, onStale, disabl
     try {
       const res = await onSubmit(flag.trim());
       setFlag("");
-      setState({ kind: "idle" });
-      if (res.correct) onSolved?.(res);
-      else onMissed?.(res);
+      if (res.correct) {
+        setState({ kind: "idle" });
+        onSolved?.(res);
+      } else if (res.missed) {
+        setState({ kind: "idle" });
+        onMissed?.(res);
+      } else {
+        setState({ kind: "wrong", left: res.attemptsLeft });
+        onWrong?.(res);
+      }
     } catch (err) {
       const code = err?.data?.code;
       const retry = err?.data?.retryAfter;
@@ -69,6 +77,8 @@ export default function FlagForm({ onSubmit, onSolved, onMissed, onStale, disabl
     }
   };
 
+  const left = attempts?.left ?? null;
+  const plural = (n) => `${n} attempt${n === 1 ? "" : "s"}`;
   let message = null;
   let tone = "text-muted";
   if (off) {
@@ -76,12 +86,24 @@ export default function FlagForm({ onSubmit, onSolved, onMissed, onStale, disabl
     message = disabledReason;
   } else if (confirming) {
     tone = "text-gold";
-    message = (
-      <>
-        <strong>One attempt only.</strong> Submit <span className="font-mono break-all text-bone">{flag.trim()}</span> as your
-        team&rsquo;s final answer? A wrong answer closes this checkpoint with 0 points.
-      </>
-    );
+    message =
+      left === 1 ? (
+        <>
+          <strong>Last attempt.</strong> Submit <span className="font-mono break-all text-bone">{flag.trim()}</span>? A wrong
+          answer closes this checkpoint with 0 points.
+        </>
+      ) : (
+        <>
+          Submit <span className="font-mono break-all text-bone">{flag.trim()}</span>? A wrong answer uses one of your team&rsquo;s{" "}
+          {left == null ? "attempts" : plural(left)} left.
+        </>
+      );
+  } else if (state.kind === "wrong") {
+    tone = "text-blood-bright";
+    message =
+      state.left === 1
+        ? "Wrong answer. One attempt left: a wrong answer now closes this checkpoint with 0 points."
+        : `Wrong answer. ${plural(state.left)} left.`;
   } else if (state.kind === "tooFast" && blocked) {
     tone = "text-gold";
     message = <>Too fast: your attempt was not used. Try again in {block.m * 60 + block.s}s.</>;
@@ -91,7 +113,10 @@ export default function FlagForm({ onSubmit, onSolved, onMissed, onStale, disabl
   } else if (submitting) {
     message = "Checking with the projectionist...";
   } else {
-    message = "You get one attempt. Check the answer and its format before you submit.";
+    message =
+      left == null
+        ? "Check the answer and its format before you submit."
+        : `${plural(left)} left${attempts?.max ? ` of ${attempts.max}` : ""}. Check the answer and its format before you submit.`;
   }
 
   return (
@@ -105,7 +130,7 @@ export default function FlagForm({ onSubmit, onSolved, onMissed, onStale, disabl
           value={flag}
           onChange={(e) => {
             setFlag(e.target.value);
-            if (confirming || state.kind === "error") setState({ kind: "idle" });
+            if (confirming || state.kind === "error" || state.kind === "wrong") setState({ kind: "idle" });
           }}
           placeholder={FLAG_PLACEHOLDER}
           autoComplete="off"

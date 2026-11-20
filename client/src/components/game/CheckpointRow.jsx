@@ -12,7 +12,7 @@ const STYLES = {
     label: "text-gold",
     sr: "Solved",
   },
-  // Missed: the team's one attempt was wrong. Still opens (read-only) so the story and Reel Card can be read.
+  // Missed: the team used every attempt without the right answer. Still opens (read-only) so the story and Reel Card can be read.
   failed: {
     row: "border-line bg-ink-soft/70 hover:border-blood/70",
     circle: "bg-ink-raised text-blood-bright ring-1 ring-blood/60",

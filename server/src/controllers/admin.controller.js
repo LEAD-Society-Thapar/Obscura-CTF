@@ -3,15 +3,27 @@
 //   POST /api/admin/event           { action }   start | pause | resume | end | reset   (the clock for every team)
 //   POST /api/admin/event/extend    { minutes }  add (or remove) time for every team
 //   POST /api/admin/teams/:teamId/time   { minutes }  add (or remove) time for one team
-//   POST /api/admin/teams/:teamId/reopen { cpId }     let a team answer a missed checkpoint again
+//   POST /api/admin/teams/:teamId/attempts/ignore { cpId }   give one attempt back (reopens a checkpoint at 3/3)
 //   POST /api/admin/teams/:teamId/fullscreen/forgive   ignore one full-screen violation (unlocks a locked team)
 //   POST /api/admin/fullscreen      { required }       switch full-screen invigilation on or off for everyone
+//   POST /api/admin/coins           { coins }          add (or remove) coins for every team
+//   POST /api/admin/teams/:teamId/coins  { coins }     add (or remove) coins for one team
 import { requireDb } from "../config/supabase.js";
 import { CHECKPOINTS } from "../data/game.js";
+import {
+  coinsSpent,
+  coinsSupported,
+  coinsView,
+  MAX_COIN_CHANGE,
+  readCoins,
+  resetAdjust,
+  START_COINS,
+  wouldOverdraw,
+} from "../services/coins.js";
 import { clockView, DEFAULT_DURATION_MINUTES, EVENT_ROW_ID } from "../services/eventClock.js";
 import { fullscreenSupported, FS_MAX_VIOLATIONS, forgivePatch, teamClock } from "../services/fullscreen.js";
 import { notifyChange } from "../services/live.js";
-import { checkpointById, isLastOfAct, rankTeams, relicOfAct, TeamState } from "../services/teamState.js";
+import { checkpointById, isLastOfAct, MAX_ATTEMPTS, rankTeams, relicOfAct, TeamState } from "../services/teamState.js";
 import { HttpError } from "../utils/httpError.js";
 
 const MAX_MINUTES = 180;
@@ -19,6 +31,7 @@ const MAX_MINUTES = 180;
 const MISSING_COLUMN = new Set(["42703", "PGRST204"]);
 const MIGRATION_HINT = "Per-team time needs a database change first: run supabase/migrations/002_team_extra_time.sql in the Supabase SQL editor.";
 const FS_MIGRATION_HINT = "Full-screen invigilation needs a database change first: run supabase/migrations/003_fullscreen.sql in the Supabase SQL editor.";
+const COINS_MIGRATION_HINT = "Adding coins needs a database change first: run supabase/migrations/004_coins.sql in the Supabase SQL editor.";
 const FS_RESET = { fs_violations: 0, fs_last_violation_at: null, fs_locked_at: null, fs_locked_remaining_ms: null };
 
 const rowsOf = ({ data, error }) => {
@@ -44,12 +57,14 @@ function readMinutes(body) {
 // GET /api/admin/leaderboard   Final standings for the winners reveal. Teams never see other teams' scores or ranks.
 export async function leaderboard(_req, res) {
   const db = requireDb();
-  const [teams, solves, hints] = await Promise.all([
-    db.from("teams").select("id, name, points_adjust"),
-    db.from("team_solves").select("team_id, points, solved_at"),
-    db.from("team_hints").select("team_id, cost"),
-  ]).then((results) => results.map(rowsOf));
-  res.json({ rows: rankTeams(teams, solves, hints).map(({ isYou: _isYou, ...r }) => r) });
+  const [ev, teams, solves, hints] = await Promise.all([
+    readEvent(db),
+    // "*": coins_adjust may not exist before migration 004. Only the fields below leave this function.
+    db.from("teams").select("*").then(rowsOf),
+    db.from("team_solves").select("team_id, points, solved_at").then(rowsOf),
+    db.from("team_hints").select("team_id, cost").then(rowsOf),
+  ]);
+  res.json({ rows: rankTeams(teams, solves, hints, null, ev).map(({ isYou: _isYou, ...r }) => r) });
 }
 
 // GET /api/admin/overview
@@ -66,7 +81,7 @@ export async function overview(_req, res) {
 
   const now = Date.now();
   const of = (rows, teamId) => rows.filter((r) => r.team_id === teamId);
-  const ranks = new Map(rankTeams(teams, solves, hints).map((r) => [r.teamId, r.rank]));
+  const ranks = new Map(rankTeams(teams, solves, hints, null, ev).map((r) => [r.teamId, r.rank]));
   const rows = teams
     .map(({ password_hash: _passwordHash, ...t }) => {
       const state = new TeamState(t, of(solves, t.id), of(hints, t.id), of(relics, t.id), of(misses, t.id), teamClock(ev, t, now));
@@ -82,6 +97,12 @@ export async function overview(_req, res) {
       supported: (teams.length === 0 || fullscreenSupported(teams[0])) && "fullscreen_required" in ev,
       required: ev.fullscreen_required !== false,
       max: FS_MAX_VIOLATIONS,
+    },
+    coins: {
+      supported: teams.length === 0 ? "coins_bonus" in ev : coinsSupported(ev, teams[0]),
+      start: START_COINS,
+      bonus: Number(ev.coins_bonus || 0),
+      max: MAX_COIN_CHANGE,
     },
     checkpoints: CHECKPOINTS.map((cp) => ({ id: cp.id, act: cp.act, index: cp.index, title: cp.title, points: cp.points })),
     teams: rows,
@@ -116,8 +137,19 @@ export async function eventAction(req, res) {
     // Back to "not started", with the default duration, no extra time and no full-screen violations or locks for
     // anyone. Team progress is untouched.
     patch = { status: "idle", started_at: null, paused_at: null, total_paused_ms: 0, duration_minutes: DEFAULT_DURATION_MINUTES };
+    if ("coins_bonus" in ev) patch.coins_bonus = 0; // coins added by organisers go too (migration 004)
     const { error } = await db.from("teams").update({ extra_time_ms: 0 }).neq("extra_time_ms", 0);
     if (error && !MISSING_COLUMN.has(error.code)) throw error;
+    // Added coins go too, but never below what a team has already spent (its coins left stay >= 0).
+    const [allTeams, allHints] = await Promise.all([
+      db.from("teams").select("*").then(rowsOf),
+      db.from("team_hints").select("team_id, cost").then(rowsOf),
+    ]);
+    for (const t of allTeams) {
+      if (!("coins_adjust" in t)) break; // migration 004 not applied: nothing to reset
+      const keep = resetAdjust(coinsSpent(allHints.filter((h) => h.team_id === t.id)));
+      if (Number(t.coins_adjust || 0) !== keep) rowsOf(await db.from("teams").update({ coins_adjust: keep }).eq("id", t.id));
+    }
     const fs = await db.from("teams").update(FS_RESET).or("fs_violations.neq.0,fs_locked_at.not.is.null");
     if (fs.error && !MISSING_COLUMN.has(fs.error.code)) throw fs.error;
   } else {
@@ -171,10 +203,67 @@ export async function addTeamTime(req, res) {
   res.json({ teamId: team.id, extraTimeMs: extra_time_ms });
 }
 
-// POST /api/admin/teams/:teamId/reopen  { cpId }
-// Clears the team's wrong attempt on one checkpoint so it becomes answerable again. If the team has already moved
-// on, that checkpoint becomes their current gate again and later open gates wait until it is closed.
-export async function reopenCheckpoint(req, res) {
+function coinsOrThrow(body) {
+  const coins = readCoins(body);
+  if (coins == null) throw new HttpError(400, `Enter a whole number of coins between -${MAX_COIN_CHANGE} and ${MAX_COIN_CHANGE} (not 0).`);
+  return coins;
+}
+
+// POST /api/admin/coins  { coins }   Adds coins for every team (negative removes). Removing is refused if it would
+// leave any team with fewer coins than it has already spent on hints.
+export async function addCoinsAll(req, res) {
+  const coins = coinsOrThrow(req.body);
+  const db = requireDb();
+  const ev = await readEvent(db);
+  if (!("coins_bonus" in ev)) throw new HttpError(409, COINS_MIGRATION_HINT, { code: "MIGRATION_NEEDED" });
+  const coins_bonus = Number(ev.coins_bonus || 0) + coins;
+  if (coins < 0) {
+    const [teams, hints] = await Promise.all([
+      db.from("teams").select("*").then(rowsOf),
+      db.from("team_hints").select("team_id, cost").then(rowsOf),
+    ]);
+    const short = teams.filter((t) => wouldOverdraw({ coins_bonus }, t, hints.filter((h) => h.team_id === t.id)));
+    if (short.length) {
+      throw new HttpError(409, `Can't remove ${-coins} coins: ${short.map((t) => t.name).join(", ")} would have fewer coins than they already spent.`, {
+        code: "COINS_ALREADY_SPENT",
+      });
+    }
+  }
+  rowsOf(await db.from("event_state").update({ coins_bonus }).eq("id", EVENT_ROW_ID));
+  await notifyChange("progress");
+  res.json({ bonus: coins_bonus, total: START_COINS + coins_bonus });
+}
+
+// POST /api/admin/teams/:teamId/coins  { coins }   Adds coins for one team (negative removes, but never below what
+// the team has already spent on hints).
+export async function addTeamCoins(req, res) {
+  const coins = coinsOrThrow(req.body);
+  const db = requireDb();
+  const [[team], ev, hints] = await Promise.all([
+    db.from("teams").select("*").eq("id", req.params.teamId).then(rowsOf),
+    readEvent(db),
+    db.from("team_hints").select("cost").eq("team_id", req.params.teamId).then(rowsOf),
+  ]);
+  if (!team) throw new HttpError(404, "No such team.");
+  if (!coinsSupported(ev, team)) throw new HttpError(409, COINS_MIGRATION_HINT, { code: "MIGRATION_NEEDED" });
+  const coins_adjust = Number(team.coins_adjust || 0) + coins;
+  if (wouldOverdraw(ev, { coins_adjust }, hints)) {
+    const now = coinsView(ev, team, hints);
+    throw new HttpError(409, `Can't remove ${-coins} coins: ${team.name} has ${now.left} left (it already spent ${coinsSpent(hints)} of ${now.total}).`, {
+      code: "COINS_ALREADY_SPENT",
+    });
+  }
+  const after = coinsView(ev, { coins_adjust }, hints);
+  rowsOf(await db.from("teams").update({ coins_adjust }).eq("id", team.id));
+  await notifyChange("progress", team.id);
+  res.json({ teamId: team.id, coins: after });
+}
+
+// POST /api/admin/teams/:teamId/attempts/ignore  { cpId }
+// Ignores the team's most recent wrong answer on one checkpoint, giving that attempt back (like ignoring a
+// full-screen violation). A checkpoint closed at 3/3 opens again at 2/3 with one attempt left; if the team has
+// already moved on, it becomes their current gate again and later open gates wait until it is closed.
+export async function ignoreAttempt(req, res) {
   const cp = checkpointById(String(req.body?.cpId || ""));
   if (!cp) throw new HttpError(404, "No such checkpoint.");
   const db = requireDb();
@@ -183,20 +272,29 @@ export async function reopenCheckpoint(req, res) {
   if (!team) throw new HttpError(404, "No such team.");
 
   const [solve] = rowsOf(await db.from("team_solves").select("cp_id").eq("team_id", teamId).eq("cp_id", cp.id));
-  if (solve) throw new HttpError(409, "That team solved this checkpoint; there is nothing to reopen.", { code: "BAD_STATE" });
+  if (solve) throw new HttpError(409, "That team solved this checkpoint; there is no attempt to give back.", { code: "BAD_STATE" });
 
-  const removed = rowsOf(
-    await db.from("submissions").delete().eq("team_id", teamId).eq("cp_id", cp.id).eq("correct", false).select("id")
+  const wrong = rowsOf(
+    await db
+      .from("submissions")
+      .select("id, created_at")
+      .eq("team_id", teamId)
+      .eq("cp_id", cp.id)
+      .eq("correct", false)
+      .order("created_at", { ascending: false })
   );
-  if (removed.length === 0) throw new HttpError(409, "That team has no missed attempt on this checkpoint.", { code: "BAD_STATE" });
+  if (wrong.length === 0) throw new HttpError(409, "That team has no wrong answer on this checkpoint.", { code: "BAD_STATE" });
+  rowsOf(await db.from("submissions").delete().eq("id", wrong[0].id));
 
+  const used = Math.min(MAX_ATTEMPTS, wrong.length - 1);
+  const reopened = wrong.length >= MAX_ATTEMPTS && wrong.length - 1 < MAX_ATTEMPTS;
   // The act is open again, so its relic goes back until the checkpoint is closed a second time.
-  if (isLastOfAct(cp)) {
+  if (reopened && isLastOfAct(cp)) {
     const relic = relicOfAct(cp.act);
     if (relic) rowsOf(await db.from("team_relics").delete().eq("team_id", teamId).eq("relic_id", relic.id));
   }
   await notifyChange("progress", teamId);
-  res.json({ ok: true, teamId, cpId: cp.id });
+  res.json({ ok: true, teamId, cpId: cp.id, used, max: MAX_ATTEMPTS, left: MAX_ATTEMPTS - used, reopened });
 }
 
 // POST /api/admin/teams/:teamId/fullscreen/forgive

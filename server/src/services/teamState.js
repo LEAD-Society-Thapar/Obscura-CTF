@@ -1,13 +1,15 @@
 // Builds a team's view of the game from the DB rows + static content in data/game.js.
 // Response shapes follow the client's mock server (client/src/data/mockApi.js), which is the API contract.
 //
-// One attempt per checkpoint: a wrong submission closes the checkpoint ("failed", 0 points) and the next gate
-// opens. There is no separate table for that: a checkpoint is failed when the team has a wrong row in
-// `submissions` for it and no row in `team_solves`. An admin reopens it by deleting the wrong row.
+// MAX_ATTEMPTS per checkpoint (the final too): each wrong submission uses one attempt and scores nothing; the last
+// one closes the checkpoint ("failed", 0 points) and the next gate opens. There is no separate table for that: a
+// checkpoint is failed when the team has MAX_ATTEMPTS wrong rows in `submissions` for it and no row in
+// `team_solves`. An organiser gives one attempt back ("Ignore one attempt") by deleting the latest wrong row.
 import { requireDb } from "../config/supabase.js";
 import { ACTS, CHECKPOINTS, FINAL_BOSS, RELICS } from "../data/game.js";
 import { deriveGateSlug } from "../utils/gate.js";
 import { HttpError } from "../utils/httpError.js";
+import { coinsView } from "./coins.js";
 import { EVENT_ROW_ID } from "./eventClock.js";
 import { fullscreenView, teamClock } from "./fullscreen.js";
 
@@ -16,11 +18,13 @@ const rowsOf = ({ data, error }) => {
   return data;
 };
 
+export const MAX_ATTEMPTS = 3;
+
 export const isFinal = (cp) => cp?.id === FINAL_BOSS.id;
 export const checkpointById = (id) => CHECKPOINTS.find((c) => c.id === id) || null;
 export const checkpointAfter = (cp) => CHECKPOINTS[CHECKPOINTS.indexOf(cp) + 1] || null;
 // Only act checkpoints can end an act. The final boss (act: null) never does, so it never awards a relic;
-// 5.4 is last of act 5 because the next gate (final) has a different act.
+// 5.3 is last of act 5 because the next gate (final) has a different act.
 export const isLastOfAct = (cp) => cp?.act != null && !isFinal(cp) && checkpointAfter(cp)?.act !== cp.act;
 export const relicOfAct = (actId) =>
   actId == null ? null : RELICS.find((r) => r.id === ACTS.find((a) => a.id === actId)?.relicId) || null;
@@ -31,7 +35,16 @@ export const holdsAllRelics = (relicIds) => {
   return RELICS.every((r) => held.has(r.id));
 };
 
-// Relics a team has earned: one per act whose last checkpoint is closed (solved, or missed with a wrong answer).
+// Checkpoints a team has MISSED: not solved, and every attempt used (MAX_ATTEMPTS wrong rows). A wrong row with
+// attempts left does not close anything. `misses` are raw wrong rows from `submissions` ({ cp_id }).
+export function missedCpIds(solves, misses) {
+  const solved = new Set(solves.map((s) => s.cp_id));
+  const count = new Map();
+  for (const m of misses) if (!solved.has(m.cp_id)) count.set(m.cp_id, (count.get(m.cp_id) ?? 0) + 1);
+  return [...count].filter(([, n]) => n >= MAX_ATTEMPTS).map(([id]) => id);
+}
+
+// Relics a team has earned: one per act whose last checkpoint is closed (solved, or missed after every attempt).
 export function earnedRelicIds(closedCpIds) {
   const closed = new Set(closedCpIds);
   return CHECKPOINTS.filter((cp) => isLastOfAct(cp) && closed.has(cp.id))
@@ -39,25 +52,29 @@ export function earnedRelicIds(closedCpIds) {
     .filter(Boolean);
 }
 
-// Points are derived, never stored, so they can't drift: solves - hints + manual adjustment.
-export function pointsOf(team, solves, hints) {
+// Points are derived, never stored, so they can't drift: correct answers + manual adjustment, never below 0.
+// Hints cost coins, not points (services/coins.js), and a wrong answer scores 0, so points only go up.
+export function pointsOf(team, solves) {
   const earned = solves.reduce((n, s) => n + s.points, 0);
-  const spent = hints.reduce((n, h) => n + h.cost, 0);
-  return earned - spent + (team.points_adjust || 0);
+  return Math.max(0, earned + (team.points_adjust || 0));
 }
 
-// Leaderboard rows, ranked: points (high first); on equal points the team whose most recent solve came earlier
-// wins (no solves = last); then more solves first. Output shape: { teamId, team, points, solved, rank, isYou }.
-export function rankTeams(teams, solves, hints, youId = null) {
+// Leaderboard rows, ranked:
+//   1. more points;
+//   2. on equal points, the team whose LAST correct answer came earlier (no correct answer = last);
+//   3. then more coins left.
+// `ev` is the event_state row (for the all-teams coin bonus). Output: { teamId, team, points, solved, coinsLeft, rank, isYou }.
+export function rankTeams(teams, solves, hints, youId = null, ev = null) {
   const lastSolveMs = (rows) =>
     rows.length ? Math.max(...rows.map((s) => new Date(s.solved_at).getTime())) : Number.POSITIVE_INFINITY;
   return teams
     .map((t) => {
       const s = solves.filter((x) => x.team_id === t.id);
       const h = hints.filter((x) => x.team_id === t.id);
-      return { teamId: t.id, team: t.name, points: pointsOf(t, s, h), solved: s.length, last: lastSolveMs(s) };
+      const coinsLeft = coinsView(ev, t, h).left;
+      return { teamId: t.id, team: t.name, points: pointsOf(t, s), solved: s.length, coinsLeft, last: lastSolveMs(s) };
     })
-    .sort((a, b) => b.points - a.points || a.last - b.last || b.solved - a.solved)
+    .sort((a, b) => b.points - a.points || a.last - b.last || b.coinsLeft - a.coinsLeft)
     .map(({ last, ...r }, i) => ({ ...r, rank: i + 1, isYou: r.teamId === youId }));
 }
 
@@ -79,7 +96,8 @@ export async function loadTeamState(teamId) {
   // A relic row is written when the act's last checkpoint closes. If that write was lost (the solve and the relic
   // are two separate inserts), put it back here so a team can never be locked out of the final by a failed request.
   const held = new Set(relics.map((r) => r.relic_id));
-  const owed = earnedRelicIds([...solves, ...misses].map((r) => r.cp_id)).filter((id) => !held.has(id));
+  const closed = [...solves.map((s) => s.cp_id), ...missedCpIds(solves, misses)];
+  const owed = earnedRelicIds(closed).filter((id) => !held.has(id));
   if (owed.length) {
     rowsOf(
       await db
@@ -107,14 +125,15 @@ export class TeamState {
     this.event = null; // the event_state row, set by loadTeamState and the admin overview
 
     const solved = new Set(solves.map((s) => s.cp_id));
-    // Latest wrong row per checkpoint, ignoring checkpoints that were solved (a solve always wins).
-    this.misses = [];
+    // Wrong rows per checkpoint, oldest first, ignoring checkpoints that were solved (a solve always wins).
+    this.wrong = new Map();
     for (const m of [...misses].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))) {
       if (solved.has(m.cp_id)) continue;
-      const i = this.misses.findIndex((x) => x.cp_id === m.cp_id);
-      if (i >= 0) this.misses[i] = m;
-      else this.misses.push(m);
+      if (!this.wrong.has(m.cp_id)) this.wrong.set(m.cp_id, []);
+      this.wrong.get(m.cp_id).push(m);
     }
+    // Missed = all attempts used. One entry per missed checkpoint: its last wrong row (when it closed).
+    this.misses = [...this.wrong.values()].filter((rows) => rows.length >= MAX_ATTEMPTS).map((rows) => rows.at(-1));
     const failed = new Set(this.misses.map((m) => m.cp_id));
 
     // Strict order: closed checkpoints (solved or failed) stay closed, the first open one is current, the rest locked.
@@ -150,12 +169,23 @@ export class TeamState {
   }
 
   get points() {
-    return pointsOf(this.team, this.solves, this.hints);
+    return pointsOf(this.team, this.solves);
+  }
+
+  // { total, spent, left }. Uses this.event for the all-teams bonus (null in unit tests = no bonus).
+  get coins() {
+    return coinsView(this.event, this.team, this.hints);
   }
 
   // The final is closed (solved or missed): nothing left to answer, so full screen is no longer enforced.
   get done() {
     return this.isClosed(FINAL_BOSS);
+  }
+
+  // { used, max, left }: wrong answers so far on this checkpoint (none count once it is solved).
+  attemptsOf(cp) {
+    const used = Math.min(MAX_ATTEMPTS, this.wrong.get(cp.id)?.length ?? 0);
+    return { used, max: MAX_ATTEMPTS, left: MAX_ATTEMPTS - used };
   }
 
   // Solved or failed: either way the checkpoint takes no more answers.
@@ -213,6 +243,7 @@ export class TeamState {
       posterSlot: cp.posterSlot,
       downloads: cp.downloads,
       tools: cp.tools,
+      attempts: this.attemptsOf(cp),
       hints: cp.hints.map((h) => ({
         id: h.id,
         cost: h.cost,
@@ -244,7 +275,8 @@ export class TeamState {
     const entries = [
       ...this.solves.map((s) => ({ id: `solve-${s.cp_id}`, type: "solve", cpId: s.cp_id, delta: s.points, at: s.solved_at })),
       ...this.misses.map((m) => ({ id: `miss-${m.cp_id}`, type: "miss", cpId: m.cp_id, delta: 0, at: m.created_at })),
-      ...this.hints.map((h) => ({ id: `hint-${h.cp_id}-${h.hint_id}`, type: "hint", cpId: h.cp_id, delta: -h.cost, at: h.revealed_at })),
+      // A hint costs coins, never points: delta stays 0 and `coins` carries the cost.
+      ...this.hints.map((h) => ({ id: `hint-${h.cp_id}-${h.hint_id}`, type: "hint", cpId: h.cp_id, delta: 0, coins: -h.cost, at: h.revealed_at })),
       ...this.relics.map((r) => ({ id: `relic-${r.relic_id}`, type: "relic", relicId: r.relic_id, delta: 0, at: r.earned_at })),
     ];
     return entries.sort((a, b) => new Date(b.at) - new Date(a.at));
@@ -266,14 +298,14 @@ export class TeamState {
     const finalSummary = this.summary(FINAL_BOSS);
     const finalSolve = this.finalSolve;
     return {
-      team: { id: this.team.id, name: this.team.name, avatarSlot: "team-avatar", points: this.points },
+      team: { id: this.team.id, name: this.team.name, avatarSlot: "team-avatar", points: this.points, coins: this.coins },
       stats: {
         hintsUsed: this.hints.length,
-        hintPointsSpent: this.hints.reduce((n, h) => n + h.cost, 0),
+        coinsSpent: this.coins.spent,
         streak: this.streak(activity),
         solved: this.solves.length, // includes the final face-off
         missed: this.misses.length,
-        totalCheckpoints: CHECKPOINTS.length, // 21
+        totalCheckpoints: CHECKPOINTS.length, // act checkpoints + the final
       },
       // Acts list only act checkpoints (c.act === a.id), so the final face-off never shows on the map or in counts.
       acts: ACTS.map((a) => ({
@@ -308,7 +340,7 @@ export class TeamState {
     const current = CHECKPOINTS.find((cp) => this.status.get(cp.id) === "current") || null;
     const times = [
       ...this.solves.map((s) => s.solved_at),
-      ...this.misses.map((m) => m.created_at),
+      ...[...this.wrong.values()].flat().map((m) => m.created_at),
       ...this.hints.map((h) => h.revealed_at),
     ].map((t) => new Date(t).getTime());
     return {
@@ -320,7 +352,7 @@ export class TeamState {
       solved: this.solves.length,
       missed: this.misses.length,
       hintsUsed: this.hints.length,
-      hintPointsSpent: this.hints.reduce((n, h) => n + h.cost, 0),
+      coins: this.coins,
       relics: this.relics.length,
       current: current ? { id: current.id, title: current.title } : null,
       finished: !!this.finalSolve,
@@ -336,6 +368,14 @@ export class TeamState {
       },
       checkpoints: CHECKPOINTS.map((cp) => ({ id: cp.id, status: this.status.get(cp.id) })),
       misses: this.misses.map((m) => ({ cpId: m.cp_id, submitted: m.submitted, at: m.created_at })),
+      // Every unsolved checkpoint with a wrong answer, for "Ignore one attempt". Organiser-only: includes what was typed.
+      attempts: [...this.wrong.entries()].map(([cpId, rows]) => ({
+        cpId,
+        used: Math.min(MAX_ATTEMPTS, rows.length),
+        max: MAX_ATTEMPTS,
+        closed: rows.length >= MAX_ATTEMPTS,
+        answers: rows.map((m) => ({ submitted: m.submitted, at: m.created_at })),
+      })),
     };
   }
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { useEventStatus, useFullscreen, useGameActions, useGate } from "../hooks/useGameData.js";
+import { useEventStatus, useFullscreen, useGameActions, useGate, useTeam } from "../hooks/useGameData.js";
 import { formatCp, isFinalCp } from "../lib/format.js";
 import EndingModal from "../components/game/EndingModal.jsx";
 import FlagForm from "../components/game/FlagForm.jsx";
@@ -80,11 +80,12 @@ function GateBlocked({ error }) {
 }
 
 // Design 4: challenge page at a per-team gate URL. Shows the Reel Card modal (design 5) once the checkpoint
-// closes: after a solve, or (marked as missed) after the team's one wrong answer.
+// closes: after a solve, or (marked as missed) after the team's last wrong answer.
 export default function Gate() {
   const { slug } = useParams();
   const { loading, error, checkpoint: cp, reload } = useGate(slug);
   const { submitFlag, revealHint } = useGameActions();
+  const { team } = useTeam(); // coins left, for the hint panel
   const clockStatus = useEventStatus();
   const fullscreen = useFullscreen();
   const [result, setResult] = useState(null); // submit result while a modal is open
@@ -192,6 +193,7 @@ export default function Gate() {
               hints={cp.hints}
               readOnly={solved || missed || !!clockNotice}
               onReveal={(id) => revealHint(slug, id).then(reload)}
+              coinsLeft={team?.coins?.left ?? null}
             />
           </div>
         </div>
@@ -218,8 +220,8 @@ export default function Gate() {
               <p className="text-bone">
                 <strong className="font-heading text-blood-bright">Missed.</strong>{" "}
                 {final
-                  ? "Your team's one answer was wrong. Mogambo slips away, and the final face-off is closed."
-                  : "Your team's one answer was wrong, so this checkpoint is closed with 0 points."}
+                  ? "Your team used all its attempts without the right answer. Mogambo slips away, and the final face-off is closed."
+                  : "Your team used all its attempts without the right answer, so this checkpoint is closed with 0 points."}
               </p>
             )}
             <div className="flex flex-wrap gap-2">
@@ -245,7 +247,9 @@ export default function Gate() {
             onSubmit={(flag) => submitFlag(slug, flag)}
             onSolved={onClosed}
             onMissed={onClosed}
+            onWrong={reload}
             onStale={reload}
+            attempts={cp.attempts ?? null}
             disabledReason={clockNotice}
           />
         )}

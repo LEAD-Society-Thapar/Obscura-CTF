@@ -1,4 +1,4 @@
-import { formatCp, formatDelta, isFinalCp } from "../../lib/format.js";
+import { formatCoins, formatCp, formatDelta, isFinalCp } from "../../lib/format.js";
 import Icon from "../ui/Icon.jsx";
 
 const ICONS = { solve: "check", miss: "close", hint: "bulb", relic: "relic" };
@@ -37,11 +37,15 @@ export default function ActivityFeed({ items, limit = 5 }) {
               ) : (
                 <span />
               )}
-              {item.delta !== 0 && (
+              {item.delta !== 0 ? (
                 <span className={`dashboard-activity-points shrink-0 font-bold ${item.delta > 0 ? "text-[#76551f]" : "text-[#6F211B]"}`}>
                   {formatDelta(item.delta)}
                 </span>
-              )}
+              ) : item.coins ? (
+                <span className="dashboard-activity-points shrink-0 font-bold text-[#6F211B]">
+                  {formatDelta(item.coins)} {Math.abs(item.coins) === 1 ? "coin" : "coins"}
+                </span>
+              ) : null}
             </span>
           </li>
         );

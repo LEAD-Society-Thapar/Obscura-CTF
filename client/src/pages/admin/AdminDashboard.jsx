@@ -1,13 +1,15 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  adminCoinsAll,
   adminEvent,
   adminExtendEvent,
   adminForgiveViolation,
   adminFullscreenRule,
+  adminIgnoreAttempt,
   adminLogout,
   adminOverview,
-  adminReopen,
+  adminTeamCoins,
   adminTeamTime,
 } from "../../api/endpoints.js";
 import { formatClock } from "../../lib/format.js";
@@ -60,10 +62,11 @@ function Tile({ label, value }) {
   );
 }
 
-function MinutesForm({ label, onApply, disabled, defaultMinutes = 5 }) {
-  const [minutes, setMinutes] = useState(String(defaultMinutes));
-  const n = Number(minutes);
-  const valid = Number.isInteger(n) && n > 0 && n <= 180;
+// A whole number with Add / Remove buttons (time in minutes, coins). onApply gets +n or -n.
+function AmountForm({ label, unit, max, onApply, disabled, defaultValue = 5 }) {
+  const [value, setValue] = useState(String(defaultValue));
+  const n = Number(value);
+  const valid = Number.isInteger(n) && n > 0 && n <= max;
   return (
     <div className="flex flex-wrap items-center gap-2">
       <label className="flex items-center gap-2 text-sm text-muted">
@@ -71,13 +74,13 @@ function MinutesForm({ label, onApply, disabled, defaultMinutes = 5 }) {
         <input
           type="number"
           min="1"
-          max="180"
+          max={max}
           step="1"
-          value={minutes}
-          onChange={(e) => setMinutes(e.target.value)}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
           className={inputCls}
         />
-        min
+        {unit}
       </label>
       <Button size="sm" caps={false} disabled={disabled || !valid} onClick={() => onApply(n)}>
         Add
@@ -88,6 +91,9 @@ function MinutesForm({ label, onApply, disabled, defaultMinutes = 5 }) {
     </div>
   );
 }
+
+const MinutesForm = (props) => <AmountForm unit="min" max={180} {...props} />;
+const CoinsForm = ({ max = 1000, ...props }) => <AmountForm unit="coins" max={max} defaultValue={10} {...props} />;
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -165,9 +171,10 @@ export default function AdminDashboard() {
   const total = checkpoints.length;
   const finishedCount = data.teams.filter((t) => t.finished).length;
   const topScore = data.teams.reduce((m, t) => Math.max(m, t.points), 0);
-  const started = data.teams.filter((t) => t.solved + t.missed > 0).length;
+  const started = data.teams.filter((t) => t.solved + t.missed + (t.attempts?.length ?? 0) > 0).length;
   const fsRule = data.fullscreen ?? { supported: false, required: false, max: 3 };
   const lockedCount = data.teams.filter((t) => t.fullscreen?.locked).length;
+  const coinRule = data.coins ?? { supported: false, start: 120, bonus: 0, max: 1000 };
 
   return (
     <section aria-labelledby="admin-heading" className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
@@ -278,8 +285,8 @@ export default function AdminDashboard() {
                   onClick={() =>
                     run(
                       () => adminEvent("reset"),
-                      "Clock reset to not started. Extra time and full-screen violations cleared; team progress was not touched.",
-                      "Reset the clock to NOT STARTED?\n\nThe duration goes back to 60 minutes, and every team's extra time and full-screen violations are cleared. Scores and progress are kept."
+                      "Clock reset to not started. Extra time, added coins and full-screen violations cleared; team progress was not touched.",
+                      "Reset the clock to NOT STARTED?\n\nThe duration goes back to 60 minutes, and every team's extra time, added coins and full-screen violations are cleared. Scores, progress and hints already used are kept."
                     )
                   }
                 >
@@ -351,6 +358,48 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {!coinRule.supported ? (
+        <p role="alert" className="mt-4 rounded-card border border-gold/60 bg-gold/10 px-4 py-3 text-sm text-bone">
+          <strong className="text-gold">Adding coins is switched off.</strong> Hints still work with {coinRule.start} coins
+          per team. To add or remove coins, run{" "}
+          <code className="font-mono text-gold">supabase/migrations/004_coins.sql</code> in the Supabase SQL editor.
+        </p>
+      ) : (
+        <div className="panel-dark mt-4 flex flex-wrap items-center justify-between gap-4 p-4 sm:px-6">
+          <div className="max-w-3xl">
+            <div className="flex items-center gap-3">
+              <h2 className="font-heading text-base font-bold text-bone uppercase">Coins</h2>
+              <span className="rounded-chip border border-gold/70 px-2.5 py-0.5 font-type text-xs text-gold">
+                {coinRule.start + coinRule.bonus} per team
+              </span>
+            </div>
+            <p className="mt-1 text-xs text-muted">
+              Teams pay for hints with coins (hint 1 costs 10, hint 2 costs 15); hints never cost points. Every team starts
+              with {coinRule.start}
+              {coinRule.bonus !== 0 && (
+                <>
+                  , and you have {coinRule.bonus > 0 ? "added" : "removed"} {Math.abs(coinRule.bonus)} for every team
+                </>
+              )}
+              . For one team only, use <em>Manage</em>. <em>Reset clock</em> takes added coins away again (never below what a
+              team has already spent).
+            </p>
+          </div>
+          <CoinsForm
+            label="Coins for all teams:"
+            max={coinRule.max}
+            disabled={busy}
+            onApply={(c) =>
+              run(
+                () => adminCoinsAll(c),
+                `${c > 0 ? "Added" : "Removed"} ${Math.abs(c)} coins for every team.`,
+                `${c > 0 ? "Add" : "Remove"} ${Math.abs(c)} coins ${c > 0 ? "for" : "from"} EVERY team?`
+              )
+            }
+          />
+        </div>
+      )}
+
       <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
         <Tile label="Teams" value={data.teams.length} />
         <Tile label="Have answered" value={started} />
@@ -396,7 +445,7 @@ export default function AdminDashboard() {
       </p>
 
       <div className="panel-dark mt-3 overflow-x-auto">
-        <table className="w-full min-w-[66rem] text-left text-sm">
+        <table className="w-full min-w-[70rem] text-left text-sm">
           <caption className="sr-only">Every team: score, progress and time left</caption>
           <thead className="border-b border-line font-heading text-xs text-muted uppercase">
             <tr>
@@ -406,6 +455,9 @@ export default function AdminDashboard() {
               <th scope="col" className="px-3 py-3 text-right">Solved</th>
               <th scope="col" className="px-3 py-3 text-right">Missed</th>
               <th scope="col" className="px-3 py-3 text-right">Hints</th>
+              <th scope="col" className="px-3 py-3 text-right" title="Coins left / coins in total">
+                Coins
+              </th>
               <th scope="col" className="px-3 py-3 text-center" title="Full-screen violations">
                 Full screen
               </th>
@@ -434,9 +486,16 @@ export default function AdminDashboard() {
                       {t.solved}/{total}
                     </td>
                     <td className={`px-3 py-2.5 text-right tabular-nums ${t.missed ? "text-blood-bright" : "text-muted"}`}>{t.missed}</td>
-                    <td className="px-3 py-2.5 text-right whitespace-nowrap text-muted tabular-nums">
-                      {t.hintsUsed}
-                      {t.hintPointsSpent > 0 && <> (−{t.hintPointsSpent})</>}
+                    <td className="px-3 py-2.5 text-right whitespace-nowrap text-muted tabular-nums">{t.hintsUsed}</td>
+                    <td className="px-3 py-2.5 text-right whitespace-nowrap tabular-nums">
+                      {t.coins ? (
+                        <>
+                          <span className={t.coins.left < 10 ? "text-blood-bright" : "text-bone"}>{t.coins.left}</span>
+                          <span className="text-muted">/{t.coins.total}</span>
+                        </>
+                      ) : (
+                        <span className="text-muted">—</span>
+                      )}
                     </td>
                     <td className="px-3 py-2.5 text-center whitespace-nowrap">
                       {!fs?.supported ? (
@@ -495,7 +554,7 @@ export default function AdminDashboard() {
                   </tr>
                   {isOpen && (
                     <tr className="bg-ink-raised/60">
-                      <td colSpan={11} className="px-3 pt-1 pb-5">
+                      <td colSpan={12} className="px-3 pt-1 pb-5">
                         <div className="grid gap-5 rounded-card border border-line bg-ink/60 p-4 lg:grid-cols-2">
                           <div>
                             <h3 className="font-heading text-sm font-bold text-bone uppercase">Time for {t.code}</h3>
@@ -515,35 +574,66 @@ export default function AdminDashboard() {
                             <p className="mt-3 text-xs text-muted">
                               Relics {t.relics}/5 &middot; last activity {timeOf(t.lastActivityAt)}
                             </p>
+                            <h3 className="mt-5 font-heading text-sm font-bold text-bone uppercase">Coins for {t.code}</h3>
+                            <p className="mt-1 text-xs text-muted">
+                              {t.coins
+                                ? `${t.coins.left} left of ${t.coins.total} (${t.coins.spent} spent on ${t.hintsUsed} hint${t.hintsUsed === 1 ? "" : "s"}). Coins can't be removed below what they have spent.`
+                                : "Coins are not available yet."}
+                            </p>
+                            <div className="mt-3">
+                              <CoinsForm
+                                label="Coins:"
+                                max={coinRule.max}
+                                disabled={busy || !coinRule.supported}
+                                onApply={(c) =>
+                                  run(() => adminTeamCoins(t.id, c), `${c > 0 ? "Added" : "Removed"} ${Math.abs(c)} coins for ${t.code}.`)
+                                }
+                              />
+                            </div>
                           </div>
                           <div>
-                            <h3 className="font-heading text-sm font-bold text-bone uppercase">Missed checkpoints</h3>
-                            {t.misses.length === 0 ? (
-                              <p className="mt-1 text-xs text-muted">None. This team has not given a wrong answer.</p>
+                            <h3 className="font-heading text-sm font-bold text-bone uppercase">Wrong answers</h3>
+                            {(t.attempts ?? []).length === 0 ? (
+                              <p className="mt-1 text-xs text-muted">None. This team has not given a wrong answer on an open or missed checkpoint.</p>
                             ) : (
                               <ul className="mt-2 space-y-2">
-                                {t.misses.map((m) => (
-                                  <li key={m.cpId} className="flex flex-wrap items-center justify-between gap-2 rounded-chip border border-line/70 px-3 py-2">
-                                    <span className="min-w-0 text-sm text-bone">
-                                      <span className="font-type text-blood-bright">{cpLabel(m.cpId)}</span>{" "}
-                                      <span className="text-muted">at {timeOf(m.at)}, typed</span>{" "}
-                                      <code className="font-mono break-all text-gold">{m.submitted}</code>
-                                    </span>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      caps={false}
-                                      disabled={busy}
-                                      onClick={() =>
-                                        run(
-                                          () => adminReopen(t.id, m.cpId),
-                                          `${cpLabel(m.cpId)} is open again for ${t.code}.`,
-                                          `Reopen ${cpLabel(m.cpId)} for ${t.code}?\n\nTheir wrong attempt is erased and they get one new attempt. If they have already moved on, this checkpoint becomes their current gate again.`
-                                        )
-                                      }
-                                    >
-                                      Reopen
-                                    </Button>
+                                {t.attempts.map((a) => (
+                                  <li key={a.cpId} className="rounded-chip border border-line/70 px-3 py-2">
+                                    <div className="flex flex-wrap items-center justify-between gap-2">
+                                      <span className="text-sm text-bone">
+                                        <span className={`font-type ${a.closed ? "text-blood-bright" : "text-gold"}`}>{cpLabel(a.cpId)}</span>{" "}
+                                        <span className={a.closed ? "text-blood-bright" : "text-muted"}>
+                                          {a.used}/{a.max} attempts used{a.closed ? " (missed)" : ""}
+                                        </span>
+                                      </span>
+                                      <Button
+                                        size="sm"
+                                        variant={a.closed ? "primary" : "outline"}
+                                        caps={false}
+                                        disabled={busy}
+                                        onClick={() =>
+                                          run(
+                                            () => adminIgnoreAttempt(t.id, a.cpId),
+                                            a.closed
+                                              ? `${cpLabel(a.cpId)} is open again for ${t.code} with 1 attempt left.`
+                                              : `${t.code} is now at ${a.used - 1}/${a.max} attempts on ${cpLabel(a.cpId)}.`,
+                                            a.closed
+                                              ? `Ignore one attempt for ${t.code} on ${cpLabel(a.cpId)}?\n\nTheir latest wrong answer is erased (${a.used} -> ${a.used - 1} of ${a.max}) and the checkpoint opens again with 1 attempt left. If they have already moved on, it becomes their current gate again.`
+                                              : `Ignore one attempt for ${t.code} on ${cpLabel(a.cpId)}? (${a.used} -> ${a.used - 1} of ${a.max})`
+                                          )
+                                        }
+                                      >
+                                        {a.closed ? "Ignore attempt & reopen" : "Ignore one attempt"}
+                                      </Button>
+                                    </div>
+                                    <ol className="mt-1 space-y-0.5 text-xs">
+                                      {a.answers.map((ans, i) => (
+                                        <li key={i} className="text-muted">
+                                          {i + 1}. at {timeOf(ans.at)}, typed{" "}
+                                          <code className="font-mono break-all text-gold">{ans.submitted}</code>
+                                        </li>
+                                      ))}
+                                    </ol>
                                   </li>
                                 ))}
                               </ul>
@@ -594,7 +684,7 @@ export default function AdminDashboard() {
             })}
             {teams.length === 0 && (
               <tr>
-                <td colSpan={11} className="px-3 py-8 text-center text-muted">
+                <td colSpan={12} className="px-3 py-8 text-center text-muted">
                   No team matches &ldquo;{query}&rdquo;.
                 </td>
               </tr>

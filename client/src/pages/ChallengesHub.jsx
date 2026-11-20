@@ -124,7 +124,7 @@ export default function ChallengesHub() {
                   ) : finalMissed ? (
                     <p className="mt-4 flex w-full items-center gap-3 rounded-[12px] border border-[#5f2a26]/70 bg-[#24170F] px-4 py-3 font-heading text-sm font-bold text-[#f7efe6]">
                       <Icon name="close" className="size-4" />
-                      <span>The hunt is over. Your final answer was wrong, and Mogambo slipped away.</span>
+                      <span>The hunt is over. Your team used all its attempts on the final, and Mogambo slipped away.</span>
                     </p>
                   ) : (
                     resume && (
@@ -141,7 +141,13 @@ export default function ChallengesHub() {
               )}
 
               <div className="dashboard-dossier-stats mt-6 grid grid-cols-1 gap-3 min-[420px]:grid-cols-3">
-                <StatTile icon="bulb" label="Hints Used" value={stats.hintsUsed} detail={`−${stats.hintPointsSpent} pts`} className="rounded-[12px]" />
+                <StatTile
+                  icon="coin"
+                  label="Coins Left"
+                  value={team.coins ? `${team.coins.left}/${team.coins.total}` : "—"}
+                  detail={`${stats.hintsUsed} hint${stats.hintsUsed === 1 ? "" : "s"} used`}
+                  className="rounded-[12px]"
+                />
                 <StatTile icon="relic" label="Relics Collected" value={`${collected}/${total}`} className="rounded-[12px]" />
                 <StatTile icon="flame" label="Current Streak" value={stats.streak} className="rounded-[12px]" />
               </div>

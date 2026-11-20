@@ -1,4 +1,5 @@
-// Wipes the progress of the named teams only: solves, hints, relics, submissions and full-screen violations/locks.
+// Wipes the progress of the named teams only: solves, hints (so their coins are back to the start amount), relics,
+// submissions, full-screen violations/locks and coins an organiser gave to that team.
 // Teams, passwords, flags and the event clock are not touched. Use it after test runs, e.g. to clean the TEST-LEAD teams before the event.
 //
 //   npm run db:clear-progress -- TEST-LEAD-1 TEST-LEAD-2 TEST-LEAD-3
@@ -36,4 +37,7 @@ const fs = await db
   .in("id", ids);
 if (fs.error && fs.error.code !== "42703" && fs.error.code !== "PGRST204") throw new Error(fs.error.message);
 console.log(fs.error ? "full-screen violations: skipped (migration 003 not applied)" : "full-screen violations: cleared");
+const coins = await db.from("teams").update({ coins_adjust: 0 }).in("id", ids);
+if (coins.error && coins.error.code !== "42703" && coins.error.code !== "PGRST204") throw new Error(coins.error.message);
+console.log(coins.error ? "team coins: skipped (migration 004 not applied)" : "team coins: back to the start amount");
 console.log(`Cleared progress for ${codes.join(", ")}.`);
