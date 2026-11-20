@@ -86,19 +86,19 @@
       "index": 1,
       "title": "Kitne Aadmi The?",
       "category": "Web",
-      "points": 100,
+      "points": 20,
       "story": "Gabbar’s spy has posted the gang roster on a web page. *“Kitne aadmi the?”* Gabbar roars. Kaalia swears it was two, but Gabbar trusts only what actually shows up on screen.",
       "body": "How many names does a visitor actually see on this page?\n\n```html\n<h2>Gabbar ki Toli</h2>\n<ul>\n  <li>Kaalia</li>\n  <!-- <li>Sambha</li> -->\n  <li hidden>Jai</li>\n  <li>Thakur ka Khabri</li>\n  <li style=\"display: none\">Veeru</li>\n  <li>Soorma Bhopali</li>\n</ul>\n```",
       "hints": [
         {
           "id": 1,
-          "cost": 20,
+          "cost": 10,
           "teaser": "Code mein hai, screen pe nahi.",
           "text": "Not everything in a page’s HTML gets drawn. Browsers skip HTML comments (`<!-- ... -->`) entirely, and some attributes and CSS rules keep an element in the code but off the screen."
         },
         {
           "id": 2,
-          "cost": 40,
+          "cost": 15,
           "teaser": "Har naam ki alag jaanch.",
           "text": "Check every `<li>` on its own: is it commented out, marked hidden, or styled away? Kaalia’s “do” is not the answer."
         }
@@ -114,19 +114,19 @@
       "index": 2,
       "title": "Jai Ka Sikka",
       "category": "Misc",
-      "points": 100,
+      "points": 20,
       "story": "Jai never lost a coin toss, because his coin had heads on both sides. Thakur’s new AI informer at the Ramgarh checkpost is just as one-sided: it calls every traveller a “villager”.",
       "body": "1,000 travellers crossed the checkpost, and 50 of them were Gabbar’s dacoits. The informer said “villager” every single time. What are its accuracy and its recall for the dacoit class, in percent? Submit as `ACCURACY_RECALL`.",
       "hints": [
         {
           "id": 1,
-          "cost": 20,
+          "cost": 10,
           "teaser": "Sikka sirf ek taraf girta hai.",
           "text": "Accuracy is correct predictions ÷ all predictions. Recall for a class is how many of its real members the model caught ÷ how many there really were. When one class is rare, a model can score high accuracy while catching nobody."
         },
         {
           "id": 2,
-          "cost": 40,
+          "cost": 15,
           "teaser": "Hisaab ka doosra pehlu.",
           "text": "The informer never once says “dacoit”. Accuracy looks at all 1,000 travellers; recall looks only at the 50 real dacoits."
         }
@@ -142,19 +142,19 @@
       "index": 3,
       "title": "Kaalia Ki Chitthi",
       "category": "Crypto",
-      "points": 100,
+      "points": 20,
       "story": "Before Gabbar’s game of roulette, Kaalia slipped a note to the gang. He was never good with codes: he pushed every letter forward by the number of men who really appear on Gabbar’s roster.",
       "body": "What is the password?\n\n```text\nVDUGDU, WKH SDVVZRUG WR WKH UHHO YDXOW LV KROL.\n```",
       "hints": [
         {
           "id": 1,
-          "cost": 20,
+          "cost": 10,
           "teaser": "Har akshar thoda aage khisak gaya.",
           "text": "A Caesar cipher shifts every letter by the same number of places. With a shift of 1, A becomes B and Z wraps round to A. To decode, shift each letter back by the same amount."
         },
         {
           "id": 2,
-          "cost": 40,
+          "cost": 15,
           "teaser": "Pichhle gate se kuch saath le aao.",
           "text": "The shift is your answer to CP 1.1. Spaces and punctuation don’t move. Write the alphabet out and count back that many letters for each one; you can stop once the password appears."
         }
@@ -170,19 +170,19 @@
       "index": 1,
       "title": "Don Ka Network",
       "category": "Web",
-      "points": 150,
+      "points": 40,
       "story": "Don’s gang runs its business through a web server, and every door you knock on answers with a three-digit code. Even the Thane police server has been pulled into the mayajaal.",
       "body": "Match each status code to what happened at that door. Submit the scene letters for **200, 301, 401, 403, 404, 418 and 500, in that order** (seven letters).\n\n- (a) The guard recognises you as D’Silva’s man and still refuses entry.\n- (b) You search the whole den. Don simply isn’t there: mushkil hi nahi, naamumkin.\n- (c) The door opens and the gang welcomes “Don” inside, no questions asked.\n- (d) The gang’s own plan collapses from the inside before anyone can answer.\n- (e) The guard won’t say a word until you show some identity.\n- (f) The hideout has moved to a new address for good, and a note points you there.\n- (g) A havaldar asks the police server for coffee. It refuses, insisting it is a teapot.",
       "hints": [
         {
           "id": 1,
-          "cost": 30,
+          "cost": 10,
           "teaser": "Har darwaaza ek number bolta hai.",
           "text": "An HTTP status code is the server’s one-number reply. 2xx means success, 3xx means “go somewhere else”, 4xx means the request has a problem, and 5xx means the server itself failed."
         },
         {
           "id": 2,
-          "cost": 60,
+          "cost": 15,
           "teaser": "Do code aapas mein ulajhte hain.",
           "text": "401 means “who are you?” (not logged in yet); 403 means “I know who you are, and still no”. 418 is a real joke code from an April Fools’ RFC: think tea, not coffee."
         }
@@ -198,19 +198,19 @@
       "index": 2,
       "title": "Asli Don Kaun?",
       "category": "Misc",
-      "points": 150,
+      "points": 40,
       "story": "Don is dead, and only D’Silva knows. His lookalike Vijay, a paan-loving street performer, now walks into the den every night as Don. Mogambo’s men have built a k-nearest-neighbours detector to catch the impostor.",
       "body": "Past sightings, with paan eaten per day (x) and bodyguards around him (y):\n\n| Sighting | Paan per day (x) | Bodyguards (y) | Label |\n| --- | --- | --- | --- |\n| S1 | 3 | 4 | Don |\n| S2 | 1 | 6 | Don |\n| S3 | 2 | 7 | Don |\n| S4 | 5 | 1 | Vijay |\n| S5 | 6 | 3 | Vijay |\n| S6 | 8 | 0 | Vijay |\n\nTonight’s man: x = 4, y = 3. Use Euclidean distance. Which statements are true? Submit the letters of **every** true statement in alphabetical order (for example, `ACE`).\n\n- A) With k = 1, the detector says Don.\n- B) With k = 3, the detector says Vijay.\n- C) With k = 5, the detector says Vijay.\n- D) The single nearest sighting is a Vijay sighting.\n- E) The second-nearest sighting is S5.\n- F) For tonight’s man, the verdict depends on the value of k.",
       "hints": [
         {
           "id": 1,
-          "cost": 30,
+          "cost": 10,
           "teaser": "Padosi batayenge tum kaun ho.",
           "text": "k-nearest neighbours (k-NN) labels a new point by finding the k closest labelled points and taking a majority vote. “Closest” here means ordinary straight-line (Euclidean) distance."
         },
         {
           "id": 2,
-          "cost": 60,
+          "cost": 15,
           "teaser": "Square root ki zaroorat nahi.",
           "text": "Skip the square roots and rank the six sightings by (Δx)² + (Δy)² from tonight’s man. Then take the vote with k = 1, 3 and 5."
         }
@@ -226,20 +226,20 @@
       "index": 3,
       "title": "Lal Diary",
       "category": "Crypto",
-      "points": 150,
+      "points": 40,
       "tools": ["base64"],
       "story": "Don’s red diary holds every name in his network. Its last page looks like gibberish, and in the mayajaal nothing reads the right way round.",
       "body": "What is the code word?\n\n```text\nQUxBV1NBUkFOQUIgOkRST1cgRURPQyAuREFFRCBTSSBOT0QgTEFFUiBFSFQ=\n```",
       "hints": [
         {
           "id": 1,
-          "cost": 30,
+          "cost": 10,
           "teaser": "Diary ki zubaan alag hai.",
           "text": "Base64 is an encoding, not encryption. It rewrites any data using letters, digits, + and /, often padded with = at the end, and anyone can decode it without a key."
         },
         {
           "id": 2,
-          "cost": 60,
+          "cost": 15,
           "teaser": "Decode ke baad bhi kaam baaki hai.",
           "text": "Paste it into the decoder under the challenge. What comes out is still scrambled, the way a mirror scrambles writing."
         }
@@ -255,19 +255,19 @@
       "index": 1,
       "title": "Picture Abhi Baaki Hai",
       "category": "Web",
-      "points": 200,
+      "points": 70,
       "story": "The remake’s opening shot is cued by JavaScript on the studio dashboard. Mukesh rigged the code so Om’s famous line comes out scrambled. Before the camera rolls, the director needs to know exactly what the console will print.",
       "body": "Write the six words in the order they are printed, joined by underscores.\n\n```js\nsetTimeout(() => console.log(\"Picture\"), 0);\nconsole.log(\"abhi\");\nPromise.resolve().then(() => console.log(\"baaki\"));\n(async () => {\n  console.log(\"hai\");\n  await null;\n  console.log(\"mere\");\n})();\nconsole.log(\"dost\");\n```",
       "hints": [
         {
           "id": 1,
-          "cost": 40,
+          "cost": 10,
           "teaser": "Sab apni baari ka intezaar karte hain.",
           "text": "JavaScript first runs all ordinary (synchronous) code from top to bottom. Then it empties the microtask queue (promise callbacks and code after an `await`), and only then runs macrotasks such as `setTimeout`, even with a 0 ms delay."
         },
         {
           "id": 2,
-          "cost": 80,
+          "cost": 15,
           "teaser": "Async function ka aadha safar.",
           "text": "An async function runs like normal code until its first `await`; the rest of it joins the microtask queue behind anything queued earlier. Typing the dialogue in its famous order is exactly the mistake Mukesh is counting on."
         }
@@ -283,19 +283,19 @@
       "index": 2,
       "title": "Hit Ya Flop?",
       "category": "Misc",
-      "points": 200,
+      "points": 70,
       "story": "Mukesh Mehra’s Hit-or-Flop AI decides which films live or die at Film City. Its training labels follow one simple rule, but Mukesh secretly flipped one label so his own flop would look like a hit.",
       "body": "The rule: **Score = Opening (₹ crore) + 2 × Screens (hundreds)**. The label is HIT if Score ≥ 100, otherwise FLOP. Exactly one row breaks the rule. Submit the poisoned film and its true score as `FILM_SCORE`.\n\n| Film | Opening (₹ crore) | Screens (hundreds) | Label |\n| --- | --- | --- | --- |\n| Jalwa | 40 | 30 | HIT |\n| Toofan | 55 | 20 | FLOP |\n| Sitara | 30 | 40 | HIT |\n| Raftaar | 70 | 10 | FLOP |\n| Dhadkan | 25 | 35 | FLOP |\n| Mausam | 60 | 25 | HIT |\n| Bijli | 45 | 25 | HIT |\n| Shikari | 20 | 45 | HIT |\n| Kismat | 50 | 24 | FLOP |\n| Chandni | 35 | 33 | HIT |\n\n*(All numbers are invented for the puzzle.)*",
       "hints": [
         {
           "id": 1,
-          "cost": 40,
+          "cost": 10,
           "teaser": "Ek label jhooth bol raha hai.",
           "text": "Data poisoning means tampering with training data, for example by flipping labels, so that a model learns the wrong lesson. When labels follow a known rule, you can catch the tampered row by recomputing the rule yourself."
         },
         {
           "id": 2,
-          "cost": 80,
+          "cost": 15,
           "teaser": "Sau ke aas-paas ka khel.",
           "text": "Work out Opening + 2 × Screens for every film and compare it with the label. Be careful around 100: exactly 100 still counts as a HIT."
         }
@@ -311,19 +311,19 @@
       "index": 3,
       "title": "Upper, Middle, Lower",
       "category": "Crypto",
-      "points": 200,
+      "points": 70,
       "story": "The Director’s Script is locked in the safe of Mukesh’s old theatre. He kept the password on a ticket stub, but not in a straight line: he zig-zagged it across the theatre’s three tiers, upper, middle, lower, middle, upper, and so on.",
       "body": "What is the password?\n\n```text\nIEEUWTANSRNTFHLVSOSEILUNRUDASODEOIASOYHLROPWSR\n```",
       "hints": [
         {
           "id": 1,
-          "cost": 40,
+          "cost": 10,
           "teaser": "Akshar patri pe naachte hain.",
           "text": "The rail fence cipher writes a message in a zig-zag across several rows (“rails”) and then reads the rows one after another. No letter is changed; the letters are only shuffled."
         },
         {
           "id": 2,
-          "cost": 80,
+          "cost": 15,
           "teaser": "Teen patriyaan, ek raasta.",
           "text": "Three tiers, three rails. The 46 letters split 12 / 23 / 11: the first 12 are the upper tier, the next 23 the middle and the last 11 the lower. Write the rows out, read them in the zig-zag order, then add the spaces back yourself."
         }
@@ -339,19 +339,19 @@
       "index": 1,
       "title": "PNR Ka Chakkar",
       "category": "Web",
-      "points": 250,
+      "points": 100,
       "story": "Raj has to find Simran’s coach before the train leaves. The Bollywood Express booking portal builds its login query by pasting in whatever you type, so Raj tries the oldest trick in the book.",
       "body": "The portal’s query:\n\n```sql\nSELECT * FROM bookings\nWHERE passenger = '<name box>' AND pnr = '<pnr box>';\n```\n\nRaj types `' OR '1'='1` in the name box and leaves the PNR box empty. The portal lists every row the query returns. Here is the table:\n\n| passenger | pnr | coach |\n| --- | --- | --- |\n| Raj Malhotra | 4521873690 | S3 |\n| Simran Singh | 8820417735 | S7 |\n| Kuljeet Singh | 1093847562 | A1 |\n| Baldev Singh | `''` *(empty string)* | H1 |\n| Chutki Singh | 6602938471 | B2 |\n\nHow many bookings appear, and in which coach? Submit as `COUNT_COACH`.",
       "hints": [
         {
           "id": 1,
-          "cost": 50,
+          "cost": 10,
           "teaser": "Jo likhoge, wahi query banegi.",
           "text": "SQL injection happens when user input is pasted straight into a query: a quote mark you type can end the string early and add your own conditions. In SQL, AND is evaluated before OR, just as × comes before + in maths."
         },
         {
           "id": 2,
-          "cost": 100,
+          "cost": 15,
           "teaser": "Bracket laga ke padho.",
           "text": "Write out the full WHERE clause with Raj’s input substituted, then add brackets to show what AND groups together. The trick is not as all-powerful as Raj thinks."
         }
@@ -367,19 +367,19 @@
       "index": 2,
       "title": "Tujhe Dekha Toh...",
       "category": "Misc",
-      "points": 250,
+      "points": 100,
       "story": "Raj’s camera AI must spot Simran in a crowded station. It feeds a 128 × 128 colour photo through this convolutional neural network (CNN).",
       "body": "How many numbers go into the Dense layer?\n\n```text\nConv2D   8 filters, 5x5, stride 1, padding 2\nMaxPool  2x2, stride 2\nConv2D   16 filters, 3x3, stride 2, padding 1\nMaxPool  2x2, stride 2\nFlatten  -> Dense\n```",
       "hints": [
         {
           "id": 1,
-          "cost": 50,
+          "cost": 10,
           "teaser": "Har layer tasveer ko chhota karti hai.",
           "text": "A convolution slides small filters over the image, and each filter produces one output channel. Output width = floor((W − K + 2P) / S) + 1, where W is the input width, K the filter size, P the padding and S the stride. A 2×2 max-pool with stride 2 halves the width and height."
         },
         {
           "id": 2,
-          "cost": 100,
+          "cost": 15,
           "teaser": "Shape track karo, channel bhi.",
           "text": "Track the shape as width × height × channels, starting from 128 × 128 × 3. After a convolution the channel count equals its number of filters, and Flatten multiplies the three numbers together."
         }
@@ -395,20 +395,20 @@
       "index": 3,
       "title": "Aa... Aa... Aa...",
       "category": "Stego",
-      "points": 250,
+      "points": 100,
       "tools": ["morse"],
       "story": "At every stop, “Baldev Singh” steps off to feed the pigeons and calls them in, just as he did in London. The Archive’s microphones noticed that his calls are Morse code: they come short and long, with the pigeons fluttering between them like punctuation.",
       "body": "What word are the pigeons carrying?\n\n```text\naa aa aa aa (flutter) aa aa aaaa (flutter) aaaa aaaa (flutter) aa aa aa (flutter) aa aaaa (flutter) aa aa aaaa aa (flutter) aa aaaa (flutter) aa aaaa aa\n```",
       "hints": [
         {
           "id": 1,
-          "cost": 50,
+          "cost": 10,
           "teaser": "Kabootar bhi baat karte hain.",
           "text": "Morse code writes each letter as a short pattern of dots (short signals) and dashes (long signals), with a pause between letters. Work out which calls are the signals and what plays the part of the pause."
         },
         {
           "id": 2,
-          "cost": 100,
+          "cost": 15,
           "teaser": "Chhoti awaaz aur lambi awaaz.",
           "text": "Turn every short call into a dot and every long call into a dash; each flutter ends a letter. Then run the dots and dashes through the decoder under the challenge."
         }
@@ -424,19 +424,19 @@
       "index": 1,
       "title": "Mogambo Ka Control Room",
       "category": "Web",
-      "points": 300,
+      "points": 120,
       "story": "Mogambo’s panel at `https://mogambo.mars` is about to send a PUT request with a JSON body to `https://api.orb.mars` to wipe the Archive. It is the first call of the day: no cached DNS, no open connection, no cached preflight.",
       "body": "Put the events in the order they happen. Submit the eight card letters in order.\n\n- (a) Browser sends the real PUT request with the JSON body\n- (b) TCP three-way handshake (SYN, SYN-ACK, ACK)\n- (c) Server answers the preflight with Access-Control-Allow-Origin and Access-Control-Allow-Methods\n- (d) DNS resolves api.orb.mars to an IP address\n- (e) Browser checks the CORS headers and hands the response to `fetch()`\n- (f) TLS handshake: certificate checked, session keys agreed\n- (g) Server replies 200 OK with Access-Control-Allow-Origin\n- (h) Browser sends an OPTIONS preflight with Origin and Access-Control-Request-Method: PUT",
       "hints": [
         {
           "id": 1,
-          "cost": 60,
+          "cost": 10,
           "teaser": "Pehle pata, phir rishta, phir ijaazat.",
           "text": "Before any HTTP request, a browser needs an IP address (DNS), a connection (TCP) and, for https, an encrypted session (TLS). For a cross-origin request that isn’t “simple”, such as a PUT with JSON, the browser first asks permission with an OPTIONS “preflight” request. That permission system is CORS."
         },
         {
           "id": 2,
-          "cost": 120,
+          "cost": 15,
           "teaser": "Teen taiyaari, do ijaazat, teen asli.",
           "text": "The first three cards set up the connection, the next two are the permission round-trip, and the last three are the real request and what happens to its answer."
         }
@@ -452,20 +452,20 @@
       "index": 2,
       "title": "Mogambo Ki Chhoti Chaabi",
       "category": "Crypto",
-      "points": 300,
+      "points": 120,
       "tools": ["modpow"],
       "story": "Mogambo locked the Orb’s vault code with RSA, the public-key cipher behind much of internet security. Arrogant as ever, he picked a key so small that a pocket calculator could break it. *“Mogambo ki chaabi koi nahi tod sakta!”*",
       "body": "Public key: n = 91, e = 5. Mogambo turned each letter into a number (A = 1, B = 2 … Z = 26) and encrypted each one separately as c = m⁵ mod 91. What is the vault code?\n\n```text\n38 1 1 38 32 1 76 76 81\n```",
       "hints": [
         {
           "id": 1,
-          "cost": 60,
+          "cost": 10,
           "teaser": "Taala bada, chaabi chhoti.",
           "text": "RSA decryption needs the private key d. Split n into two primes p × q, compute φ = (p − 1)(q − 1), then find d so that e × d leaves remainder 1 when divided by φ. Each number then decrypts as m = c^d mod n."
         },
         {
           "id": 2,
-          "cost": 120,
+          "cost": 15,
           "teaser": "Pehle n ko todo.",
           "text": "91 only looks prime, so try small primes. Once you have d, the calculator under the challenge decrypts every number at once (c^d mod 91); then turn 1 into A, 2 into B, and so on."
         }
@@ -481,19 +481,19 @@
       "index": 3,
       "title": "Pixel Mein Raaz",
       "category": "Stego",
-      "points": 300,
+      "points": 120,
       "story": "The Orb’s sensor sends back a tiny 8 × 6 grayscale picture of itself. It looks like an ordinary glowing orb, but Mogambo hid one word in the least significant place possible.",
       "body": "What word is hidden in the Orb’s pixels? *(ASCII: 01000001 = 65 = A, and every letter after it is one more, up to Z = 90.)*\n\n```text\n 42  69  86  96  99  88  62  37\n 76 107 136 152 145 129 107  72\n 90 127 170 203 192 170 133  95\n 98 135 172 194 202 162 134  89\n 68 101 130 146 152 126 106  73\n 42  69  82  98  92  91  65  42\n```",
       "hints": [
         {
           "id": 1,
-          "cost": 60,
+          "cost": 10,
           "teaser": "Sabse chhota bit, sabse bada raaz.",
           "text": "In a grayscale image each pixel is a number from 0 to 255. Its last binary digit, the least significant bit (LSB), changes the shade by only 1, which the eye can’t see, so stego tools hide one bit of a message in each pixel’s LSB."
         },
         {
           "id": 2,
-          "cost": 120,
+          "cost": 15,
           "teaser": "Odd ya even, bas itna.",
           "text": "A number’s LSB is 1 if it is odd and 0 if it is even. Each row of 8 pixels gives 8 bits, which make one ASCII character: turn the bits into a number, then use the ASCII note in the question."
         }
@@ -508,19 +508,19 @@
     "id": "final",
     "title": "The Final Face-off",
     "category": "Meta",
-    "points": 500,
+    "points": 150,
     "story": "The Archive’s doors grind open. Mogambo sits on a throne of tangled film reels, but the reels have gone dark and your five relics shine on the table between you. *“Mogambo hamesha khush rehta hai,”* he laughs, but the laugh cracks and his smile will not stay on his face. “So tell me, agent: how do I feel now?”",
     "body": "Read the inscriptions on your five relics in act order. They hold his answer.",
     "hints": [
       {
         "id": 1,
-        "cost": 100,
+        "cost": 10,
         "teaser": "Paanchon nishaaniyan ek saath.",
         "text": "A meta-puzzle combines things you have already earned. Every relic on the Relics page carries a one-word inscription."
       },
       {
         "id": 2,
-        "cost": 200,
+        "cost": 15,
         "teaser": "Har nishaani se ek akshar.",
         "text": "Take just one letter from each inscription, the most obvious one, in act order."
       }
@@ -543,35 +543,35 @@
       "section": "I. The Hunt",
       "icon": "scroll",
       "title": "Five Acts, Fifteen Checkpoints",
-      "body": "- OBSCURA consists of five Acts, each containing three checkpoints.\n- Checkpoints open in sequence. Closing a checkpoint, by solving it or by missing it with a wrong answer, opens the next one.\n- Finish all five Acts to unlock the final face-off against Mogambo.\n- Each finished Act rewards your team with one unique relic, even if you missed checkpoints in it.\n- Collect all five relics to access the final challenge."
+      "body": "- OBSCURA consists of five Acts, each containing three checkpoints.\n- Checkpoints open in sequence. Closing a checkpoint, by solving it or by using all three attempts on it, opens the next one.\n- Finish all five Acts to unlock the final face-off against Mogambo.\n- Each finished Act rewards your team with one unique relic, even if you missed checkpoints in it.\n- Collect all five relics to access the final challenge."
     },
     {
       "id": 3,
       "section": "I. The Hunt",
       "icon": "mask",
       "title": "Submitting Flags",
-      "body": "- Submit answers in the format `OBSCURA{answer}`. You may also submit the bare answer without the wrapper.\n- Answers are case-insensitive. Spaces, underscores, hyphens and commas are ignored, so `Red Door`, `red door` and `RED-DOOR` are the same answer.\n- Read challenge instructions carefully and give exactly what is asked for (the right numbers, words and order).\n- **You get one attempt per checkpoint.** A wrong answer closes that checkpoint with zero points and opens the next one. It cannot be answered again.\n- Agree on the answer as a team and check its format before you submit. You will be asked to confirm."
+      "body": "- Submit answers in the format `OBSCURA{answer}`. You may also submit the bare answer without the wrapper.\n- Answers are case-insensitive. Spaces, underscores, hyphens and commas are ignored, so `Red Door`, `red door` and `RED-DOOR` are the same answer.\n- Read challenge instructions carefully and give exactly what is asked for (the right numbers, words and order).\n- **You get three attempts per checkpoint, including the final face-off.** A wrong answer uses one attempt. After the third wrong answer the checkpoint closes with zero points and the next one opens.\n- Agree on the answer as a team and check its format before you submit. You will be asked to confirm."
     },
     {
       "id": 4,
       "section": "II. Scoring and Hints",
       "icon": "check",
       "title": "Points and Scoring",
-      "body": "- Every checkpoint carries a predefined point value.\n- Points are awarded for correctly solving checkpoints. A missed checkpoint scores zero.\n- Hint usage deducts points from your score.\n- Your team's score reflects points earned after applicable hint deductions.\n- The maximum available score across all checkpoints and the final boss is 3,500 points before penalties."
+      "body": "- Points grow with every act. A correct answer scores **20 points in Act 1, 40 in Act 2, 70 in Act 3, 100 in Act 4 and 120 in Act 5**. The final face-off is worth **150 points**.\n- A wrong answer scores zero and uses one of your three attempts. There is no negative marking.\n- Hints never cost points. They are paid for with coins (see Hints and Coins).\n- The maximum score is 1,200 points.\n- Ranking: more points first. On equal points, the team that reached its last correct answer earlier ranks higher. If that is also equal, the team with more coins left ranks higher."
     },
     {
       "id": 5,
       "section": "II. Scoring and Hints",
       "icon": "bulb",
-      "title": "Hints and Penalties",
-      "body": "- Each checkpoint provides two optional hints. Hints unlock sequentially.\n- Hint 1 costs 20% of that checkpoint's points. Hint 2 costs a further 40%, so using both costs 60%.\n- The cost is deducted from your score when you reveal the hint, whether or not you then solve the checkpoint.\n- Use hints strategically. Sometimes figuring things out yourself is worth more than the shortcut."
+      "title": "Hints and Coins",
+      "body": "- Every team starts with **120 coins**.\n- Each checkpoint has two optional hints, unlocked in order. On every checkpoint, **hint 1 costs 10 coins** and **hint 2 costs 15 coins**.\n- Coins are spent the moment you reveal a hint, whether or not you then solve the checkpoint. When your coins run out, no more hints.\n- 120 coins covers hint 1 on 12 checkpoints, or both hints on only 4. Spend them wisely: coins left over can break a tie."
     },
     {
       "id": 6,
       "section": "III. Tools and Fair Play",
       "icon": "scroll",
       "title": "No Outside Help",
-      "body": "- No internet searches, other websites, apps or AI assistants during the hunt. It is played on this site only, in full screen.\n- Where a checkpoint needs a tool, such as a decoder or a calculator, it is built into that checkpoint's page. Built-in tools are free and never cost points.\n- Pen and paper are allowed for working things out.\n- Using any other device, tool or outside help may result in disqualification at event staff discretion."
+      "body": "- No internet searches, other websites, apps or AI assistants during the hunt. It is played on this site only, in full screen.\n- Where a checkpoint needs a tool, such as a decoder or a calculator, it is built into that checkpoint's page. Built-in tools are free and never cost coins.\n- Pen and paper are allowed for working things out.\n- Using any other device, tool or outside help may result in disqualification at event staff discretion."
     },
     {
       "id": 7,

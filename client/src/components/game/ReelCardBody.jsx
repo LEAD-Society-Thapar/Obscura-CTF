@@ -9,7 +9,7 @@ import StampLabel from "../ui/StampLabel.jsx";
 // reel: { cpId, act, index, title, quote, clue, frameSlot }   quote may be "" (then the quote block is hidden).
 // relic (optional, only right after the solve that awarded it): { name, inscription, lore, ... }
 // action: { to, label, onClick? } for the bottom button.
-// missed: the team's one attempt was wrong. The card still tells the story (and hands over a relic at the end of
+// missed: the team used every attempt without the right answer. The card still tells the story (and hands over a relic at the end of
 // an act), but it says so plainly and awards nothing.
 export default function ReelCardBody({ reel, relic, action, headingId, headingAs: Heading = "h2", missed = false }) {
   const hasQuote = typeof reel.quote === "string" && reel.quote !== "";
@@ -33,7 +33,7 @@ export default function ReelCardBody({ reel, relic, action, headingId, headingAs
       </Heading>
       {missed && (
         <p className="mt-2 text-center text-sm font-semibold text-parchment-ink">
-          Wrong answer: 0 points for this checkpoint. The story moves on without it.
+          All attempts used: 0 points for this checkpoint. The story moves on without it.
         </p>
       )}
       <p className="mt-1 text-center font-type text-sm text-parchment-ink/80">

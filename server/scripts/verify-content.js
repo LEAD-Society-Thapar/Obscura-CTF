@@ -11,7 +11,11 @@ const FLAGS_FILE = new URL("../private/flags.local.json", import.meta.url);
 const ACT_COUNT = 5;
 const PER_ACT = 3;
 const CHECKPOINT_COUNT = ACT_COUNT * PER_ACT;
-const EXPECTED_TOTAL_POINTS = 3500;
+// Points rise with the act (the final is worth the most); hints are paid in coins at the same price everywhere.
+const POINTS_BY_ACT = { 1: 20, 2: 40, 3: 70, 4: 100, 5: 120 };
+const FINAL_POINTS = 150;
+const HINT_COINS = [10, 15];
+const EXPECTED_TOTAL_POINTS = PER_ACT * Object.values(POINTS_BY_ACT).reduce((n, x) => n + x, 0) + FINAL_POINTS;
 // The relic inscriptions' first letters spell the final answer. The expected word is read from the flags file
 // (never written here: this script is committed).
 const relicAcrosticTarget = (flags) => {
@@ -53,7 +57,7 @@ check(`structure: ${ACT_COUNT} acts, ${ACT_COUNT} relics, ${PER_ACT} checkpoints
   return p;
 });
 
-check("hints: exactly 2 per checkpoint, hint 1 = 20% of points, hint 2 = 2 x hint 1, every hint has a teaser and text", () => {
+check(`hints: exactly 2 per checkpoint costing ${HINT_COINS.join(" and ")} coins, every hint has a teaser and text`, () => {
   const p = [];
   for (const cp of allCps) {
     const h = cp.hints ?? [];
@@ -61,9 +65,7 @@ check("hints: exactly 2 per checkpoint, hint 1 = 20% of points, hint 2 = 2 x hin
       p.push(`${cp.id}: ${h.length} hints`);
       continue;
     }
-    if (!(Number.isInteger(h[0].cost) && h[0].cost > 0)) p.push(`${cp.id}: hint 1 cost ${h[0].cost}`);
-    else if (h[0].cost * 5 !== cp.points) p.push(`${cp.id}: hint 1 costs ${h[0].cost}, expected 20% of ${cp.points}`);
-    if (h[1].cost !== 2 * h[0].cost) p.push(`${cp.id}: hint costs ${h[0].cost}/${h[1].cost}`);
+    if (h[0].cost !== HINT_COINS[0] || h[1].cost !== HINT_COINS[1]) p.push(`${cp.id}: hint costs ${h[0].cost}/${h[1].cost}`);
     h.forEach((x, i) => {
       if (typeof x.teaser !== "string" || !x.teaser.trim()) p.push(`${cp.id}: hint ${i + 1} has no teaser`);
       if (typeof x.text !== "string" || !x.text.trim()) p.push(`${cp.id}: hint ${i + 1} has no text`);
@@ -122,9 +124,12 @@ check("relic inscriptions (act order): first letters spell the final answer", ()
   return [`acrostic (${letters.length} letters) does not match the final answer (${target.length}); positions differing: ${diff.join(", ") || "-"}`];
 });
 
-check(`total points = ${EXPECTED_TOTAL_POINTS} (${CHECKPOINT_COUNT} checkpoints + final)`, () => {
+check(`points: ${Object.values(POINTS_BY_ACT).join("/")} by act, final ${FINAL_POINTS}, ${EXPECTED_TOTAL_POINTS} in total`, () => {
+  const want = (c) => (c.id === "final" ? FINAL_POINTS : POINTS_BY_ACT[c.act]);
+  const p = allCps.filter((c) => c.points !== want(c)).map((c) => `${c.id}: ${c.points} points, expected ${want(c)}`);
   const total = allCps.reduce((n, c) => n + c.points, 0);
-  return total === EXPECTED_TOTAL_POINTS ? [] : [`total is ${total}`];
+  if (total !== EXPECTED_TOTAL_POINTS) p.push(`total is ${total}`);
+  return p;
 });
 
 let failed = 0;

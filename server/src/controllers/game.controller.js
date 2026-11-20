@@ -15,6 +15,7 @@ import {
   isFinal,
   isLastOfAct,
   loadTeamState,
+  MAX_ATTEMPTS,
   relicOfAct,
 } from "../services/teamState.js";
 
@@ -103,8 +104,8 @@ export async function getCheckpoint(req, res) {
 }
 
 // POST /api/game/gate/:slug/submit  { flag }   (rate limited by submitLimiter)
-// One attempt per checkpoint. A wrong answer closes the checkpoint with 0 points and opens the next gate; the act's
-// relic is still granted when its last checkpoint closes, so every team can reach the final face-off.
+// MAX_ATTEMPTS per checkpoint. A wrong answer uses one; the last one closes the checkpoint with 0 points and opens
+// the next gate. The act's relic is still granted when its last checkpoint closes, so every team can reach the final.
 export async function submitFlag(req, res) {
   const db = requireDb();
   const teamId = req.team.id;
@@ -119,7 +120,7 @@ export async function submitFlag(req, res) {
       throw new HttpError(409, "Your team already solved this checkpoint.", { code: "ALREADY_SOLVED" });
     }
     if (state.status.get(cp.id) === "failed") {
-      throw new HttpError(409, "Your team already used its one attempt on this checkpoint.", { code: "ALREADY_ATTEMPTED" });
+      throw new HttpError(409, `Your team has used all ${MAX_ATTEMPTS} attempts on this checkpoint.`, { code: "ALREADY_ATTEMPTED" });
     }
     assertRunning(state.clock);
   } catch (e) {
@@ -133,8 +134,8 @@ export async function submitFlag(req, res) {
   if (!row) throw new Error(`Checkpoint ${cp.id} has no flag in the DB. Run npm run db:seed:flags.`);
 
   const correct = flagMatches(cp.id, flag, [row.flag_hash, ...(row.accepted_hashes ?? [])]);
-  // Never store a correct answer in plain text. A wrong one is kept: it is what marks the checkpoint as missed,
-  // and it lets an organiser judge a dispute before reopening the checkpoint.
+  // Never store a correct answer in plain text. A wrong one is kept: wrong rows count the attempts used (the last
+  // one marks the checkpoint as missed), and they let an organiser judge a dispute before giving an attempt back.
   const submitted = correct ? "[correct]" : flag.trim().slice(0, 200);
   rowsOf(await db.from("submissions").insert({ team_id: teamId, cp_id: cp.id, submitted, correct }));
 
@@ -147,7 +148,28 @@ export async function submitFlag(req, res) {
     if (error) throw error;
   }
 
-  // Solved or missed, the last checkpoint of an act hands over the act's relic.
+  // A wrong answer with attempts left keeps the gate open: nothing else changes.
+  const used = correct ? state.attemptsOf(cp).used : state.attemptsOf(cp).used + 1;
+  const attemptsLeft = Math.max(0, MAX_ATTEMPTS - used);
+  if (!correct && attemptsLeft > 0) {
+    await notifyChange("progress", teamId);
+    return res.json({
+      correct: false,
+      missed: false,
+      attemptsLeft,
+      maxAttempts: MAX_ATTEMPTS,
+      pointsAwarded: 0,
+      reel: null,
+      next: null,
+      relic: null,
+      finished: false,
+      finalMissed: false,
+      ending: null,
+      endingTitle: null,
+    });
+  }
+
+  // Closed (solved, or every attempt used): the last checkpoint of an act hands over the act's relic.
   const relic = isLastOfAct(cp) ? relicOfAct(cp.act) : null;
   if (relic) {
     rowsOf(
@@ -167,6 +189,8 @@ export async function submitFlag(req, res) {
   res.json({
     correct,
     missed: !correct,
+    attemptsLeft: correct ? null : 0,
+    maxAttempts: MAX_ATTEMPTS,
     pointsAwarded: correct ? cp.points : 0,
     // A missed final does not get its reel: that reel is the victory ending.
     reel: correct || !final ? state.reelOf(cp) : null,
@@ -181,7 +205,10 @@ export async function submitFlag(req, res) {
   });
 }
 
-// POST /api/game/gate/:slug/hint  { level }   Hints are revealed in order, each charged once.
+// POST /api/game/gate/:slug/hint  { level }   Hints are revealed in order, each paid for once, in coins.
+// A team cannot reveal a hint it cannot afford. Overspending by racing two requests is not possible: the only
+// hint a team can reveal at any moment is the next one on its single current gate, and team_hints' primary key
+// (team, checkpoint, hint) lets that row be inserted (and charged) only once.
 export async function useHint(req, res) {
   const level = Number(req.body?.level);
   const state = await loadTeamState(req.team.id);
@@ -199,12 +226,20 @@ export async function useHint(req, res) {
   }
 
   if (!revealed.has(hint.id)) {
+    const { left } = state.coins;
+    if (left < hint.cost) {
+      throw new HttpError(409, `Not enough coins: this hint costs ${hint.cost} and your team has ${Math.max(0, left)}.`, {
+        code: "NOT_ENOUGH_COINS",
+        cost: hint.cost,
+        coinsLeft: Math.max(0, left),
+      });
+    }
     const row = { team_id: req.team.id, cp_id: cp.id, hint_id: hint.id, cost: hint.cost };
     const { error } = await requireDb().from("team_hints").insert(row);
     if (error && error.code !== UNIQUE_VIOLATION) throw error;
     if (!error) state.hints.push(row);
   }
-  res.json({ hint: { id: hint.id, cost: hint.cost, text: hint.text }, points: state.points });
+  res.json({ hint: { id: hint.id, cost: hint.cost, text: hint.text }, points: state.points, coins: state.coins });
 }
 
 // GET /api/game/reel/:cpId   Only for checkpoints this team has closed (solved, or missed; never a missed final).

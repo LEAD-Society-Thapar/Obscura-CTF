@@ -41,6 +41,12 @@ const PATHS = {
       <path d="M8.5 10.5h2M13.5 10.5h2M9.5 14.5c1.5 1 3.5 1 5 0" />
     </>
   ),
+  coin: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="5.5" />
+    </>
+  ),
   bulb: (
     <>
       <path d="M9 18h6M10 21h4" />

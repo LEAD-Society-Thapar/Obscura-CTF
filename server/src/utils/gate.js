@@ -13,7 +13,7 @@ export function deriveGateSlug(teamId, cpId = "") {
 
 // Canonical form of an answer, used both when hashing stored flags and when checking submissions:
 // NFC, trimmed, lowercased, ONE optional OBSCURA{...} wrapper removed, then every separator removed:
-// whitespace, underscores, hyphens/dashes and commas. Teams get one attempt per checkpoint, so "RED DOOR",
+// whitespace, underscores, hyphens/dashes and commas. Teams get only 3 attempts per checkpoint, so "RED DOOR",
 // "red-door" and "RED_DOOR" must all count, as must "A,B,C,D" and "1,024". Dots and % are kept ("0.5", "50%").
 // CHANGING THIS CHANGES EVERY STORED HASH: re-run `npm run db:seed:flags` and redeploy together.
 const WRAPPER = /^obscura\{([\s\S]*)\}$/;

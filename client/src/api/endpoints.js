@@ -29,6 +29,8 @@ export const adminLeaderboard = () => api.get("/admin/leaderboard");
 export const adminEvent = (action) => api.post("/admin/event", { action }); // start | pause | resume | end | reset
 export const adminExtendEvent = (minutes) => api.post("/admin/event/extend", { minutes });
 export const adminTeamTime = (teamId, minutes) => api.post(`/admin/teams/${teamId}/time`, { minutes });
-export const adminReopen = (teamId, cpId) => api.post(`/admin/teams/${teamId}/reopen`, { cpId });
+export const adminIgnoreAttempt = (teamId, cpId) => api.post(`/admin/teams/${teamId}/attempts/ignore`, { cpId });
 export const adminForgiveViolation = (teamId) => api.post(`/admin/teams/${teamId}/fullscreen/forgive`);
 export const adminFullscreenRule = (required) => api.post("/admin/fullscreen", { required });
+export const adminCoinsAll = (coins) => api.post("/admin/coins", { coins }); // negative removes
+export const adminTeamCoins = (teamId, coins) => api.post(`/admin/teams/${teamId}/coins`, { coins });

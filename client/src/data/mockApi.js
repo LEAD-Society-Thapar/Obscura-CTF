@@ -9,7 +9,7 @@ const STORE_KEY = "obscura_mock_db";
 
 const fresh = () => ({
   event: { ...seed.event },
-  team: { ...seed.team },
+  team: structuredClone(seed.team),
   stats: { ...seed.stats },
   acts: structuredClone(seed.acts),
   checkpoints: structuredClone(seed.checkpoints),
@@ -19,10 +19,20 @@ const fresh = () => ({
   fs: { violations: 0, lockedRemainingMs: null }, // full-screen invigilation (only when MOCK_FULLSCREEN)
 });
 const FS_MAX = 3;
+const MAX_ATTEMPTS = 3; // same as the server (services/teamState.js)
+const attemptsOf = (cp) => {
+  const used = Math.min(MAX_ATTEMPTS, cp.wrongAttempts ?? 0);
+  return { used, max: MAX_ATTEMPTS, left: MAX_ATTEMPTS - used };
+};
 
 function load() {
   try {
-    return JSON.parse(sessionStorage.getItem(STORE_KEY)) || fresh();
+    const saved = JSON.parse(sessionStorage.getItem(STORE_KEY));
+    if (!saved) return fresh();
+    // A mock session saved before coins existed: give it the seed coins.
+    saved.team.coins ??= structuredClone(seed.team.coins);
+    saved.stats.coinsSpent ??= 0;
+    return saved;
   } catch {
     return fresh();
   }
@@ -92,7 +102,8 @@ const detail = (cp) => ({
     revealed: !!h.revealed,
     text: h.revealed ? h.text : null,
   })),
-  // Closed = solved, or missed with a wrong answer ("failed"). Either way the reel and the next gate are shown.
+  attempts: attemptsOf(cp),
+  // Closed = solved, or missed after every attempt ("failed"). Either way the reel and the next gate are shown.
   reel: isClosed(cp) ? reelOf(cp) : null,
   next: isClosed(cp) ? nextOf(cp) : null,
 });
@@ -149,7 +160,7 @@ function clockNow() {
 export async function getProgress() {
   await wait(250);
   return {
-    team: { ...db.team },
+    team: structuredClone(db.team),
     stats: { ...db.stats, missed: db.checkpoints.filter((c) => c.status === "failed").length },
     acts: db.acts.map((a) => ({
       ...a,
@@ -178,7 +189,7 @@ export async function submitFlag(slug, flag) {
   if (!cp) fail(404, "NOT_FOUND", "No gate here.");
   if (cp.status === "locked") fail(403, "LOCKED", "This gate is still sealed.");
   if (cp.status === "solved") fail(409, "ALREADY_SOLVED", "Your team already solved this checkpoint.");
-  if (cp.status === "failed") fail(409, "ALREADY_ATTEMPTED", "Your team already used its one attempt on this checkpoint.");
+  if (cp.status === "failed") fail(409, "ALREADY_ATTEMPTED", `Your team has used all ${MAX_ATTEMPTS} attempts on this checkpoint.`);
   if (fsLocked()) fail(403, "FULLSCREEN_LOCKED", "Your team is locked out for leaving full screen too many times.");
 
   const now = Date.now();
@@ -190,8 +201,15 @@ export async function submitFlag(slug, flag) {
   db.lastSubmitAt = now;
 
   // Mock rule: anything ending in "}" is correct. Real validation is server-side only.
-  // One attempt per checkpoint: a wrong answer closes it with 0 points, and the next gate opens either way.
+  // MAX_ATTEMPTS per checkpoint: a wrong answer uses one; the last one closes it with 0 points and opens the next gate.
   const correct = String(flag).trim().endsWith("}");
+  if (!correct && attemptsOf(cp).left > 1) {
+    cp.wrongAttempts = (cp.wrongAttempts ?? 0) + 1; // like the server: only a missed checkpoint breaks the streak
+    save();
+    const attemptsLeft = attemptsOf(cp).left;
+    return { correct: false, missed: false, attemptsLeft, maxAttempts: MAX_ATTEMPTS, pointsAwarded: 0, reel: null, next: null, relic: null, finished: false, finalMissed: false, ending: null, endingTitle: null };
+  }
+  if (!correct) cp.wrongAttempts = MAX_ATTEMPTS;
   if (correct) {
     cp.status = "solved";
     db.team.points += cp.points;
@@ -221,6 +239,8 @@ export async function submitFlag(slug, flag) {
   return {
     correct,
     missed: !correct,
+    attemptsLeft: correct ? null : 0,
+    maxAttempts: MAX_ATTEMPTS,
     pointsAwarded: correct ? cp.points : 0,
     reel: reelOf(cp),
     next: nextOf(cp),
@@ -244,14 +264,19 @@ export async function useHint(slug, level) {
   if (cp.hints.some((h) => h.id < level && !h.revealed)) fail(400, "OUT_OF_ORDER", "Reveal the earlier hint first.");
 
   if (!hint.revealed) {
+    // Hints cost coins, never points.
+    if (db.team.coins.left < hint.cost) {
+      fail(409, "NOT_ENOUGH_COINS", `Not enough coins: this hint costs ${hint.cost} and your team has ${db.team.coins.left}.`);
+    }
     hint.revealed = true;
-    db.team.points -= hint.cost;
+    db.team.coins.spent += hint.cost;
+    db.team.coins.left -= hint.cost;
     db.stats.hintsUsed += 1;
-    db.stats.hintPointsSpent += hint.cost;
-    log({ type: "hint", cpId: cp.id, delta: -hint.cost });
+    db.stats.coinsSpent += hint.cost;
+    log({ type: "hint", cpId: cp.id, delta: 0, coins: -hint.cost });
     save();
   }
-  return { hint: { id: hint.id, cost: hint.cost, text: hint.text }, points: db.team.points };
+  return { hint: { id: hint.id, cost: hint.cost, text: hint.text }, points: db.team.points, coins: { ...db.team.coins } };
 }
 
 // Mock-only convenience: any checkpoint's reel can be previewed (the real server should only

@@ -62,6 +62,9 @@ export default function Leaderboard() {
                 <th scope="col" className="px-4 py-3 text-right">
                   Solved
                 </th>
+                <th scope="col" className="px-4 py-3 text-right" title="Breaks a tie after points and last correct answer">
+                  Coins left
+                </th>
                 <th scope="col" className="px-4 py-3 text-right">
                   Points
                 </th>
@@ -79,6 +82,7 @@ export default function Leaderboard() {
                     {r.team}
                   </th>
                   <td className="px-4 py-3 text-right text-muted tabular-nums">{r.solved}</td>
+                  <td className="px-4 py-3 text-right text-muted tabular-nums">{r.coinsLeft ?? "—"}</td>
                   <td className="px-4 py-3 text-right font-heading font-bold text-gold tabular-nums">{r.points}</td>
                 </tr>
               ))}
