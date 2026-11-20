@@ -3,7 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 process.env.FLAG_PEPPER ??= "test-pepper";
-const { clockView, assertRunning, assertStarted } = await import("../src/services/eventClock.js");
+const { clockView, assertRunning, assertStarted, DEFAULT_DURATION_MINUTES } = await import("../src/services/eventClock.js");
 const { ACTS, ACT_CHECKPOINTS, CHECKPOINTS, FINAL_BOSS, RELICS } = await import("../src/data/game.js");
 const { TeamState, earnedRelicIds } = await import("../src/services/teamState.js");
 const { openGate } = await import("../src/controllers/game.controller.js");
@@ -15,12 +15,13 @@ const running = { status: "running", started_at: iso(T0), paused_at: null, total
 
 // ---------- clock ----------
 test("clock: idle shows the full duration and no end time", () => {
-  for (const ev of [undefined, { status: "idle", started_at: null, duration_minutes: 90 }]) {
+  for (const ev of [undefined, { status: "idle", started_at: null, duration_minutes: DEFAULT_DURATION_MINUTES }]) {
     const c = clockView(ev, 0, T0);
     assert.equal(c.status, "idle");
     assert.equal(c.endsAt, null);
-    assert.equal(c.remainingMs, 90 * MIN);
+    assert.equal(c.remainingMs, DEFAULT_DURATION_MINUTES * MIN);
   }
+  assert.equal(DEFAULT_DURATION_MINUTES, 60);
 });
 
 test("clock: running counts down and ends by itself", () => {
@@ -89,7 +90,7 @@ test("one attempt: a wrong answer closes the checkpoint with 0 points and opens 
   assert.equal(s.status.get("1.1"), "solved");
   assert.equal(s.status.get("1.2"), "failed");
   assert.equal(s.status.get("1.3"), "current");
-  assert.equal(s.status.get("1.4"), "locked");
+  assert.equal(s.status.get("2.1"), "locked");
   assert.equal(s.points, cp("1.1").points);
   assert.equal(s.summary(cp("1.2")).slug, s.slugOf(cp("1.2"))); // still viewable
   assert.equal(s.nextOf(cp("1.2")).id, "1.3");
@@ -119,8 +120,8 @@ test("one attempt: a solve wins over a wrong row for the same checkpoint (two re
 });
 
 test("one attempt: relics are earned when an act's last checkpoint closes, solved or missed", () => {
-  assert.deepEqual(earnedRelicIds(["1.1", "1.2", "1.3"]), []);
-  assert.deepEqual(earnedRelicIds(["1.4"]), [ACTS[0].relicId]);
+  assert.deepEqual(earnedRelicIds(["1.1", "1.2"]), []);
+  assert.deepEqual(earnedRelicIds(["1.3"]), [ACTS[0].relicId]);
   assert.deepEqual(earnedRelicIds(ACT_CHECKPOINTS.map((c) => c.id)).sort(), RELICS.map((r) => r.id).sort());
   assert.deepEqual(earnedRelicIds(["final"]), []);
 });
@@ -149,7 +150,7 @@ test("one attempt: reopening (the wrong row is gone) makes that checkpoint curre
   const s = new TeamState(team, [solve(cp("1.1")), solve(cp("1.3"), 3)], [], [], []);
   assert.equal(s.status.get("1.2"), "current");
   assert.equal(s.status.get("1.3"), "solved");
-  assert.equal(s.status.get("1.4"), "locked"); // waits until 1.2 is closed again
+  assert.equal(s.status.get("2.1"), "locked"); // waits until 1.2 is closed again
 });
 
 test("admin row: counts, current gate and per-checkpoint statuses", () => {
@@ -163,7 +164,7 @@ test("admin row: counts, current gate and per-checkpoint statuses", () => {
   assert.deepEqual(row.current, { id: "1.3", title: cp("1.3").title });
   assert.equal(row.lastActivityAt, at(4));
   assert.deepEqual(row.clock, { status: "running", remainingMs: 85 * MIN, extraTimeMs: 5 * MIN });
-  assert.equal(row.checkpoints.length, 21);
+  assert.equal(row.checkpoints.length, CHECKPOINTS.length); // 15 act checkpoints + the final
   assert.deepEqual(row.checkpoints.slice(0, 4).map((c) => c.status), ["solved", "failed", "current", "locked"]);
   assert.ok(!("password_hash" in row));
 });

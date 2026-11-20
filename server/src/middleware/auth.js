@@ -9,7 +9,7 @@ export const cookieOptions = {
   httpOnly: true,
   sameSite: env.isProd ? "none" : "lax", // "none" needed if client and API are on different domains
   secure: env.isProd,
-  maxAge: 1000 * 60 * 60 * 6, // event is 90 min, 6h is a safe ceiling
+  maxAge: 1000 * 60 * 60 * 6, // event is 60 min, 6h is a safe ceiling
 };
 
 export function signToken(payload) {

@@ -74,7 +74,7 @@ create table if not exists event_state (
   started_at          timestamptz,
   paused_at           timestamptz,
   total_paused_ms     bigint not null default 0,
-  duration_minutes    int not null default 90,
+  duration_minutes    int not null default 60,
   leaderboard_frozen  boolean not null default false,
   fullscreen_required boolean not null default true  -- full-screen invigilation (migration 003)
 );

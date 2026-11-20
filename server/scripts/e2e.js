@@ -1,4 +1,4 @@
-// End-to-end walk of all 21 gates against the REAL database in .env, through the real Express app over HTTP.
+// End-to-end walk of every gate against the REAL database in .env, through the real Express app over HTTP.
 //
 //   npm run e2e -- --allow-db        (repo root)     or     npm run e2e -- --allow-db   (server/)
 //
@@ -27,7 +27,9 @@ process.stdout.write = (chunk, ...rest) =>
 
 const { default: app } = await import("../src/app.js");
 const { requireDb } = await import("../src/config/supabase.js");
-const { CHECKPOINTS, FINAL_BOSS, RELICS, ACTS } = await import("../src/data/game.js");
+const { CHECKPOINTS, ACT_CHECKPOINTS, FINAL_BOSS, RELICS, ACTS } = await import("../src/data/game.js");
+const LAST_CP = ACT_CHECKPOINTS.at(-1); // the act checkpoint that opens the final (5.3)
+const GATES = CHECKPOINTS.length; // act checkpoints + the final
 const { deriveGateSlug, hashFlag } = await import("../src/utils/gate.js");
 const { hashPassword } = await import("../src/utils/password.js");
 const { loadFlagsFile } = await import("../src/utils/flagRows.js");
@@ -107,7 +109,7 @@ function checkProgress(p, label, expect) {
   ok(leaks.length === 0, `${label}: /progress leaks body/story/hint/reel text of ${[...new Set(leaks)].join(", ")}`);
 
   const summaries = p.acts.flatMap((a) => a.checkpoints);
-  ok(summaries.length === 20, `${label}: acts list ${summaries.length} checkpoints, expected 20`);
+  ok(summaries.length === ACT_CHECKPOINTS.length, `${label}: acts list ${summaries.length} checkpoints, expected ${ACT_CHECKPOINTS.length}`);
   ok(!summaries.some((c) => c.id === FINAL_BOSS.id), `${label}: final appears inside an act`);
   ok(summaries.every((c) => Object.keys(c).sort().join() === SUMMARY_KEYS), `${label}: summary has unexpected keys`);
   ok(summaries.every((c) => c.status !== "locked" || c.slug === null), `${label}: a locked checkpoint exposes a slug`);
@@ -250,9 +252,9 @@ try {
     ok(d.story === src.story, `${label}: story differs from challenges.json`);
     ok(d.reel === null, `${label}: reel sent before solve`);
     ok(d.hints.every((h) => h.text === null), `${label}: hint text sent before reveal`);
-    if (cp.id === "2.4") {
-      ok(Buffer.from(d.body, "utf8").equals(Buffer.from(src.body, "utf8")), "CP 2.4: body bytes differ from challenges.json");
-      log("CP 2.4: body is byte-for-byte identical to challenges.json");
+    if (cp.id === "1.1") {
+      ok(Buffer.from(d.body, "utf8").equals(Buffer.from(src.body, "utf8")), "CP 1.1: body bytes differ from challenges.json");
+      log("CP 1.1: body (with its literal HTML) is byte-for-byte identical to challenges.json");
     }
 
     for (const level of HINTS_TO_REVEAL[cp.id] ?? []) {
@@ -268,10 +270,10 @@ try {
       // No wrong answer here: a team gets one attempt per checkpoint, so it would close 1.1 (see test/clock.test.js).
     }
 
-    // The final must be refused before 5.4 is solved (strict order + relic guard).
-    if (cp.id === "5.4") {
+    // The final must be refused before the last act checkpoint is solved (strict order + relic guard).
+    if (cp === LAST_CP) {
       r = await call("GET", `/game/gate/${slug(FINAL_BOSS)}`);
-      ok(r.status === 403 && r.data?.final === true, `final before 5.4 solved (4 relics) -> ${r.status}`);
+      ok(r.status === 403 && r.data?.final === true, `final before ${LAST_CP.id} solved (4 relics) -> ${r.status}`);
     }
 
     const ans = answerFor(cp, i);
@@ -282,7 +284,7 @@ try {
     const res = r.data;
     ok(res.pointsAwarded === cp.points, `${label}: pointsAwarded ${res.pointsAwarded}, expected ${cp.points}`);
 
-    const relicExpected = cp.act != null && cp.index === 4;
+    const relicExpected = cp.act != null && CHECKPOINTS[i + 1]?.act !== cp.act; // last checkpoint of its act
     if (relicExpected) {
       const want = RELICS.find((x) => x.id === ACTS.find((a) => a.id === cp.act).relicId);
       ok(res.relic?.id === want.id, `${label}: relic ${res.relic?.id}, expected ${want.id}`);
@@ -307,8 +309,8 @@ try {
 
     p = (await call("GET", "/game/progress")).data;
     checkProgress(p, label, expect);
-    if (cp.id === "5.4") {
-      ok(p.finalBoss.status === "current" && p.finalBoss.slug === slug(FINAL_BOSS), "after 5.4: final unlocked with slug");
+    if (cp === LAST_CP) {
+      ok(p.finalBoss.status === "current" && p.finalBoss.slug === slug(FINAL_BOSS), `after ${LAST_CP.id}: final unlocked with slug`);
     }
     log(`${label.padEnd(8)} solved (${ans.kind.padEnd(21)}) +${String(cp.points).padStart(3)}  points=${p.team.points}  relics=${p.relicsCollected}/5${res.relic ? `  relic: ${res.relic.name}` : ""}`);
 
@@ -322,7 +324,7 @@ try {
   p = (await call("GET", "/game/progress")).data;
   ok(p.finished === true && !!p.finishedAt, "end: finished true with finishedAt");
   ok(p.finalBoss.status === "solved", "end: final status solved");
-  ok(p.stats.solved === 21 && p.stats.totalCheckpoints === 21, `end: stats ${p.stats.solved}/${p.stats.totalCheckpoints}`);
+  ok(p.stats.solved === GATES && p.stats.totalCheckpoints === GATES, `end: stats ${p.stats.solved}/${p.stats.totalCheckpoints}`);
   const hintCost = [...revealed].reduce((n, k) => {
     const [id, lvl] = k.split(":");
     return n + cpById(id).hints.find((h) => h.id === Number(lvl)).cost;
@@ -336,7 +338,7 @@ try {
   r = await call("GET", "/admin/leaderboard");
   ok(r.status === 401 || r.status === 403, `end: team cookie opens the admin leaderboard (${r.status})`);
   ok(alternatesTested >= 3, `alternates tested: ${alternatesTested}`);
-  log(`end: finished, ${p.stats.solved}/21 solved, ${p.team.points} pts (= ${totalPts} - ${hintCost} hints), leaderboard closed to teams`);
+  log(`end: finished, ${p.stats.solved}/${GATES} solved, ${p.team.points} pts (= ${totalPts} - ${hintCost} hints), leaderboard closed to teams`);
 } catch (e) {
   if (!(e instanceof Fatal)) failures.push(`crashed: ${e.message}`);
   log(`STOPPED: ${e.message}`);

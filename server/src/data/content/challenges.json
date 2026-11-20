@@ -1,8 +1,8 @@
 {
   "version": 1,
   "story": {
-    "prologue": "The screen goes black. A red light blinks. Mogambo leans into the frame: *“Mogambo khush hua… Aapka Archive ab mera hai.”* A 90:00 countdown appears with a single button: **START THE HUNT**.",
-    "premise": "Beneath the city lies the Archive, the vault where every frame of Indian cinema is kept safe. Last night it went dark, and one line flickered on every screen: MOGAMBO KHUSH HUA.\n\nMogambo has split the Archive’s master key into five relics and hidden each one inside a legendary film. If he gathers all five on Mars, every story ends with the villain winning. You are OBSCURA’s agents: crack four checkpoints in each film world, recover the relics, and stop Mogambo before the picture ends.",
+    "prologue": "The screen goes black. A red light blinks. Mogambo leans into the frame: *“Mogambo khush hua… Aapka Archive ab mera hai.”* A 60:00 countdown appears with a single button: **START THE HUNT**.",
+    "premise": "Beneath the city lies the Archive, the vault where every frame of Indian cinema is kept safe. Last night it went dark, and one line flickered on every screen: MOGAMBO KHUSH HUA.\n\nMogambo has split the Archive’s master key into five relics and hidden each one inside a legendary film. If he gathers all five on Mars, every story ends with the villain winning. You are OBSCURA’s agents: crack three checkpoints in each film world, recover the relics, and stop Mogambo before the picture ends.",
     "ending": "*“Mogambo dukhi hua!”* The five relics click together into the Master Reel, and the Archive lights up frame by frame. Mogambo’s face flickers, freezes and melts into static. Last title card: *“Picture abhi baaki hai mere dost.”* Optional Round 2 teaser: *“Archive toh bach gaya. Ab website banao.”*\n\n---"
   },
   "acts": [
@@ -48,7 +48,7 @@
       "name": "The Rusted Reel",
       "act": 1,
       "inscription": "DHANNO",
-      "lore": "Found in Dhanno’s saddlebag. Inscription: **DHANNO**. Its last frame shows the Gateway of India and a man in a white suit walking away."
+      "lore": "Kaalia’s password opens Gabbar’s reel vault. Inside, wrapped in Dhanno’s old saddlebag, lies the reel. Inscription: **DHANNO**. Its last frame shows the Gateway of India and a man in a white suit walking away."
     },
     {
       "id": "wax-seal",
@@ -62,7 +62,7 @@
       "name": "The Director's Script",
       "act": 3,
       "inscription": "KAAYNAAT",
-      "lore": "Recovered from Mukesh’s pen drive. Inscription: **KAAYNAAT**. An e-ticket is attached: one seat on the Bollywood Express, booked for “Baldev Singh”, with no PNR."
+      "lore": "Recovered from Mukesh’s safe. Inscription: **KAAYNAAT**. An e-ticket is attached: one seat on the Bollywood Express, booked for “Baldev Singh”, with no PNR."
     },
     {
       "id": "love-letter",
@@ -165,34 +165,6 @@
       }
     },
     {
-      "id": "1.4",
-      "act": 1,
-      "index": 4,
-      "title": "Basanti Ki Bak-Bak",
-      "category": "Stego",
-      "points": 100,
-      "story": "Basanti drove her tonga right past the spot where the reel was buried, and she would love to tell you all about it. *“Humein bekaar baat karne ki aadat toh hai nahi,”* she insists, and then talks nonstop. But she never says anything by accident.",
-      "body": "Who knows where the reel is buried?\n\n```text\nDon't ask me why the whole of Ramgarh calls me a chatterbox!\nHalf the village can't keep up with my tonga, let alone my tongue.\nAnd no, I did not see where Gabbar's men were digging last night...\nNot unless you count the moonlight, the shovels and all that shouting.\nNobody ever asks a tonga-wali the right question, you know.\nOnly one of us saw everything, and she has been neighing about it all morning.\n```",
-      "hints": [
-        {
-          "id": 1,
-          "cost": 20,
-          "teaser": "Basanti hamesha shuruaat se bolti hai.",
-          "text": "Steganography hides a message inside something innocent-looking. One of the oldest tricks is the acrostic, where the first letters of the lines spell a secret word."
-        },
-        {
-          "id": 2,
-          "cost": 40,
-          "teaser": "Basanti ki ek aadat pakdo.",
-          "text": "Ignore what Basanti says and look at how each line starts, top to bottom. The answer is a name, and it neighs."
-        }
-      ],
-      "reel": {
-        "quote": "",
-        "clue": "Dhanno snorts and paws at a fresh mound of earth near the water tank. Something metal glints below."
-      }
-    },
-    {
       "id": "2.1",
       "act": 2,
       "index": 1,
@@ -278,35 +250,6 @@
       }
     },
     {
-      "id": "2.4",
-      "act": 2,
-      "index": 4,
-      "title": "Hamshakal Akshar",
-      "category": "Stego",
-      "points": 150,
-      "tools": ["unicode"],
-      "story": "A telegram signed “Don” is waiting inside the den. But this Don is a lookalike, and so are some of his letters.",
-      "body": "What word do the impostor letters spell?\n\n> Bosѕ, the police are watcһing every road out of Bombay. Kеep the shipment hiddеn until the morning tide. Trust nobody who calls himѕelf Don today, not even me. The seal waits wһere every face looks bаck at itself. Stop.",
-      "hints": [
-        {
-          "id": 1,
-          "cost": 30,
-          "teaser": "Har akshar asli nahi hota.",
-          "text": "Homoglyphs are characters from different alphabets that look the same, like Latin “a” and Cyrillic “а”. Computers store them as different code points, which is how fake usernames and phishing links fool people."
-        },
-        {
-          "id": 2,
-          "cost": 60,
-          "teaser": "Dikhne se zyada, code point dekho.",
-          "text": "Copy the whole telegram, untouched, into the inspector under the challenge. Ordinary letters pass and the impostors are flagged. Read their Latin twins in order."
-        }
-      ],
-      "reel": {
-        "quote": "",
-        "clue": "SHEESHA: the mirror. Behind the tallest mirror in Don’s den, something glows red."
-      }
-    },
-    {
       "id": "3.1",
       "act": 3,
       "index": 1,
@@ -366,58 +309,28 @@
       "id": "3.3",
       "act": 3,
       "index": 3,
-      "title": "Jale Hue Panne",
+      "title": "Upper, Middle, Lower",
       "category": "Crypto",
       "points": 200,
-      "tools": ["vigenere"],
-      "story": "The first page of the Director’s Script survived the fire, but Mukesh locked it with a cipher once nicknamed *“le chiffre indéchiffrable”*. His key is the name still painted on the charred dressing-room door: SHANTI.",
-      "body": "Where is the script hidden? (one word)\n\n```text\nLOE FVZAWT FEMWWS VGAAKE GAM XHLYXV UOAAWMDPEE\n```",
+      "story": "The Director’s Script is locked in the safe of Mukesh’s old theatre. He kept the password on a ticket stub, but not in a straight line: he zig-zagged it across the theatre’s three tiers, upper, middle, lower, middle, upper, and so on.",
+      "body": "What is the password?\n\n```text\nIEEUWTANSRNTFHLVSOSEILUNRUDASODEOIASOYHLROPWSR\n```",
       "hints": [
         {
           "id": 1,
           "cost": 40,
-          "teaser": "Ek chaabi, kai taale.",
-          "text": "The Vigenère cipher is a Caesar cipher whose shift keeps changing. A keyword is repeated under the message, and each key letter sets the shift for one letter (A = 0, B = 1 … Z = 25)."
+          "teaser": "Akshar patri pe naachte hain.",
+          "text": "The rail fence cipher writes a message in a zig-zag across several rows (“rails”) and then reads the rows one after another. No letter is changed; the letters are only shuffled."
         },
         {
           "id": 2,
           "cost": 80,
-          "teaser": "Chaabi darwaaze pe likhi hai.",
-          "text": "The key is on the dressing-room door, and spaces don’t use up key letters. Once you have it, the decoder under the challenge does the arithmetic."
+          "teaser": "Teen patriyaan, ek raasta.",
+          "text": "Three tiers, three rails. The 46 letters split 12 / 23 / 11: the first 12 are the upper tier, the next 23 the middle and the last 11 the lower. Write the rows out, read them in the zig-zag order, then add the spaces back yourself."
         }
       ],
       "reel": {
         "quote": "",
-        "clue": "The script is hidden in the chandelier, the same chandelier that will one day come crashing down on Mukesh."
-      }
-    },
-    {
-      "id": "3.4",
-      "act": 3,
-      "index": 4,
-      "title": "Naam Badla, Aatma Wahi",
-      "category": "Stego",
-      "points": 200,
-      "tools": ["hex"],
-      "story": "Inside the chandelier is Mukesh’s old pen drive. Om Shanti Om is a story of rebirth, a new name with the same soul, and Mukesh tried the same trick: he renamed every file so nobody would find the script. But a file’s first bytes remember its past life.",
-      "body": "What is each file really? Each one is a PDF, PNG, GIF, JPG, MP3, MP4, ZIP or WAV file. Submit the four real file types in table order, joined by underscores.\n\n| File (the name it claims) | First bytes (hex) |\n| --- | --- |\n| `shanti_1977.mp4` | `25 50 44 46 2D 31 2E 34` |\n| `dard_e_disco.mp3` | `89 50 4E 47 0D 0A 1A 0A` |\n| `mukesh_alibi.pdf` | `47 49 46 38 39 61 20 03` |\n| `om_kapoor_poster.jpg` | `49 44 33 04 00 00 00 00` |",
-      "hints": [
-        {
-          "id": 1,
-          "cost": 40,
-          "teaser": "Naam badal sakte ho, janam nahi.",
-          "text": "Most file formats start with a fixed signature called a magic number. Renaming a file changes its extension but not those first bytes, so forensic tools trust the bytes, not the name."
-        },
-        {
-          "id": 2,
-          "cost": 80,
-          "teaser": "Naam nahi, shuruaati bytes.",
-          "text": "Convert each row with the decoder under the challenge. Three formats spell out their own name. The fourth begins with “ID3”, the tag block that music players read at the start of one very common audio format."
-        }
-      ],
-      "reel": {
-        "quote": "",
-        "clue": "`shanti_1977.mp4` was never a video. It is the Director’s Script, reborn as a PDF."
+        "clue": "*“Palat… palat…”* The safe swings open, and the Director’s Script is inside. Mukesh borrowed his password from a 1995 romance, and that film is exactly where the trail leads next."
       }
     },
     {
@@ -480,46 +393,18 @@
       "id": "4.3",
       "act": 4,
       "index": 3,
-      "title": "Upper, Middle, Lower",
-      "category": "Crypto",
-      "points": 250,
-      "story": "Raj slipped Simran a note in the sleeper coach. He didn’t write it in a straight line: he zig-zagged it across the three berths, upper, middle, lower, middle, upper, and so on.",
-      "body": "What is the password?\n\n```text\nIEEUWTANSRNTFHLVSOSEILUNRUDASODEOIASOYHLROPWSR\n```",
-      "hints": [
-        {
-          "id": 1,
-          "cost": 50,
-          "teaser": "Akshar patri pe naachte hain.",
-          "text": "The rail fence cipher writes a message in a zig-zag across several rows (“rails”) and then reads the rows one after another. No letter is changed; the letters are only shuffled."
-        },
-        {
-          "id": 2,
-          "cost": 100,
-          "teaser": "Teen patriyaan, ek raasta.",
-          "text": "Three berths, three rails. The 46 letters split 12 / 23 / 11: the first 12 are the upper berth, the next 23 the middle and the last 11 the lower. Write the rows out, read them in the zig-zag order, then add the spaces back yourself."
-        }
-      ],
-      "reel": {
-        "quote": "",
-        "clue": "*“Palat… palat…”* Simran turns around. Bade bade deshon mein aisi chhoti chhoti baatein hoti rehti hain, Senorita."
-      }
-    },
-    {
-      "id": "4.4",
-      "act": 4,
-      "index": 4,
       "title": "Aa... Aa... Aa...",
       "category": "Stego",
       "points": 250,
       "tools": ["morse"],
-      "story": "At every stop, “Baldev Singh” steps off to feed the pigeons and calls them in, just as he did in London. The Archive’s microphones noticed that his calls come short and long, with the pigeons fluttering between them like punctuation.",
+      "story": "At every stop, “Baldev Singh” steps off to feed the pigeons and calls them in, just as he did in London. The Archive’s microphones noticed that his calls are Morse code: they come short and long, with the pigeons fluttering between them like punctuation.",
       "body": "What word are the pigeons carrying?\n\n```text\naa aa aa aa (flutter) aa aa aaaa (flutter) aaaa aaaa (flutter) aa aa aa (flutter) aa aaaa (flutter) aa aa aaaa aa (flutter) aa aaaa (flutter) aa aaaa aa\n```",
       "hints": [
         {
           "id": 1,
           "cost": 50,
           "teaser": "Kabootar bhi baat karte hain.",
-          "text": "Morse code writes each letter as a short pattern of dots (short signals) and dashes (long signals), with a pause between letters. Any two-state signal can carry it: beeps, flashes of light, even bird calls."
+          "text": "Morse code writes each letter as a short pattern of dots (short signals) and dashes (long signals), with a pause between letters. Work out which calls are the signals and what plays the part of the pause."
         },
         {
           "id": 2,
@@ -565,34 +450,6 @@
       "id": "5.2",
       "act": 5,
       "index": 2,
-      "title": "Mogambo Khush Hua?",
-      "category": "Misc",
-      "points": 300,
-      "story": "The Martian Orb runs a language model that finishes one sentence all day: “Mogambo ___ hua.” For the blank it outputs the logits khush = 2.0, dukhi = 1.0 and naraz = 0.0. Mogambo turns the sampling temperature down to 0.5 so that he stays happy.",
-      "body": "At temperature 0.5, what is the probability that the Orb says “khush”? Round to two decimal places.\n\nValues of eˣ you may need:\n\n| x | 0 | 0.5 | 1 | 1.5 | 2 | 2.5 | 3 | 3.5 | 4 |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| eˣ | 1 | 1.649 | 2.718 | 4.482 | 7.389 | 12.18 | 20.09 | 33.12 | 54.60 |",
-      "hints": [
-        {
-          "id": 1,
-          "cost": 60,
-          "teaser": "Taapmaan kam, mood fix.",
-          "text": "A language model turns its raw scores (logits) into probabilities with softmax: each option gets e raised to its logit, divided by the sum of those values over all options. Temperature T divides every logit before softmax: a low T makes the top choice more certain, a high T makes the options more even."
-        },
-        {
-          "id": 2,
-          "cost": 120,
-          "teaser": "Pehle taapmaan, phir softmax.",
-          "text": "Divide each logit by 0.5 first, then apply softmax to the three new numbers. Take the eˣ values from the table in the question; the rest is one division."
-        }
-      ],
-      "reel": {
-        "quote": "",
-        "clue": "87% khush. Mogambo has rigged his own mood, but the other 13% of him already knows what’s coming."
-      }
-    },
-    {
-      "id": "5.3",
-      "act": 5,
-      "index": 3,
       "title": "Mogambo Ki Chhoti Chaabi",
       "category": "Crypto",
       "points": 300,
@@ -619,9 +476,9 @@
       }
     },
     {
-      "id": "5.4",
+      "id": "5.3",
       "act": 5,
-      "index": 4,
+      "index": 3,
       "title": "Pixel Mein Raaz",
       "category": "Stego",
       "points": 300,
@@ -678,15 +535,15 @@
       "id": 1,
       "section": "I. The Hunt",
       "icon": "clock",
-      "title": "The 90-Minute Countdown",
-      "body": "- The competition runs for 90 minutes under one shared global countdown.\n- All teams compete within the same time window.\n- Manage your time carefully. Every second counts.\n- The hunt ends when the official countdown reaches zero. Follow event staff instructions regarding the submission deadline."
+      "title": "The 60-Minute Countdown",
+      "body": "- The competition runs for 60 minutes under one shared global countdown.\n- All teams compete within the same time window.\n- Manage your time carefully. Every second counts.\n- The hunt ends when the official countdown reaches zero. Follow event staff instructions regarding the submission deadline."
     },
     {
       "id": 2,
       "section": "I. The Hunt",
       "icon": "scroll",
-      "title": "Five Acts, Twenty Checkpoints",
-      "body": "- OBSCURA consists of five Acts, each containing four checkpoints.\n- Checkpoints open in sequence. Closing a checkpoint, by solving it or by missing it with a wrong answer, opens the next one.\n- Finish all five Acts to unlock the final face-off against Mogambo.\n- Each finished Act rewards your team with one unique relic, even if you missed checkpoints in it.\n- Collect all five relics to access the final challenge."
+      "title": "Five Acts, Fifteen Checkpoints",
+      "body": "- OBSCURA consists of five Acts, each containing three checkpoints.\n- Checkpoints open in sequence. Closing a checkpoint, by solving it or by missing it with a wrong answer, opens the next one.\n- Finish all five Acts to unlock the final face-off against Mogambo.\n- Each finished Act rewards your team with one unique relic, even if you missed checkpoints in it.\n- Collect all five relics to access the final challenge."
     },
     {
       "id": 3,
@@ -700,7 +557,7 @@
       "section": "II. Scoring and Hints",
       "icon": "check",
       "title": "Points and Scoring",
-      "body": "- Every checkpoint carries a predefined point value.\n- Points are awarded for correctly solving checkpoints. A missed checkpoint scores zero.\n- Hint usage deducts points from your score.\n- Your team's score reflects points earned after applicable hint deductions.\n- The maximum available score across all checkpoints and the final boss is 4,500 points before penalties."
+      "body": "- Every checkpoint carries a predefined point value.\n- Points are awarded for correctly solving checkpoints. A missed checkpoint scores zero.\n- Hint usage deducts points from your score.\n- Your team's score reflects points earned after applicable hint deductions.\n- The maximum available score across all checkpoints and the final boss is 3,500 points before penalties."
     },
     {
       "id": 5,

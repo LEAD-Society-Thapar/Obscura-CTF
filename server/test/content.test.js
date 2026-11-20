@@ -8,10 +8,10 @@ const raw = JSON.parse(readFileSync(new URL("../src/data/content/challenges.json
 const { ACTS, ACT_CHECKPOINTS, CHECKPOINTS, RELICS, RULES, FINAL_BOSS } = await import("../src/data/game.js");
 const { TeamState, relicOfAct, isLastOfAct } = await import("../src/services/teamState.js");
 
-test("loads 5 acts, 20 act checkpoints + the final face-off as the 21st gate, 5 relics", () => {
+test("loads 5 acts, 15 act checkpoints + the final face-off as the 16th gate, 5 relics", () => {
   assert.equal(ACTS.length, 5);
-  assert.equal(ACT_CHECKPOINTS.length, 20);
-  assert.equal(CHECKPOINTS.length, 21);
+  assert.equal(ACT_CHECKPOINTS.length, 15);
+  assert.equal(CHECKPOINTS.length, 16);
   assert.equal(CHECKPOINTS.at(-1), FINAL_BOSS);
   assert.equal(FINAL_BOSS.id, "final");
   assert.equal(FINAL_BOSS.act, null);
@@ -35,11 +35,17 @@ test("content strings are passed through byte-for-byte", () => {
   ACTS.forEach((a, i) => assert.equal(a.film, raw.acts[i].film));
 });
 
-test("CP 2.4 keeps its Cyrillic letters and CP 1.1 keeps its HTML", () => {
-  const cyr = /[Ѐ-ӿ]/;
-  const cp24 = CHECKPOINTS.find((c) => c.id === "2.4");
-  assert.ok(cyr.test(cp24.body) || cyr.test(cp24.story), "no Cyrillic found in CP 2.4");
+test("CP 1.1 keeps its HTML", () => {
   assert.ok(CHECKPOINTS.find((c) => c.id === "1.1").body.includes("<"), "no HTML found in CP 1.1");
+});
+
+test("layout: 5 acts of 3 checkpoints, ids <act>.<index>", () => {
+  for (const act of [1, 2, 3, 4, 5]) {
+    assert.deepEqual(
+      ACT_CHECKPOINTS.filter((c) => c.act === act).map((c) => c.id),
+      [1, 2, 3].map((i) => `${act}.${i}`)
+    );
+  }
 });
 
 test("relic is awarded on the last checkpoint of each act", () => {
@@ -79,10 +85,11 @@ test("/progress: relic inscription and lore only for collected relics", () => {
 });
 
 test("gate detail: body included, unrevealed hint text and unsolved reel withheld", () => {
-  const d = state.detail(CHECKPOINTS.find((c) => c.id === "2.1"));
+  const cp21 = CHECKPOINTS.find((c) => c.id === "2.1");
+  const d = state.detail(cp21);
   assert.equal(d.status, "current");
-  assert.equal(d.body, CHECKPOINTS[4].body);
-  assert.equal(d.hints[0].text, CHECKPOINTS[4].hints[0].text);
+  assert.equal(d.body, cp21.body);
+  assert.equal(d.hints[0].text, cp21.hints[0].text);
   assert.equal(d.hints[1].text, null);
   assert.equal(d.reel, null);
 });
@@ -100,10 +107,10 @@ const solveRows = (cps) => cps.map((c) => ({ cp_id: c.id, points: c.points, solv
 const relicRows = (ids) => ids.map((relic_id) => ({ relic_id, earned_at: now() }));
 const team = { id: "t2", name: "T2", points_adjust: 0 };
 
-test("final boss: 5.4 still awards the Martian Orb; final never awards a relic", () => {
-  const cp54 = CHECKPOINTS.find((c) => c.id === "5.4");
-  assert.ok(isLastOfAct(cp54));
-  assert.equal(relicOfAct(cp54.act).id, "martian-orb");
+test("final boss: 5.3 awards the Martian Orb; final never awards a relic", () => {
+  const cp53 = CHECKPOINTS.find((c) => c.id === "5.3");
+  assert.ok(isLastOfAct(cp53));
+  assert.equal(relicOfAct(cp53.act).id, "martian-orb");
   assert.equal(isLastOfAct(FINAL_BOSS), false);
   assert.equal(relicOfAct(FINAL_BOSS.act), null);
 });
@@ -111,7 +118,7 @@ test("final boss: 5.4 still awards the Martian Orb; final never awards a relic",
 test("final boss: never in acts or per-act counts", () => {
   const p = new TeamState(team, [], [], []).progress();
   const ids = p.acts.flatMap((a) => a.checkpoints.map((c) => c.id));
-  assert.equal(ids.length, 20);
+  assert.equal(ids.length, 15);
   assert.ok(!ids.includes("final"));
   assert.equal(p.finalBoss.status, "locked");
   assert.equal(p.finalBoss.slug, null);
@@ -121,22 +128,22 @@ test("final boss: never in acts or per-act counts", () => {
   assert.deepEqual(Object.keys(p.finalBoss).sort(), ["category", "id", "points", "slug", "status", "title"]);
 });
 
-test("final boss: unlocks after 5.4 with all five relics", () => {
+test("final boss: unlocks after 5.3 with all five relics", () => {
   const s = new TeamState(team, solveRows(ACT_CHECKPOINTS), [], relicRows(RELICS.map((r) => r.id)));
   const p = s.progress();
   assert.equal(p.finalBoss.status, "current");
   assert.equal(p.finalBoss.slug, s.slugOf(FINAL_BOSS));
   assert.equal(p.relicsCollected, 5);
   assert.equal(openGate(s, s.slugOf(FINAL_BOSS)), FINAL_BOSS);
-  assert.equal(s.nextOf(CHECKPOINTS.find((c) => c.id === "5.4")).id, "final");
+  assert.equal(s.nextOf(CHECKPOINTS.find((c) => c.id === "5.3")).id, "final");
 });
 
 test("final boss: defence in depth, 403 LOCKED without every relic even when order allows it", () => {
-  // All 20 solved (order says final is next) but one relic row is missing.
+  // All 15 solved (order says final is next) but one relic row is missing.
   const s = new TeamState(team, solveRows(ACT_CHECKPOINTS), [], relicRows(RELICS.slice(0, 4).map((r) => r.id)));
   assert.equal(s.progress().finalBoss.status, "locked");
   assert.equal(s.progress().finalBoss.slug, null);
-  assert.equal(s.nextOf(CHECKPOINTS.find((c) => c.id === "5.4")), null);
+  assert.equal(s.nextOf(CHECKPOINTS.find((c) => c.id === "5.3")), null);
   assert.throws(() => openGate(s, s.slugOf(FINAL_BOSS)), (e) => e.status === 403 && e.data.code === "LOCKED" && e.data.final === true);
 });
 
@@ -147,8 +154,8 @@ test("final boss: solved -> finished, finishedAt, counted in stats and activity"
   assert.equal(p.finished, true);
   assert.equal(p.finishedAt, rows.at(-1).solved_at);
   assert.equal(p.finalBoss.status, "solved");
-  assert.equal(p.stats.solved, 21);
-  assert.equal(p.stats.totalCheckpoints, 21);
+  assert.equal(p.stats.solved, 16);
+  assert.equal(p.stats.totalCheckpoints, 16);
   assert.equal(p.team.points, CHECKPOINTS.reduce((n, c) => n + c.points, 0));
   const fin = p.activity.find((e) => e.cpId === "final");
   assert.equal(fin.cp.id, "final");

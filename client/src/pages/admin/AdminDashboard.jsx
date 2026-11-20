@@ -279,7 +279,7 @@ export default function AdminDashboard() {
                     run(
                       () => adminEvent("reset"),
                       "Clock reset to not started. Extra time and full-screen violations cleared; team progress was not touched.",
-                      "Reset the clock to NOT STARTED?\n\nThe duration goes back to 90 minutes, and every team's extra time and full-screen violations are cleared. Scores and progress are kept."
+                      "Reset the clock to NOT STARTED?\n\nThe duration goes back to 60 minutes, and every team's extra time and full-screen violations are cleared. Scores and progress are kept."
                     )
                   }
                 >
@@ -387,7 +387,7 @@ export default function AdminDashboard() {
         </div>
       </div>
       <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
-        Progress strip, one square per checkpoint (1.1 to 5.4, then the final):
+        Progress strip, one square per checkpoint (1.1 to 5.3, then the final):
         {Object.keys(CELL).map((k) => (
           <span key={k} className="inline-flex items-center gap-1.5">
             <span className={`inline-block size-2.5 rounded-[2px] ${CELL[k]}`} /> {CELL_WORD[k]}
