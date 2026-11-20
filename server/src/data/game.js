@@ -3,7 +3,7 @@
 // server/private/flags.local.json, which is gitignored).
 //
 // Content strings are passed through exactly as written in the JSON: never trim, normalize or re-type
-// them (CP 2.4 relies on Cyrillic look-alike letters, CP 1.1 shows HTML that must stay literal text).
+// them (CP 1.1 shows HTML that must stay literal text; number grids and ciphertexts rely on exact spacing).
 // Art slot names are derived from ids; see client/src/lib/artSlots.js for the slot registry.
 import content from "./content/challenges.json" with { type: "json" };
 
@@ -65,10 +65,10 @@ export const RELICS = content.relics.map((r) => ({
 // It is only reachable once the team holds every relic (see TeamState in services/teamState.js).
 export const FINAL_BOSS = toCheckpoint(content.finalBoss, { act: null, index: null, slotKey: "final" });
 
-// The 20 act checkpoints, in unlock order.
+// The act checkpoints (5 acts x 3), in unlock order.
 export const ACT_CHECKPOINTS = content.checkpoints.map((cp) => toCheckpoint(cp));
 
-// Order in this array = unlock order: the 20 act checkpoints, then the final face-off as the 21st gate.
+// Order in this array = unlock order: the 15 act checkpoints, then the final face-off as the 16th gate.
 // Each id needs a row in the `checkpoints` table (npm run db:seed:flags).
 export const CHECKPOINTS = [...ACT_CHECKPOINTS, FINAL_BOSS];
 

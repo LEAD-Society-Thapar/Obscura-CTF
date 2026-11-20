@@ -81,7 +81,7 @@ export default function Rules() {
                 Your Mission
               </h2>
               <p className="rulebook-serif mt-4 text-lg leading-relaxed text-bone sm:text-xl">
-                Five Acts. Twenty Checkpoints. Five Relics. One Final Face-off.
+                Five Acts. Fifteen Checkpoints. Five Relics. One Final Face-off.
               </p>
               <p className="rulebook-serif mt-2 text-lg font-bold text-blood-bright sm:text-xl">
                 Recover the Archive. Defeat Mogambo.

@@ -6,11 +6,11 @@
 // 2 hints used (-40), 1/5 relics (The Rusted Reel), streak 2.
 // Values marked PLACEHOLDER are made up and need real content.
 
-// Countdown starts at 01:29:45 from page load.
+// Countdown starts at 00:59:45 from page load.
 export const event = {
   status: "running",
-  endsAt: new Date(Date.now() + (1 * 3600 + 29 * 60 + 45) * 1000).toISOString(),
-  durationMinutes: 90,
+  endsAt: new Date(Date.now() + (59 * 60 + 45) * 1000).toISOString(),
+  durationMinutes: 60,
 };
 
 export const team = {
@@ -106,7 +106,6 @@ export const checkpoints = [
   placeholderCp(1, 1, "solved", "Web"),
   placeholderCp(1, 2, "solved", "Misc"),
   placeholderCp(1, 3, "solved", "Crypto"),
-  placeholderCp(1, 4, "solved", "Stego"),
 
   {
     id: "2.1",
@@ -170,44 +169,22 @@ export const checkpoints = [
     hints: [{ id: 1, cost: 20, teaser: "PLACEHOLDER hint teaser.", text: "PLACEHOLDER hint text." }],
     reel: {
       quote: "PLACEHOLDER: a filmi dialogue goes here.",
-      clue: "A new location has been marked on your map. Proceed to the next gate.",
-      frameSlot: "reel-2-3",
-    },
-  },
-  {
-    id: "2.4",
-    act: 2,
-    index: 4,
-    slug: "mock-2-4",
-    title: "The Last Show",
-    category: "Stego",
-    points: 200,
-    status: "locked",
-    story: "PLACEHOLDER: Story scene for The Last Show.",
-    posterSlot: "cp-2-4-poster",
-    downloads: [],
-    hints: [{ id: 1, cost: 20, teaser: "PLACEHOLDER hint teaser.", text: "PLACEHOLDER hint text." }],
-    reel: {
-      quote: "PLACEHOLDER: a filmi dialogue goes here.",
       clue: "The Wax Seal is yours. A new act opens on your map.",
-      frameSlot: "reel-2-4",
+      frameSlot: "reel-2-3",
     },
   },
 
   placeholderCp(3, 1, "locked", "Web"),
   placeholderCp(3, 2, "locked", "Misc"),
   placeholderCp(3, 3, "locked", "Crypto", 150),
-  placeholderCp(3, 4, "locked", "Stego", 200),
 
   placeholderCp(4, 1, "locked", "Web"),
-  placeholderCp(4, 2, "locked", "Crypto", 150),
-  placeholderCp(4, 3, "locked", "Misc", 150),
-  placeholderCp(4, 4, "locked", "Stego", 200),
+  placeholderCp(4, 2, "locked", "Misc", 150),
+  placeholderCp(4, 3, "locked", "Stego", 200),
 
   placeholderCp(5, 1, "locked", "Web", 150),
   placeholderCp(5, 2, "locked", "Crypto", 200),
-  placeholderCp(5, 3, "locked", "Stego", 200),
-  placeholderCp(5, 4, "locked", "Misc", 300),
+  placeholderCp(5, 3, "locked", "Stego", 300),
 ];
 
 // Design names. The original plan used different relic names (see server/src/data/checkpoints.js).
@@ -226,8 +203,8 @@ export const activity = [
   { id: 6, type: "solve", cpId: "2.1", delta: 100, at: minutesAgo(3) },
   { id: 5, type: "hint", cpId: "2.1", delta: -20, at: minutesAgo(5) },
   { id: 4, type: "relic", relicId: "rusted-reel", delta: 0, at: minutesAgo(9) },
-  { id: 3, type: "solve", cpId: "1.4", delta: 100, at: minutesAgo(9) },
-  { id: 2, type: "hint", cpId: "1.3", delta: -20, at: minutesAgo(14) },
+  { id: 3, type: "solve", cpId: "1.3", delta: 100, at: minutesAgo(9) },
+  { id: 2, type: "hint", cpId: "1.2", delta: -20, at: minutesAgo(14) },
 ];
 
 // Design 8.
@@ -236,15 +213,15 @@ export const rules = [
     id: 1,
     section: "I. The Hunt",
     icon: "clock",
-    title: "The 90-Minute Countdown",
-    body: "- The competition runs for 90 minutes under one shared global countdown.\n- All teams compete within the same time window.\n- Manage your time carefully. Every second counts.\n- The hunt ends when the official countdown reaches zero. Follow event staff instructions regarding the submission deadline.",
+    title: "The 60-Minute Countdown",
+    body: "- The competition runs for 60 minutes under one shared global countdown.\n- All teams compete within the same time window.\n- Manage your time carefully. Every second counts.\n- The hunt ends when the official countdown reaches zero. Follow event staff instructions regarding the submission deadline.",
   },
   {
     id: 2,
     section: "I. The Hunt",
     icon: "scroll",
-    title: "Five Acts, Twenty Checkpoints",
-    body: "- OBSCURA consists of five Acts, each containing four checkpoints.\n- Checkpoints open in sequence. Closing a checkpoint, by solving it or by missing it with a wrong answer, opens the next one.\n- Finish all five Acts to unlock the final face-off against Mogambo.\n- Each finished Act rewards your team with one unique relic, even if you missed checkpoints in it.\n- Collect all five relics to access the final challenge.",
+    title: "Five Acts, Fifteen Checkpoints",
+    body: "- OBSCURA consists of five Acts, each containing three checkpoints.\n- Checkpoints open in sequence. Closing a checkpoint, by solving it or by missing it with a wrong answer, opens the next one.\n- Finish all five Acts to unlock the final face-off against Mogambo.\n- Each finished Act rewards your team with one unique relic, even if you missed checkpoints in it.\n- Collect all five relics to access the final challenge.",
   },
   {
     id: 3,
@@ -258,7 +235,7 @@ export const rules = [
     section: "II. Scoring and Hints",
     icon: "check",
     title: "Points and Scoring",
-    body: "- Every checkpoint carries a predefined point value.\n- Points are awarded for correctly solving checkpoints. A missed checkpoint scores zero.\n- Hint usage deducts points from your score.\n- Your team's score reflects points earned after applicable hint deductions.\n- The maximum available score across all checkpoints and the final boss is 4,500 points before penalties.",
+    body: "- Every checkpoint carries a predefined point value.\n- Points are awarded for correctly solving checkpoints. A missed checkpoint scores zero.\n- Hint usage deducts points from your score.\n- Your team's score reflects points earned after applicable hint deductions.\n- The maximum available score across all checkpoints and the final boss is 3,500 points before penalties.",
   },
   {
     id: 5,

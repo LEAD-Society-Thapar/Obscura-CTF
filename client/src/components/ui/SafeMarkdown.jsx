@@ -34,7 +34,7 @@ function remarkHtmlAsText() {
 
 const REMARK_PLUGINS = [remarkGfm, remarkHtmlAsText];
 
-// The telegram in CP 2.4 hides Cyrillic look-alike letters. It must use a system font stack that covers Cyrillic
+// Challenge text may use non-Latin look-alike letters (as an earlier telegram challenge did). Keep a system font stack that covers Cyrillic
 // (a Latin-only webfont would fall back per-glyph and give the letters away) and nothing that alters glyph shapes.
 const TELEGRAM_STYLE = {
   fontFamily: 'system-ui, "Segoe UI", Roboto, Arial, sans-serif',
@@ -82,7 +82,7 @@ function components(t) {
         {...props}
       />
     ),
-    // Code blocks never wrap: alignment matters (CP 5.4 is a number grid). The wrapper scrolls sideways instead.
+    // Code blocks never wrap: alignment matters (CP 5.3 is a number grid). The wrapper scrolls sideways instead.
     pre: ({ node, ...props }) => (
       <div className={`my-4 max-w-full overflow-x-auto rounded-card ${t.pre}`}>
         <pre

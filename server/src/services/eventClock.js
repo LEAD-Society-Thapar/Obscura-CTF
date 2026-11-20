@@ -7,7 +7,7 @@
 import { HttpError } from "../utils/httpError.js";
 
 export const EVENT_ROW_ID = 1;
-export const DEFAULT_DURATION_MINUTES = 90;
+export const DEFAULT_DURATION_MINUTES = 60;
 
 // What a team (or the admin page, with extraMs = 0) sees. `remainingMs` is what clients should count down from:
 // it does not depend on the client's own clock being right. While paused it stays constant.

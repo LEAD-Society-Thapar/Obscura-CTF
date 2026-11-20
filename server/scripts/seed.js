@@ -43,7 +43,7 @@ const check = ({ error }, what) => {
 };
 
 // ---------- Flags ----------
-const ids = CHECKPOINTS.map((cp) => cp.id); // 20 act checkpoints + "final" (already the last entry)
+const ids = CHECKPOINTS.map((cp) => cp.id); // 15 act checkpoints + "final" (already the last entry)
 let flags = loadFlagsFile();
 if (!flags) {
   const bar = "!".repeat(78);
