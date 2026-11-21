@@ -1,6 +1,6 @@
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { useCountdown } from "../../hooks/useCountdown.js";
-import { FLAG_CLOSE, FLAG_INNER_PLACEHOLDER, FLAG_OPEN, innerFlag, wrapFlag } from "../../lib/config.js";
+import { FLAG_CLOSE, FLAG_OPEN, innerFlag, wrapFlag } from "../../lib/config.js";
 import Button from "../ui/Button.jsx";
 import Spinner from "../ui/Spinner.jsx";
 
@@ -26,6 +26,7 @@ const STALE = new Set([
 // disabledReason: text shown instead of accepting input (clock not running).
 export default function FlagForm({ onSubmit, onSolved, onMissed, onWrong, onStale, attempts = null, disabledReason = null }) {
   const id = useId();
+  const inputRef = useRef(null);
   const [flag, setFlag] = useState("");
   const [state, setState] = useState({ kind: "idle" });
   const [blockedUntil, setBlockedUntil] = useState(null);
@@ -125,30 +126,38 @@ export default function FlagForm({ onSubmit, onSolved, onMissed, onWrong, onStal
         Flag: your answer goes between OBSCURA{"{"} and {"}"}
       </label>
       <div className="flex flex-col gap-3 sm:flex-row">
-        {/* OBSCURA{ and } are fixed around the input: teams type only the answer between the braces. */}
+        {/* Reads OBSCURA{} with the cursor right after "{". The input is only as wide as what was typed (an
+            invisible copy of the text in the same grid cell sizes it), so "}" follows the answer. Teams type only the
+            answer between the braces. Clicking anywhere in the box focuses the input. */}
         <div
-          className={`flex min-w-0 flex-1 items-center rounded-card border bg-ink/80 px-4 py-3 font-mono text-lg focus-within:outline-2 focus-within:outline-gold ${
+          onClick={() => inputRef.current?.focus()}
+          className={`flex min-w-0 flex-1 cursor-text items-center rounded-card border bg-ink/80 px-4 py-3 font-mono text-lg focus-within:outline-2 focus-within:outline-gold ${
             confirming ? "border-gold" : "border-line"
           } ${blocked || submitting || off ? "opacity-60" : ""}`}
         >
           <span aria-hidden="true" className="shrink-0 text-gold-soft select-none">
             {FLAG_OPEN}
           </span>
-          <input
-            id={`${id}-flag`}
-            value={flag}
-            onChange={(e) => {
-              setFlag(e.target.value);
-              if (confirming || state.kind === "error" || state.kind === "wrong") setState({ kind: "idle" });
-            }}
-            placeholder={FLAG_INNER_PLACEHOLDER}
-            autoComplete="off"
-            autoCapitalize="off"
-            spellCheck={false}
-            disabled={blocked || submitting || off}
-            aria-describedby={`${id}-status`}
-            className="min-w-0 flex-1 bg-transparent px-1 text-bone placeholder:text-muted/70 focus:outline-none"
-          />
+          <span className="inline-grid min-w-0">
+            <span aria-hidden="true" className="invisible col-start-1 row-start-1 overflow-hidden whitespace-pre pr-0.5">
+              {flag}
+            </span>
+            <input
+              ref={inputRef}
+              id={`${id}-flag`}
+              value={flag}
+              onChange={(e) => {
+                setFlag(e.target.value);
+                if (confirming || state.kind === "error" || state.kind === "wrong") setState({ kind: "idle" });
+              }}
+              autoComplete="off"
+              autoCapitalize="off"
+              spellCheck={false}
+              disabled={blocked || submitting || off}
+              aria-describedby={`${id}-status`}
+              className="col-start-1 row-start-1 w-full min-w-0.5 bg-transparent p-0 text-bone focus:outline-none"
+            />
+          </span>
           <span aria-hidden="true" className="shrink-0 text-gold-soft select-none">
             {FLAG_CLOSE}
           </span>

@@ -11,10 +11,9 @@ export const EVENT_NAME = "OBSCURA";
 // Designs show OBSCURA{...}; the original plan said SAT{...}. Needs a decision.
 export const FLAG_PREFIX = "OBSCURA";
 export const FLAG_PLACEHOLDER = `${FLAG_PREFIX}{...}`;
-// The flag form shows "OBSCURA{" and "}" around the input: teams type only what goes between the braces.
+// The flag form shows "OBSCURA{}" with the cursor between the braces; the "}" moves along as the team types.
 export const FLAG_OPEN = `${FLAG_PREFIX}{`;
 export const FLAG_CLOSE = "}";
-export const FLAG_INNER_PLACEHOLDER = "your answer";
 
 // What the team typed -> the answer between the braces. A pasted full flag (OBSCURA{answer}) is unwrapped so the
 // wrapper is never doubled.
