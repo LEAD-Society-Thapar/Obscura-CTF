@@ -126,6 +126,8 @@ function checkProgress(p, label, expect) {
     }
   }
   ok(p.team.points === expect.points, `${label}: points ${p.team.points}, expected ${expect.points}`);
+  const c = p.team.coins;
+  ok(!!c && c.spent === expect.coinsSpent && c.left === c.total - c.spent, `${label}: coins ${JSON.stringify(c)}, expected ${expect.coinsSpent} spent`);
   ok(p.relicsCollected === expect.relics, `${label}: relicsCollected ${p.relicsCollected}, expected ${expect.relics}`);
   ok(p.stats.solved === expect.solved, `${label}: stats.solved ${p.stats.solved}, expected ${expect.solved}`);
 }
@@ -183,7 +185,7 @@ try {
 
   const slug = (cp) => deriveGateSlug(teamId, cp.id);
   const cpById = (id) => CHECKPOINTS.find((c) => c.id === id);
-  const expect = { points: 0, relics: 0, solved: 0 };
+  const expect = { points: 0, relics: 0, solved: 0, coinsSpent: 0 };
 
   // ----- before any solve -----
   let p = (await call("GET", "/game/progress")).data;
@@ -261,13 +263,30 @@ try {
       r = await call("POST", `/game/gate/${slug(cp)}/hint`, { level });
       const h = cp.hints.find((x) => x.id === level);
       ok(r.status === 200 && r.data?.hint?.text === h.text, `${label}: hint ${level} reveal -> ${r.status}`);
-      if (!revealed.has(`${cp.id}:${level}`)) expect.points -= h.cost;
+      if (!revealed.has(`${cp.id}:${level}`)) expect.coinsSpent += h.cost; // coins, never points
       revealed.add(`${cp.id}:${level}`);
+    }
+    // Coins: a hint the team can't afford is refused (needs migration 004 to take coins away for the test).
+    if (cp.id === "2.1") {
+      const before = (await call("GET", "/game/progress")).data.team.coins;
+      const set = await db.from("teams").update({ coins_adjust: -(before.left - 5) }).eq("id", teamId);
+      if (set.error) {
+        log(`coins: skipped the "not enough coins" check (${set.error.message})`);
+      } else {
+        r = await call("POST", `/game/gate/${slug(cp)}/hint`, { level: 1 });
+        ok(r.status === 409 && r.data?.code === "NOT_ENOUGH_COINS", `2.1: hint with 5 coins left -> ${r.status} ${r.data?.code}`);
+        rowsOf(await db.from("teams").update({ coins_adjust: 0 }).eq("id", teamId));
+        log("coins: a hint the team cannot afford is refused");
+      }
     }
     if (cp.id === "1.1") {
       r = await call("POST", `/game/gate/${slug(cp)}/hint`, { level: 1 }); // again: must not charge twice
       ok(r.status === 200, "1.1: re-revealing hint 1 -> 200");
-      // No wrong answer here: a team gets one attempt per checkpoint, so it would close 1.1 (see test/clock.test.js).
+      // One wrong answer: it uses 1 of 3 attempts and the gate stays open (the right answer follows below).
+      r = await submit(slug(cp), "OBSCURA{definitely-not-it}");
+      ok(r.status === 200 && r.data?.correct === false && r.data?.missed === false && r.data?.attemptsLeft === 2, `1.1: wrong answer -> ${r.status} attemptsLeft=${r.data?.attemptsLeft}`);
+      r = await call("GET", `/game/gate/${slug(cp)}`);
+      ok(r.data?.checkpoint?.status === "current" && r.data?.checkpoint?.attempts?.left === 2, "1.1: still open with 2 attempts left");
     }
 
     // The final must be refused before the last act checkpoint is solved (strict order + relic guard).
@@ -330,15 +349,15 @@ try {
     return n + cpById(id).hints.find((h) => h.id === Number(lvl)).cost;
   }, 0);
   const totalPts = CHECKPOINTS.reduce((n, c) => n + c.points, 0);
-  ok(p.team.points === totalPts - hintCost, `end: points ${p.team.points}, expected ${totalPts} - ${hintCost}`);
-  ok(p.stats.hintPointsSpent === hintCost && p.stats.hintsUsed === revealed.size, "end: hint stats");
+  ok(p.team.points === totalPts, `end: points ${p.team.points}, expected ${totalPts} (hints cost coins, not points)`);
+  ok(p.stats.coinsSpent === hintCost && p.team.coins.spent === hintCost && p.stats.hintsUsed === revealed.size, "end: hint and coin stats");
   // The leaderboard is admin only: a team must not be able to read other teams' scores.
   r = await call("GET", "/game/leaderboard");
   ok(r.status === 404 && !r.data?.rows, `end: team can read the leaderboard (${r.status}, expected 404)`);
   r = await call("GET", "/admin/leaderboard");
   ok(r.status === 401 || r.status === 403, `end: team cookie opens the admin leaderboard (${r.status})`);
   ok(alternatesTested >= 3, `alternates tested: ${alternatesTested}`);
-  log(`end: finished, ${p.stats.solved}/${GATES} solved, ${p.team.points} pts (= ${totalPts} - ${hintCost} hints), leaderboard closed to teams`);
+  log(`end: finished, ${p.stats.solved}/${GATES} solved, ${p.team.points} pts, ${hintCost} coins spent on hints, leaderboard closed to teams`);
 } catch (e) {
   if (!(e instanceof Fatal)) failures.push(`crashed: ${e.message}`);
   log(`STOPPED: ${e.message}`);

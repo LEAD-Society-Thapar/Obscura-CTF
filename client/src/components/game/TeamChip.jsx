@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
 import { useTeam } from "../../hooks/useGameData.js";
-import { formatPoints } from "../../lib/format.js";
+import { formatCoins, formatPoints } from "../../lib/format.js";
 import TeamAvatar from "./TeamAvatar.jsx";
 
-// Navbar team chip: avatar, "Team 07", points. Links to the team dashboard.
+// Navbar team chip: avatar, "Team 07", points and coins. Links to the team dashboard.
 export default function TeamChip() {
   const { team } = useTeam();
 
@@ -14,13 +14,16 @@ export default function TeamChip() {
   return (
     <Link
       to="/challenges"
-      aria-label={`${team.name}, ${team.points} points. Open team dashboard`}
+      aria-label={`${team.name}, ${team.points} points${team.coins ? `, ${team.coins.left} coins` : ""}. Open team dashboard`}
       className="flex items-center gap-2 rounded-chip border border-line bg-ink-soft px-1.5 py-1 transition-colors hover:border-gold-soft sm:px-3"
     >
       <TeamAvatar className="size-8 sm:size-9" />
       <span className="hidden flex-col leading-tight sm:flex">
         <span className="text-xs text-muted">{team.name}</span>
-        <span className="font-heading font-bold text-gold">{formatPoints(team.points)}</span>
+        <span className="font-heading font-bold text-gold">
+          {formatPoints(team.points)}
+          {team.coins && <span className="ml-2 font-sans text-xs font-normal text-muted">{formatCoins(team.coins.left)}</span>}
+        </span>
       </span>
       <span className="pr-1 font-heading text-sm font-bold text-gold sm:hidden">{team.points}</span>
     </Link>

@@ -3,7 +3,7 @@
 // No flags here, ever: in mock mode any flag ending in "}" is accepted (see mockApi.js).
 //
 // Initial state matches the designs: Team 07, 425 pts, Act 2 in progress, CP 2.1 solved, CP 2.2 current,
-// 2 hints used (-40), 1/5 relics (The Rusted Reel), streak 2.
+// 2 hints used (20 of 120 coins), 1/5 relics (The Rusted Reel), streak 2.
 // Values marked PLACEHOLDER are made up and need real content.
 
 // Countdown starts at 00:59:45 from page load.
@@ -18,11 +18,12 @@ export const team = {
   name: "Team 07",
   avatarSlot: "team-avatar",
   points: 425, // server-authoritative; not derived from checkpoint points
+  coins: { total: 120, spent: 20, left: 100 }, // hints are paid in coins, never points
 };
 
 export const stats = {
   hintsUsed: 2,
-  hintPointsSpent: 40,
+  coinsSpent: 20,
   streak: 2,
 };
 
@@ -89,8 +90,8 @@ const placeholderCp = (act, index, status, category = "Misc", points = 100) => (
   posterSlot: `cp-${act}-${index}-poster`,
   downloads: [],
   hints: [
-    { id: 1, cost: 20, teaser: "PLACEHOLDER hint teaser.", text: "PLACEHOLDER hint text." },
-    { id: 2, cost: 40, teaser: "PLACEHOLDER second hint.", text: "PLACEHOLDER second hint text." },
+    { id: 1, cost: 10, teaser: "PLACEHOLDER hint teaser.", text: "PLACEHOLDER hint text." },
+    { id: 2, cost: 15, teaser: "PLACEHOLDER second hint.", text: "PLACEHOLDER second hint text." },
   ],
   reel: {
     quote: "PLACEHOLDER: a filmi dialogue goes here.",
@@ -119,7 +120,7 @@ export const checkpoints = [
     story: "PLACEHOLDER: The train pulls into Bombay Central. Somewhere in this city, the Archive's first reel is hidden.",
     posterSlot: "cp-2-1-poster",
     downloads: [],
-    hints: [{ id: 1, cost: 20, teaser: "PLACEHOLDER hint teaser.", text: "PLACEHOLDER hint text.", revealed: true }],
+    hints: [{ id: 1, cost: 10, teaser: "PLACEHOLDER hint teaser.", text: "PLACEHOLDER hint text.", revealed: true }],
     reel: {
       quote: "PLACEHOLDER: a filmi dialogue goes here.",
       clue: "A new location has been marked on your map. Proceed to the next gate.",
@@ -142,11 +143,11 @@ export const checkpoints = [
     hints: [
       {
         id: 1,
-        cost: 20,
+        cost: 10,
         teaser: "Maybe the dialogue isn't just a dialogue...",
         text: "PLACEHOLDER: real hint 1 text.",
       },
-      { id: 2, cost: 40, teaser: "PLACEHOLDER second hint teaser.", text: "PLACEHOLDER: real hint 2 text." },
+      { id: 2, cost: 15, teaser: "PLACEHOLDER second hint teaser.", text: "PLACEHOLDER: real hint 2 text." },
     ],
     reel: {
       quote: "Bade bade shehron mein aisi chhoti chhoti baatein hoti rehti hain...",
@@ -166,7 +167,7 @@ export const checkpoints = [
     story: "PLACEHOLDER: Story scene for City Strings.",
     posterSlot: "cp-2-3-poster",
     downloads: [],
-    hints: [{ id: 1, cost: 20, teaser: "PLACEHOLDER hint teaser.", text: "PLACEHOLDER hint text." }],
+    hints: [{ id: 1, cost: 10, teaser: "PLACEHOLDER hint teaser.", text: "PLACEHOLDER hint text." }],
     reel: {
       quote: "PLACEHOLDER: a filmi dialogue goes here.",
       clue: "The Wax Seal is yours. A new act opens on your map.",
@@ -201,10 +202,10 @@ export const relics = [
 const minutesAgo = (m) => new Date(Date.now() - m * 60_000).toISOString();
 export const activity = [
   { id: 6, type: "solve", cpId: "2.1", delta: 100, at: minutesAgo(3) },
-  { id: 5, type: "hint", cpId: "2.1", delta: -20, at: minutesAgo(5) },
+  { id: 5, type: "hint", cpId: "2.1", delta: 0, coins: -10, at: minutesAgo(5) },
   { id: 4, type: "relic", relicId: "rusted-reel", delta: 0, at: minutesAgo(9) },
   { id: 3, type: "solve", cpId: "1.3", delta: 100, at: minutesAgo(9) },
-  { id: 2, type: "hint", cpId: "1.2", delta: -20, at: minutesAgo(14) },
+  { id: 2, type: "hint", cpId: "1.2", delta: 0, coins: -10, at: minutesAgo(14) },
 ];
 
 // Design 8.
@@ -221,35 +222,35 @@ export const rules = [
     section: "I. The Hunt",
     icon: "scroll",
     title: "Five Acts, Fifteen Checkpoints",
-    body: "- OBSCURA consists of five Acts, each containing three checkpoints.\n- Checkpoints open in sequence. Closing a checkpoint, by solving it or by missing it with a wrong answer, opens the next one.\n- Finish all five Acts to unlock the final face-off against Mogambo.\n- Each finished Act rewards your team with one unique relic, even if you missed checkpoints in it.\n- Collect all five relics to access the final challenge.",
+    body: "- OBSCURA consists of five Acts, each containing three checkpoints.\n- Checkpoints open in sequence. Closing a checkpoint, by solving it or by using all three attempts on it, opens the next one.\n- Finish all five Acts to unlock the final face-off against Mogambo.\n- Each finished Act rewards your team with one unique relic, even if you missed checkpoints in it.\n- Collect all five relics to access the final challenge.",
   },
   {
     id: 3,
     section: "I. The Hunt",
     icon: "mask",
     title: "Submitting Flags",
-    body: "- Submit answers in the format `OBSCURA{answer}`. You may also submit the bare answer without the wrapper.\n- Answers are case-insensitive. Spaces, underscores, hyphens and commas are ignored, so `Red Door`, `red door` and `RED-DOOR` are the same answer.\n- Read challenge instructions carefully and give exactly what is asked for (the right numbers, words and order).\n- **You get one attempt per checkpoint.** A wrong answer closes that checkpoint with zero points and opens the next one. It cannot be answered again.\n- Agree on the answer as a team and check its format before you submit. You will be asked to confirm.",
+    body: "- Submit answers in the format `OBSCURA{answer}`. You may also submit the bare answer without the wrapper.\n- Answers are case-insensitive. Spaces, underscores, hyphens and commas are ignored, so `Red Door`, `red door` and `RED-DOOR` are the same answer.\n- Read challenge instructions carefully and give exactly what is asked for (the right numbers, words and order).\n- **You get three attempts per checkpoint, including the final face-off.** A wrong answer uses one attempt. After the third wrong answer the checkpoint closes with zero points and the next one opens.\n- Agree on the answer as a team and check its format before you submit. You will be asked to confirm.",
   },
   {
     id: 4,
     section: "II. Scoring and Hints",
     icon: "check",
     title: "Points and Scoring",
-    body: "- Every checkpoint carries a predefined point value.\n- Points are awarded for correctly solving checkpoints. A missed checkpoint scores zero.\n- Hint usage deducts points from your score.\n- Your team's score reflects points earned after applicable hint deductions.\n- The maximum available score across all checkpoints and the final boss is 3,500 points before penalties.",
+    body: "- Points grow with every act. A correct answer scores **20 points in Act 1, 40 in Act 2, 70 in Act 3, 100 in Act 4 and 120 in Act 5**. The final face-off is worth **150 points**.\n- A wrong answer scores zero and uses one of your three attempts. There is no negative marking.\n- Hints never cost points. They are paid for with coins (see Hints and Coins).\n- The maximum score is 1,200 points.\n- Ranking: more points first. On equal points, the team that reached its last correct answer earlier ranks higher. If that is also equal, the team with more coins left ranks higher.",
   },
   {
     id: 5,
     section: "II. Scoring and Hints",
     icon: "bulb",
-    title: "Hints and Penalties",
-    body: "- Each checkpoint provides two optional hints. Hints unlock sequentially.\n- Hint 1 costs 20% of that checkpoint's points. Hint 2 costs a further 40%, so using both costs 60%.\n- The cost is deducted from your score when you reveal the hint, whether or not you then solve the checkpoint.\n- Use hints strategically. Sometimes figuring things out yourself is worth more than the shortcut.",
+    title: "Hints and Coins",
+    body: "- Every team starts with **120 coins**.\n- Each checkpoint has two optional hints, unlocked in order. On every checkpoint, **hint 1 costs 10 coins** and **hint 2 costs 15 coins**.\n- Coins are spent the moment you reveal a hint, whether or not you then solve the checkpoint. When your coins run out, no more hints.\n- 120 coins covers hint 1 on 12 checkpoints, or both hints on only 4. Spend them wisely: coins left over can break a tie.",
   },
   {
     id: 6,
     section: "III. Tools and Fair Play",
     icon: "scroll",
     title: "No Outside Help",
-    body: "- No internet searches, other websites, apps or AI assistants during the hunt. It is played on this site only, in full screen.\n- Where a checkpoint needs a tool, such as a decoder or a calculator, it is built into that checkpoint's page. Built-in tools are free and never cost points.\n- Pen and paper are allowed for working things out.\n- Using any other device, tool or outside help may result in disqualification at event staff discretion.",
+    body: "- No internet searches, other websites, apps or AI assistants during the hunt. It is played on this site only, in full screen.\n- Where a checkpoint needs a tool, such as a decoder or a calculator, it is built into that checkpoint's page. Built-in tools are free and never cost coins.\n- Pen and paper are allowed for working things out.\n- Using any other device, tool or outside help may result in disqualification at event staff discretion.",
   },
   {
     id: 7,
@@ -263,7 +264,7 @@ export const rules = [
     section: "III. Tools and Fair Play",
     icon: "shield",
     title: "Fair Play and Prohibited Activities",
-    body: "- Do not share flags, hints, or solutions with other competing teams.\n- Do not attack the CTF platform, its infrastructure, or other teams' accounts.\n- Unauthorized access, exploitation, or disruption of competition infrastructure is prohibited.\n- Brute-force attacks against the platform or challenge infrastructure are prohibited.\n- Do not manipulate scores, alter game progress, or interfere with another team's participation.\n- **Stay in full screen while the clock is running.** Every exit from full screen is a violation, and so is switching to another window, app or desktop (Alt+Tab, Task View, touchpad swipes). After 3, your team is disqualified: its timer stops and no flags or hints are accepted. Only event staff can restore access.\n- Violations may result in disqualification at the organizers' discretion.",
+    body: "- Do not share flags, hints, or solutions with other competing teams.\n- Do not attack the CTF platform, its infrastructure, or other teams' accounts.\n- Unauthorized access, exploitation, or disruption of competition infrastructure is prohibited.\n- Brute-force attacks against the platform or challenge infrastructure are prohibited.\n- Do not manipulate scores, alter game progress, or interfere with another team's participation.\n- **Stay in full screen while the clock is running.** Every exit from full screen is a violation, and so is switching to another window, app or desktop (Alt+Tab, Task View, touchpad swipes). After 3, your team is disqualified: its timer stops and no flags or hints are accepted. Only event staff can restore access.\n- Violations may result in disqualification at event staff discretion.",
   },
   {
     id: 9,

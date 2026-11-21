@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { formatDelta } from "../../lib/format.js";
+import { formatCoins } from "../../lib/format.js";
 import Button from "../ui/Button.jsx";
 import Icon from "../ui/Icon.jsx";
 import SafeMarkdown from "../ui/SafeMarkdown.jsx";
 import Spinner from "../ui/Spinner.jsx";
 
-// Hint ladder (design 4). Each hint has its own `cost`; hints unlock in order and need a confirm click.
-// onReveal(hintId) should resolve once the hint is revealed (the parent reloads the checkpoint).
-export default function HintPanel({ hints, onReveal, readOnly = false }) {
+// Hint ladder (design 4). Each hint costs `cost` coins (never points); hints unlock in order and need a confirm
+// click. coinsLeft: the team's coins (null = unknown, don't block). onReveal(hintId) resolves once revealed.
+export default function HintPanel({ hints, onReveal, readOnly = false, coinsLeft = null }) {
   const [confirming, setConfirming] = useState(null);
   const [pending, setPending] = useState(null);
   const [error, setError] = useState("");
@@ -34,8 +34,15 @@ export default function HintPanel({ hints, onReveal, readOnly = false }) {
       <h2 id="hints-heading" className="sr-only">
         Hints
       </h2>
+      {!readOnly && coinsLeft != null && (
+        <p className="flex items-center gap-1.5 text-sm text-muted">
+          <Icon name="coin" className="size-4 text-gold" />
+          Your team has <strong className="font-heading text-gold">{formatCoins(coinsLeft)}</strong> for hints.
+        </p>
+      )}
       {visible.map((h) => {
-        const cost = `${formatDelta(-h.cost)} pts`;
+        const cost = formatCoins(h.cost);
+        const affordable = coinsLeft == null || coinsLeft >= h.cost;
 
         if (h.revealed) {
           return (
@@ -78,15 +85,19 @@ export default function HintPanel({ hints, onReveal, readOnly = false }) {
                 <div className="flex shrink-0 gap-2">
                   <Button size="sm" caps={false} onClick={() => reveal(h)} disabled={pending === h.id}>
                     {pending === h.id && <Spinner />}
-                    Spend {h.cost} pts
+                    Spend {formatCoins(h.cost)}
                   </Button>
                   <Button size="sm" variant="ghost" caps={false} onClick={() => setConfirming(null)}>
                     Cancel
                   </Button>
                 </div>
-              ) : (
+              ) : affordable ? (
                 <Button size="sm" variant="outline" caps={false} className="shrink-0" onClick={() => setConfirming(h.id)}>
                   Reveal Hint ({cost})
+                </Button>
+              ) : (
+                <Button size="sm" variant="outline" caps={false} className="shrink-0" disabled>
+                  Not enough coins
                 </Button>
               ))}
           </div>

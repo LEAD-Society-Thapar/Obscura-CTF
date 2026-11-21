@@ -1,9 +1,9 @@
 import { HttpError } from "../utils/httpError.js";
 
 // Flag submissions: at most one per 10 s per team.
-// A team gets a single attempt per checkpoint (see services/teamState.js), so there is no wrong-streak cooldown
-// any more; this gap only stops two team-mates from firing answers at the same gate at the same moment.
-// In-memory: per server instance. The one-attempt rule itself is enforced from the database, not from here.
+// A team gets 3 attempts per checkpoint (MAX_ATTEMPTS in services/teamState.js). This gap stops two team-mates from
+// firing answers at the same gate at the same moment, and makes each guess cost 10 s of a 60-minute hunt.
+// In-memory: per server instance. The attempt limit itself is enforced from the database, not from here.
 // Error code matches client/src/components/game/FlagForm.jsx: TOO_FAST with retryAfter (seconds).
 const MIN_GAP_MS = 10_000;
 

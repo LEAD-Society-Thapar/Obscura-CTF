@@ -29,7 +29,7 @@ function useResource(fetcher, deps) {
 }
 
 // Adds solvedCount / missedCount / total / status ("done" | "current" | "locked") to each act, from its checkpoints.
-// An act is done when every checkpoint is closed: solved, or missed with a wrong answer ("failed").
+// An act is done when every checkpoint is closed: solved, or missed after every attempt was used ("failed").
 function withActStats(act) {
   const total = act.checkpoints.length;
   const solvedCount = act.checkpoints.filter((c) => c.status === "solved").length;
@@ -155,7 +155,7 @@ export function useRules() {
 export function useGameActions() {
   const { refresh } = useGameStore();
 
-  // One attempt per checkpoint. Resolves { correct, missed, reel, next, relic, ... }; a wrong answer closes the
+  // A few attempts per checkpoint. Resolves { correct, missed, attemptsLeft, reel, next, relic, ... }; the last wrong answer closes the
   // checkpoint too, so progress is refreshed either way. Rejects with ApiError (data.code: TOO_FAST |
   // ALREADY_SOLVED | ALREADY_ATTEMPTED | LOCKED | EVENT_NOT_STARTED | EVENT_PAUSED | EVENT_ENDED).
   const submitFlag = useCallback(

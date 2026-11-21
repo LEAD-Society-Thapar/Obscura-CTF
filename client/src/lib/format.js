@@ -18,6 +18,7 @@ export function formatDuration(ms) {
 }
 
 export const formatPoints = (n) => `${n} pts`;
+export const formatCoins = (n) => `${n} ${Math.abs(n) === 1 ? "coin" : "coins"}`;
 
 // Signed delta for activity rows and hint costs: +100 / −20.
 export const formatDelta = (n) => (n > 0 ? `+${n}` : `−${Math.abs(n)}`);

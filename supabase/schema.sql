@@ -20,6 +20,7 @@ create table if not exists teams (
   fs_last_violation_at   timestamptz,
   fs_locked_at           timestamptz,           -- set while locked out for leaving full screen
   fs_locked_remaining_ms bigint,                -- time left when locked; restored on unlock
+  coins_adjust   int    not null default 0,     -- coins given to this team only (migration 004)
   created_at     timestamptz not null default now()
 );
 
@@ -31,7 +32,8 @@ create table if not exists checkpoints (
   accepted_hashes  text[] not null default '{}'      -- hashes of alternative accepted answers (migration 001)
 );
 
--- ---------- Per-team state. A team's points = sum(solves) - sum(hints) + points_adjust ----------
+-- ---------- Per-team state. Points = sum(solves) + points_adjust. Coins left = START_COINS (server)
+-- + event_state.coins_bonus + teams.coins_adjust - sum(team_hints.cost) ----------
 create table if not exists team_solves (
   team_id    uuid not null references teams(id) on delete cascade,
   cp_id      text not null references checkpoints(id),
@@ -76,7 +78,8 @@ create table if not exists event_state (
   total_paused_ms     bigint not null default 0,
   duration_minutes    int not null default 60,
   leaderboard_frozen  boolean not null default false,
-  fullscreen_required boolean not null default true  -- full-screen invigilation (migration 003)
+  fullscreen_required boolean not null default true, -- full-screen invigilation (migration 003)
+  coins_bonus         int not null default 0           -- coins given to every team (migration 004)
 );
 insert into event_state (id) values (1) on conflict do nothing;
 

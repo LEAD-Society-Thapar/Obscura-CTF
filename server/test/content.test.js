@@ -58,7 +58,7 @@ test("relic is awarded on the last checkpoint of each act", () => {
 
 // Team that solved all of act 1 (so it holds relic 1) and revealed hint 1 on 2.1.
 const solves = CHECKPOINTS.filter((c) => c.act === 1).map((c) => ({ cp_id: c.id, points: c.points, solved_at: new Date().toISOString() }));
-const hints = [{ cp_id: "2.1", hint_id: 1, cost: 20, revealed_at: new Date().toISOString() }];
+const hints = [{ cp_id: "2.1", hint_id: 1, cost: 10, revealed_at: new Date().toISOString() }];
 const relics = [{ relic_id: ACTS[0].relicId, earned_at: new Date().toISOString() }];
 const state = new TeamState({ id: "t1", name: "T", points_adjust: 0 }, solves, hints, relics);
 
