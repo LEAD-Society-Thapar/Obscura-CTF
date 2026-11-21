@@ -10,7 +10,7 @@ import { ACTS, CHECKPOINTS, FINAL_BOSS, RELICS } from "../data/game.js";
 import { deriveGateSlug } from "../utils/gate.js";
 import { HttpError } from "../utils/httpError.js";
 import { coinsView } from "./coins.js";
-import { EVENT_ROW_ID } from "./eventClock.js";
+import { readEventState } from "./eventState.js";
 import { fullscreenView, teamClock } from "./fullscreen.js";
 
 const rowsOf = ({ data, error }) => {
@@ -67,10 +67,18 @@ export function pointsOf(team, solves) {
 export function rankTeams(teams, solves, hints, youId = null, ev = null) {
   const lastSolveMs = (rows) =>
     rows.length ? Math.max(...rows.map((s) => new Date(s.solved_at).getTime())) : Number.POSITIVE_INFINITY;
+  // Grouped once: filtering every table per team is O(teams x rows), slow with hundreds of teams.
+  const group = (rows) => {
+    const m = new Map();
+    for (const r of rows) (m.get(r.team_id) ?? m.set(r.team_id, []).get(r.team_id)).push(r);
+    return m;
+  };
+  const solvesOf = group(solves);
+  const hintsOf = group(hints);
   return teams
     .map((t) => {
-      const s = solves.filter((x) => x.team_id === t.id);
-      const h = hints.filter((x) => x.team_id === t.id);
+      const s = solvesOf.get(t.id) ?? [];
+      const h = hintsOf.get(t.id) ?? [];
       const coinsLeft = coinsView(ev, t, h).left;
       return { teamId: t.id, team: t.name, points: pointsOf(t, s), solved: s.length, coinsLeft, last: lastSolveMs(s) };
     })
@@ -78,20 +86,29 @@ export function rankTeams(teams, solves, hints, youId = null, ev = null) {
     .map(({ last, ...r }, i) => ({ ...r, rank: i + 1, isYou: r.teamId === youId }));
 }
 
+// The team row with all of its rows in ONE request: PostgREST embeds the child tables through their foreign keys
+// (and filters the embedded submissions to wrong answers). Six separate requests per page load were the main cost
+// under load. "*" on teams so this keeps working before migrations 002-004 add their columns.
+export const TEAM_WITH_ROWS =
+  "*, team_solves(cp_id, points, solved_at), team_hints(cp_id, hint_id, cost, revealed_at), team_relics(relic_id, earned_at), submissions(cp_id, submitted, created_at)";
+
 export async function loadTeamState(teamId) {
   const db = requireDb();
-  const [teams, solves, hints, relics, misses, events] = await Promise.all([
-    // "*" so this keeps working before migration 002 (teams.extra_time_ms) has been applied.
-    db.from("teams").select("*").eq("id", teamId),
-    db.from("team_solves").select("cp_id, points, solved_at").eq("team_id", teamId),
-    db.from("team_hints").select("cp_id, hint_id, cost, revealed_at").eq("team_id", teamId),
-    db.from("team_relics").select("relic_id, earned_at").eq("team_id", teamId),
-    db.from("submissions").select("cp_id, submitted, created_at").eq("team_id", teamId).eq("correct", false),
-    db.from("event_state").select("*").eq("id", EVENT_ROW_ID),
-  ]).then((results) => results.map(rowsOf));
+  const [rows, event] = await Promise.all([
+    db.from("teams").select(TEAM_WITH_ROWS).eq("id", teamId).eq("submissions.correct", false).then(rowsOf),
+    readEventState(),
+  ]);
 
-  if (!teams[0]) throw new HttpError(401, "Team no longer exists, log in again");
-  const { password_hash: _passwordHash, ...team } = teams[0];
+  if (!rows[0]) throw new HttpError(401, "Team no longer exists, log in again");
+  const {
+    password_hash: _passwordHash,
+    team_solves: solves = [],
+    team_hints: hints = [],
+    team_relics: relics = [],
+    submissions: misses = [],
+    ...team
+  } = rows[0];
+  const events = [event];
 
   // A relic row is written when the act's last checkpoint closes. If that write was lost (the solve and the relic
   // are two separate inserts), put it back here so a team can never be locked out of the final by a failed request.

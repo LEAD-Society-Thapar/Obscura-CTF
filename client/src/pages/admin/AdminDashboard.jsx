@@ -120,8 +120,10 @@ export default function AdminDashboard() {
   useEffect(() => {
     load();
     const id = setInterval(load, REFRESH_MS);
-    // Instant refresh when anything changes (another organiser's action, a team's full-screen violation).
-    const off = subscribeToChanges(() => load());
+    // Instant refresh on changes for every team (another organiser's clock or coins action). Changes of one team
+    // (an answer, a full-screen exit) arrive with the 5 s refresh: reloading every team's rows on each of those
+    // would mean several full reloads a second with hundreds of teams playing.
+    const off = subscribeToChanges(null, () => load());
     return () => {
       clearInterval(id);
       off();
