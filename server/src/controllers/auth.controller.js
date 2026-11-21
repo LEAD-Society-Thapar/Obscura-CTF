@@ -26,7 +26,7 @@ export async function teamLogin(req, res) {
     .maybeSingle();
 
   if (error) throw error;
-  if (!row || !verifyPassword(password, row.password_hash)) {
+  if (!row || !(await verifyPassword(password, row.password_hash))) {
     throw new HttpError(401, "Wrong Team ID or password.");
   }
   const team = { id: row.id, name: row.name };

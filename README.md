@@ -57,6 +57,24 @@ Optional, against a real database: `npm run e2e -- --allow-db` walks all 21 gate
 (`e2e_team`), checks what the API reveals at each step, and deletes the team and its rows afterwards.
 It never touches other teams or the event clock. About 4 minutes (submissions are rate limited).
 
+### Load test
+`server/scripts/loadtest.js` plays a whole shortened event with bot teams (`LOADBOT-0001`..) against a running API:
+logins, the waiting screen, every gate with hints / wrong answers / misses / the final, team-mates polling, the admin
+dashboard and leaderboard open, and admin pause/resume/coins/time/attempt/full-screen actions. At the end it checks
+every bot's points and coins on its progress page, the admin overview, the leaderboard and in the database, then
+deletes the bots and puts the event clock back exactly as it was. It refuses to run unless the clock is idle.
+```bash
+# server/  (a local API with the code under test)
+NODE_ENV=production PORT=5055 node --env-file-if-exists=../.env src/index.js
+# repo root, in a second terminal: 48 teams, 70 devices, a 10-minute event (~13 min in all)
+npm run loadtest -- --base http://localhost:5055 --teams 48 --screens 70 --minutes 10
+# if a run was killed before it cleaned up
+npm run loadtest -- --cleanup-only
+```
+It uses the project's real Supabase database. **Keep it near the real event size.** 500 teams x 3 devices (with the code before
+the load fixes) overloaded it and the database stopped answering for ~10 minutes. The script stops itself if
+more than a quarter of requests fail.
+
 ### FLAG_PEPPER
 Flags are stored as `HMAC(FLAG_PEPPER, checkpointId + ":" + normalizedAnswer)`. `FLAG_PEPPER` must be the **same**
 value in the root `.env` of whoever runs `db:seed:flags` and in the Vercel environment variables. If they differ,

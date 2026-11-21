@@ -5,7 +5,8 @@ import { ACTS, RULES } from "../data/game.js";
 import { flagMatches, normalizeAnswer } from "../utils/gate.js";
 import { releaseAttempt } from "../middleware/submitLimiter.js";
 import { HttpError } from "../utils/httpError.js";
-import { assertRunning, assertStarted, EVENT_ROW_ID } from "../services/eventClock.js";
+import { assertRunning, assertStarted } from "../services/eventClock.js";
+import { readEventState } from "../services/eventState.js";
 import { fullscreenSupported, fullscreenView, teamClock, violationPatch } from "../services/fullscreen.js";
 import { notifyChange } from "../services/live.js";
 import {
@@ -51,11 +52,34 @@ const clockPayload = (ev, team) => {
 // wrong device clock does not matter. `fullscreen` tells every device whether to demand full screen.
 export async function getEventState(req, res) {
   const db = requireDb();
-  const [events, teams] = await Promise.all([
-    db.from("event_state").select("*").eq("id", EVENT_ROW_ID),
-    db.from("teams").select("*").eq("id", req.team.id), // "*": works before migrations 002 and 003
-  ]).then((results) => results.map(rowsOf));
-  res.json(clockPayload(events[0], teams[0]));
+  const [event, teams] = await Promise.all([
+    readEventState(), // cached for a second: every screen polls this
+    db.from("teams").select("*").eq("id", req.team.id).then(rowsOf), // "*": works before migrations 002 and 003
+  ]);
+  res.json(clockPayload(event, teams[0]));
+}
+
+// Flag hashes per checkpoint. They only change when an organiser re-runs `npm run db:seed:flags`, and every
+// submission needs them, so each server instance keeps them for FLAG_CACHE_MS (a re-seed applies within that).
+const FLAG_CACHE_MS = 15_000;
+const flagCache = new Map(); // cpId -> { at, promise }
+function flagRow(db, cpId) {
+  const hit = flagCache.get(cpId);
+  if (hit && Date.now() - hit.at < FLAG_CACHE_MS) return hit.promise;
+  // select("*") so this keeps working if migration 001 (accepted_hashes) has not been applied yet.
+  const promise = db
+    .from("checkpoints")
+    .select("*")
+    .eq("id", cpId)
+    .then(rowsOf)
+    .then((rows) => rows[0] ?? null);
+  const entry = { at: Date.now(), promise };
+  flagCache.set(cpId, entry);
+  promise.then(
+    (row) => !row && flagCache.get(cpId) === entry && flagCache.delete(cpId), // a missing row is not cached
+    () => flagCache.get(cpId) === entry && flagCache.delete(cpId)
+  );
+  return promise;
 }
 
 // POST /api/game/fullscreen/violation   A device of this team left full screen while the clock was running.
@@ -129,8 +153,7 @@ export async function submitFlag(req, res) {
   }
   const flag = String(req.body.flag);
 
-  // select("*") so this keeps working if migration 001 (accepted_hashes) has not been applied yet.
-  const [row] = rowsOf(await db.from("checkpoints").select("*").eq("id", cp.id));
+  const row = await flagRow(db, cp.id);
   if (!row) throw new Error(`Checkpoint ${cp.id} has no flag in the DB. Run npm run db:seed:flags.`);
 
   const correct = flagMatches(cp.id, flag, [row.flag_hash, ...(row.accepted_hashes ?? [])]);

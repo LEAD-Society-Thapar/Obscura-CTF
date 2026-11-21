@@ -12,6 +12,10 @@ const GameDataContext = createContext(null);
 // lock, so teams are not left waiting.
 const CLOCK_POLL_MS = 20_000;
 const CLOCK_POLL_WAITING_MS = 5_000;
+// After a "changed" message for every team (see the subscription below).
+const LIVE_MIN_DELAY_MS = 1_200;
+const LIVE_SPREAD_CLOCK_MS = 2_000; // start / pause / resume / extend: wanted quickly
+const LIVE_SPREAD_PROGRESS_MS = 6_000; // coins for everyone: not urgent
 
 // The server sends remainingMs; `deadline` is that turned into a time on THIS device, so the countdown is right
 // even when the device clock is wrong. Only set while the clock is running.
@@ -55,19 +59,26 @@ export function GameDataProvider({ children }) {
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, [team, refresh, refreshEvent]);
 
-  // Instant updates: the server says "changed" right after an organiser acts (lib/live.js). A small random delay
-  // spreads the refetches of every screen over half a second instead of all at the same instant.
+  // Instant updates: the server says "changed" right after something changes (lib/live.js).
+  // A change for this team only reaches its own few screens: refetch almost at once.
+  // A change for everyone reaches every screen of every team at the same instant, so each screen waits a random
+  // moment: the refetches spread over a few seconds instead of hundreds arriving in the same second. The wait also
+  // starts after LIVE_MIN_DELAY_MS, longer than the server's one-second cache of the clock row
+  // (server/src/services/eventState.js), so no screen can be handed the clock from before the change.
   const teamId = team?.id ?? null;
   useEffect(() => {
     if (!teamId || USE_MOCKS) return undefined;
     const timers = new Set();
-    const off = subscribeToChanges(({ kind, teamId: target }) => {
+    const off = subscribeToChanges(teamId, ({ kind, teamId: target }) => {
       if (target && target !== teamId) return; // another team's change
+      const wait = target
+        ? Math.random() * 300
+        : LIVE_MIN_DELAY_MS + Math.random() * (kind === "progress" ? LIVE_SPREAD_PROGRESS_MS : LIVE_SPREAD_CLOCK_MS);
       const id = setTimeout(() => {
         timers.delete(id);
         if (kind === "progress") refresh();
         else refreshEvent();
-      }, Math.random() * 500);
+      }, wait);
       timers.add(id);
     });
     return () => {

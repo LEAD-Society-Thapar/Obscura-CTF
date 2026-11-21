@@ -21,9 +21,11 @@ import {
   wouldOverdraw,
 } from "../services/coins.js";
 import { clockView, DEFAULT_DURATION_MINUTES, EVENT_ROW_ID } from "../services/eventClock.js";
+import { clearEventCache } from "../services/eventState.js";
 import { fullscreenSupported, FS_MAX_VIOLATIONS, forgivePatch, teamClock } from "../services/fullscreen.js";
 import { notifyChange } from "../services/live.js";
 import { checkpointById, isLastOfAct, MAX_ATTEMPTS, rankTeams, relicOfAct, TeamState } from "../services/teamState.js";
+import { fetchAll } from "../utils/fetchAll.js";
 import { HttpError } from "../utils/httpError.js";
 
 const MAX_MINUTES = 180;
@@ -46,6 +48,26 @@ async function readEvent(db) {
   return created;
 }
 
+// Every row of the per-team tables, for ALL teams. Paged (utils/fetchAll.js): a plain select stops at 1000 rows.
+// "*" on teams: optional columns (extra_time_ms, fs_*, coins_adjust) may not exist before their migrations.
+const allTeams = (db) => fetchAll(() => db.from("teams").select("*"), ["id"]);
+const allSolves = (db) => fetchAll(() => db.from("team_solves").select("team_id, cp_id, points, solved_at"), ["team_id", "cp_id"]);
+const allHints = (db) =>
+  fetchAll(() => db.from("team_hints").select("team_id, cp_id, hint_id, cost, revealed_at"), ["team_id", "cp_id", "hint_id"]);
+const allRelics = (db) => fetchAll(() => db.from("team_relics").select("team_id, relic_id, earned_at"), ["team_id", "relic_id"]);
+const allWrong = (db) =>
+  fetchAll(() => db.from("submissions").select("id, team_id, cp_id, submitted, created_at").eq("correct", false), ["id"]);
+
+// rows grouped by team_id, so building one row per team does not scan every table once per team.
+function byTeam(rows) {
+  const m = new Map();
+  for (const r of rows) {
+    if (!m.has(r.team_id)) m.set(r.team_id, []);
+    m.get(r.team_id).push(r);
+  }
+  return m;
+}
+
 function readMinutes(body) {
   const minutes = Number(body?.minutes);
   if (!Number.isInteger(minutes) || minutes === 0 || Math.abs(minutes) > MAX_MINUTES) {
@@ -57,13 +79,8 @@ function readMinutes(body) {
 // GET /api/admin/leaderboard   Final standings for the winners reveal. Teams never see other teams' scores or ranks.
 export async function leaderboard(_req, res) {
   const db = requireDb();
-  const [ev, teams, solves, hints] = await Promise.all([
-    readEvent(db),
-    // "*": coins_adjust may not exist before migration 004. Only the fields below leave this function.
-    db.from("teams").select("*").then(rowsOf),
-    db.from("team_solves").select("team_id, points, solved_at").then(rowsOf),
-    db.from("team_hints").select("team_id, cost").then(rowsOf),
-  ]);
+  // Only the fields rankTeams returns leave this function (not password hashes).
+  const [ev, teams, solves, hints] = await Promise.all([readEvent(db), allTeams(db), allSolves(db), allHints(db)]);
   res.json({ rows: rankTeams(teams, solves, hints, null, ev).map(({ isYou: _isYou, ...r }) => r) });
 }
 
@@ -72,19 +89,20 @@ export async function overview(_req, res) {
   const db = requireDb();
   const [ev, teams, solves, hints, relics, misses] = await Promise.all([
     readEvent(db),
-    db.from("teams").select("*").then(rowsOf), // "*": extra_time_ms may not exist before migration 002
-    db.from("team_solves").select("team_id, cp_id, points, solved_at").then(rowsOf),
-    db.from("team_hints").select("team_id, cp_id, hint_id, cost, revealed_at").then(rowsOf),
-    db.from("team_relics").select("team_id, relic_id, earned_at").then(rowsOf),
-    db.from("submissions").select("team_id, cp_id, submitted, created_at").eq("correct", false).then(rowsOf),
+    allTeams(db),
+    allSolves(db),
+    allHints(db),
+    allRelics(db),
+    allWrong(db),
   ]);
 
   const now = Date.now();
-  const of = (rows, teamId) => rows.filter((r) => r.team_id === teamId);
+  const groups = [solves, hints, relics, misses].map(byTeam);
+  const of = (i, teamId) => groups[i].get(teamId) ?? [];
   const ranks = new Map(rankTeams(teams, solves, hints, null, ev).map((r) => [r.teamId, r.rank]));
   const rows = teams
     .map(({ password_hash: _passwordHash, ...t }) => {
-      const state = new TeamState(t, of(solves, t.id), of(hints, t.id), of(relics, t.id), of(misses, t.id), teamClock(ev, t, now));
+      const state = new TeamState(t, of(0, t.id), of(1, t.id), of(2, t.id), of(3, t.id), teamClock(ev, t, now));
       state.event = ev;
       return state.adminRow(ranks.get(t.id));
     })
@@ -141,13 +159,11 @@ export async function eventAction(req, res) {
     const { error } = await db.from("teams").update({ extra_time_ms: 0 }).neq("extra_time_ms", 0);
     if (error && !MISSING_COLUMN.has(error.code)) throw error;
     // Added coins go too, but never below what a team has already spent (its coins left stay >= 0).
-    const [allTeams, allHints] = await Promise.all([
-      db.from("teams").select("*").then(rowsOf),
-      db.from("team_hints").select("team_id, cost").then(rowsOf),
-    ]);
-    for (const t of allTeams) {
+    const [teams, hints] = await Promise.all([allTeams(db), allHints(db)]);
+    const hintsOf = byTeam(hints);
+    for (const t of teams) {
       if (!("coins_adjust" in t)) break; // migration 004 not applied: nothing to reset
-      const keep = resetAdjust(coinsSpent(allHints.filter((h) => h.team_id === t.id)));
+      const keep = resetAdjust(coinsSpent(hintsOf.get(t.id) ?? []));
       if (Number(t.coins_adjust || 0) !== keep) rowsOf(await db.from("teams").update({ coins_adjust: keep }).eq("id", t.id));
     }
     const fs = await db.from("teams").update(FS_RESET).or("fs_violations.neq.0,fs_locked_at.not.is.null");
@@ -157,6 +173,7 @@ export async function eventAction(req, res) {
   }
 
   rowsOf(await db.from("event_state").update(patch).eq("id", EVENT_ROW_ID));
+  clearEventCache();
   await notifyChange("clock");
   res.json({ event: clockView({ ...ev, ...patch }) });
 }
@@ -168,6 +185,7 @@ export async function extendEvent(req, res) {
   const ev = await readEvent(db);
   const duration_minutes = Math.max(1, (ev.duration_minutes ?? DEFAULT_DURATION_MINUTES) + minutes);
   rowsOf(await db.from("event_state").update({ duration_minutes }).eq("id", EVENT_ROW_ID));
+  clearEventCache();
   // A team locked out for leaving full screen has its time frozen; give it the same minutes there, or they would
   // be cancelled out when it is unlocked.
   const locked = await db.from("teams").select("id, fs_locked_remaining_ms").not("fs_locked_at", "is", null);
@@ -218,11 +236,9 @@ export async function addCoinsAll(req, res) {
   if (!("coins_bonus" in ev)) throw new HttpError(409, COINS_MIGRATION_HINT, { code: "MIGRATION_NEEDED" });
   const coins_bonus = Number(ev.coins_bonus || 0) + coins;
   if (coins < 0) {
-    const [teams, hints] = await Promise.all([
-      db.from("teams").select("*").then(rowsOf),
-      db.from("team_hints").select("team_id, cost").then(rowsOf),
-    ]);
-    const short = teams.filter((t) => wouldOverdraw({ coins_bonus }, t, hints.filter((h) => h.team_id === t.id)));
+    const [teams, hints] = await Promise.all([allTeams(db), allHints(db)]);
+    const hintsOf = byTeam(hints);
+    const short = teams.filter((t) => wouldOverdraw({ coins_bonus }, t, hintsOf.get(t.id) ?? []));
     if (short.length) {
       throw new HttpError(409, `Can't remove ${-coins} coins: ${short.map((t) => t.name).join(", ")} would have fewer coins than they already spent.`, {
         code: "COINS_ALREADY_SPENT",
@@ -230,6 +246,7 @@ export async function addCoinsAll(req, res) {
     }
   }
   rowsOf(await db.from("event_state").update({ coins_bonus }).eq("id", EVENT_ROW_ID));
+  clearEventCache();
   await notifyChange("progress");
   res.json({ bonus: coins_bonus, total: START_COINS + coins_bonus });
 }
@@ -326,6 +343,7 @@ export async function setFullscreenRule(req, res) {
   const ev = await readEvent(db);
   if (!("fullscreen_required" in ev)) throw new HttpError(409, FS_MIGRATION_HINT, { code: "MIGRATION_NEEDED" });
   rowsOf(await db.from("event_state").update({ fullscreen_required: req.body.required }).eq("id", EVENT_ROW_ID));
+  clearEventCache();
   await notifyChange("clock");
   res.json({ required: req.body.required });
 }
