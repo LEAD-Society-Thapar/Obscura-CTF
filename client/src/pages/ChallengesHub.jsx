@@ -14,7 +14,7 @@ import "./ChallengesHub.css";
 
 const STATUS_TEXT = { done: "Completed", current: "In progress", locked: "Locked" };
 
-// "Your Journey" act tile (design 6).
+// "Your Journey" act tile (design 6).hjgfhjfjhfhfngfjh
 function JourneyTile({ act }) {
   const current = act.status === "current";
   const locked = act.status === "locked";
