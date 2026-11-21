@@ -127,8 +127,9 @@ export default function FlagForm({ onSubmit, onSolved, onMissed, onWrong, onStal
       </label>
       <div className="flex flex-col gap-3 sm:flex-row">
         {/* Reads OBSCURA{} with the cursor right after "{". The input is only as wide as what was typed (an
-            invisible copy of the text in the same grid cell sizes it), so "}" follows the answer. Teams type only the
-            answer between the braces. Clicking anywhere in the box focuses the input. */}
+            invisible copy of the text underneath sizes it), so "}" follows the answer. Teams type only the
+            answer between the braces. Clicking anywhere in the box focuses the input. The input is absolutely positioned
+            so its browser-default width (~20 characters) can't widen the box. */}
         <div
           onClick={() => inputRef.current?.focus()}
           className={`flex min-w-0 flex-1 cursor-text items-center rounded-card border bg-ink/80 px-4 py-3 font-mono text-lg focus-within:outline-2 focus-within:outline-gold ${
@@ -138,9 +139,10 @@ export default function FlagForm({ onSubmit, onSolved, onMissed, onWrong, onStal
           <span aria-hidden="true" className="shrink-0 text-gold-soft select-none">
             {FLAG_OPEN}
           </span>
-          <span className="inline-grid min-w-0">
-            <span aria-hidden="true" className="invisible col-start-1 row-start-1 overflow-hidden whitespace-pre pr-0.5">
-              {flag}
+          <span className="relative inline-block min-w-0">
+            {/* ​ keeps the line height when empty without adding width. */}
+            <span aria-hidden="true" className="invisible block overflow-hidden whitespace-pre pr-0.5">
+              {flag || "​"}
             </span>
             <input
               ref={inputRef}
@@ -155,7 +157,8 @@ export default function FlagForm({ onSubmit, onSolved, onMissed, onWrong, onStal
               spellCheck={false}
               disabled={blocked || submitting || off}
               aria-describedby={`${id}-status`}
-              className="col-start-1 row-start-1 w-full min-w-0.5 bg-transparent p-0 text-bone focus:outline-none"
+              size={1}
+              className="absolute inset-0 h-full w-full bg-transparent p-0 text-bone focus:outline-none"
             />
           </span>
           <span aria-hidden="true" className="shrink-0 text-gold-soft select-none">
