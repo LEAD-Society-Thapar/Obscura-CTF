@@ -14,7 +14,8 @@
     "db:clear-progress": "npm run db:clear-progress --prefix server --",
     "test": "npm run test --prefix server",
     "verify:content": "npm run verify:content --prefix server",
-    "e2e": "npm run e2e --prefix server --"
+    "e2e": "npm run e2e --prefix server --",
+    "loadtest": "npm run loadtest --prefix server --"
   },
   "devDependencies": {
     "concurrently": "^9.0.0"
