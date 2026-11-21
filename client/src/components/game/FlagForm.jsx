@@ -1,6 +1,6 @@
 import { useId, useState } from "react";
 import { useCountdown } from "../../hooks/useCountdown.js";
-import { FLAG_PLACEHOLDER } from "../../lib/config.js";
+import { FLAG_CLOSE, FLAG_INNER_PLACEHOLDER, FLAG_OPEN, innerFlag, wrapFlag } from "../../lib/config.js";
 import Button from "../ui/Button.jsx";
 import Spinner from "../ui/Spinner.jsx";
 
@@ -38,7 +38,7 @@ export default function FlagForm({ onSubmit, onSolved, onMissed, onWrong, onStal
   const ask = (e) => {
     e.preventDefault();
     if (submitting || blocked || off) return;
-    if (!flag.trim()) {
+    if (!innerFlag(flag)) {
       setState({ kind: "error", message: "Enter a flag first." });
       return;
     }
@@ -52,7 +52,7 @@ export default function FlagForm({ onSubmit, onSolved, onMissed, onWrong, onStal
   const send = async () => {
     setState({ kind: "submitting" });
     try {
-      const res = await onSubmit(flag.trim());
+      const res = await onSubmit(wrapFlag(flag));
       setFlag("");
       if (res.correct) {
         setState({ kind: "idle" });
@@ -89,12 +89,12 @@ export default function FlagForm({ onSubmit, onSolved, onMissed, onWrong, onStal
     message =
       left === 1 ? (
         <>
-          <strong>Last attempt.</strong> Submit <span className="font-mono break-all text-bone">{flag.trim()}</span>? A wrong
+          <strong>Last attempt.</strong> Submit <span className="font-mono break-all text-bone">{wrapFlag(flag)}</span>? A wrong
           answer closes this checkpoint with 0 points.
         </>
       ) : (
         <>
-          Submit <span className="font-mono break-all text-bone">{flag.trim()}</span>? A wrong answer uses one of your team&rsquo;s{" "}
+          Submit <span className="font-mono break-all text-bone">{wrapFlag(flag)}</span>? A wrong answer uses one of your team&rsquo;s{" "}
           {left == null ? "attempts" : plural(left)} left.
         </>
       );
@@ -122,26 +122,37 @@ export default function FlagForm({ onSubmit, onSolved, onMissed, onWrong, onStal
   return (
     <form onSubmit={ask} className="space-y-2" noValidate>
       <label htmlFor={`${id}-flag`} className="sr-only">
-        Flag
+        Flag: your answer goes between OBSCURA{"{"} and {"}"}
       </label>
       <div className="flex flex-col gap-3 sm:flex-row">
-        <input
-          id={`${id}-flag`}
-          value={flag}
-          onChange={(e) => {
-            setFlag(e.target.value);
-            if (confirming || state.kind === "error" || state.kind === "wrong") setState({ kind: "idle" });
-          }}
-          placeholder={FLAG_PLACEHOLDER}
-          autoComplete="off"
-          autoCapitalize="off"
-          spellCheck={false}
-          disabled={blocked || submitting || off}
-          aria-describedby={`${id}-status`}
-          className={`min-w-0 flex-1 rounded-card border bg-ink/80 px-4 py-3 font-mono text-lg text-bone placeholder:text-muted/70 focus:outline-none focus-visible:outline-2 focus-visible:outline-gold disabled:opacity-60 ${
+        {/* OBSCURA{ and } are fixed around the input: teams type only the answer between the braces. */}
+        <div
+          className={`flex min-w-0 flex-1 items-center rounded-card border bg-ink/80 px-4 py-3 font-mono text-lg focus-within:outline-2 focus-within:outline-gold ${
             confirming ? "border-gold" : "border-line"
-          }`}
-        />
+          } ${blocked || submitting || off ? "opacity-60" : ""}`}
+        >
+          <span aria-hidden="true" className="shrink-0 text-gold-soft select-none">
+            {FLAG_OPEN}
+          </span>
+          <input
+            id={`${id}-flag`}
+            value={flag}
+            onChange={(e) => {
+              setFlag(e.target.value);
+              if (confirming || state.kind === "error" || state.kind === "wrong") setState({ kind: "idle" });
+            }}
+            placeholder={FLAG_INNER_PLACEHOLDER}
+            autoComplete="off"
+            autoCapitalize="off"
+            spellCheck={false}
+            disabled={blocked || submitting || off}
+            aria-describedby={`${id}-status`}
+            className="min-w-0 flex-1 bg-transparent px-1 text-bone placeholder:text-muted/70 focus:outline-none"
+          />
+          <span aria-hidden="true" className="shrink-0 text-gold-soft select-none">
+            {FLAG_CLOSE}
+          </span>
+        </div>
         <div className="flex gap-2">
           <Button type="submit" size="lg" caps={false} className="flex-1 sm:min-w-44" disabled={submitting || blocked || off}>
             {submitting && <Spinner />}

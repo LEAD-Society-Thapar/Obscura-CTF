@@ -534,65 +534,100 @@
     {
       "id": 1,
       "section": "I. The Hunt",
-      "icon": "clock",
-      "title": "The 60-Minute Countdown",
-      "body": "- The competition runs for 60 minutes under one shared global countdown.\n- All teams compete within the same time window.\n- Manage your time carefully. Every second counts.\n- The hunt ends when the official countdown reaches zero. Follow event staff instructions regarding the submission deadline."
+      "icon": "user",
+      "title": "One Laptop Per Team",
+      "body": "- Each team plays on **one laptop only**. Log in with your assigned team account on that laptop.\n- Do not log in from a second laptop, phone or tablet. Teammates gather around the same screen.\n- Do not share your team account with anyone outside your registered team."
     },
     {
       "id": 2,
       "section": "I. The Hunt",
-      "icon": "scroll",
-      "title": "Five Acts, Fifteen Checkpoints",
-      "body": "- OBSCURA consists of five Acts, each containing three checkpoints.\n- Checkpoints open in sequence. Closing a checkpoint, by solving it or by using all three attempts on it, opens the next one.\n- Finish all five Acts to unlock the final face-off against Mogambo.\n- Each finished Act rewards your team with one unique relic, even if you missed checkpoints in it.\n- Collect all five relics to access the final challenge."
+      "icon": "clock",
+      "title": "The 60-Minute Countdown",
+      "body": "- The competition runs for 60 minutes under one shared global countdown.\n- All teams compete within the same time window. Gates open the moment the clock starts.\n- Manage your time carefully. Every second counts.\n- The hunt ends when you close the final face-off or when the countdown reaches zero, whichever comes first. Follow event staff instructions at the end."
     },
     {
       "id": 3,
       "section": "I. The Hunt",
-      "icon": "mask",
-      "title": "Submitting Flags",
-      "body": "- Submit answers in the format `OBSCURA{answer}`. You may also submit the bare answer without the wrapper.\n- Answers are case-insensitive. Spaces, underscores, hyphens and commas are ignored, so `Red Door`, `red door` and `RED-DOOR` are the same answer.\n- Read challenge instructions carefully and give exactly what is asked for (the right numbers, words and order).\n- **You get three attempts per checkpoint, including the final face-off.** A wrong answer uses one attempt. After the third wrong answer the checkpoint closes with zero points and the next one opens.\n- Agree on the answer as a team and check its format before you submit. You will be asked to confirm."
+      "icon": "scroll",
+      "title": "Five Acts, Fifteen Checkpoints",
+      "body": "- OBSCURA consists of five Acts, each containing three checkpoints: fifteen in all.\n- Each finished Act rewards your team with one unique relic, even if you missed checkpoints in it.\n- Collect all five relics to unlock the final face-off against Mogambo."
     },
     {
       "id": 4,
-      "section": "II. Scoring and Hints",
-      "icon": "check",
-      "title": "Points and Scoring",
-      "body": "- Points grow with every act. A correct answer scores **20 points in Act 1, 40 in Act 2, 70 in Act 3, 100 in Act 4 and 120 in Act 5**. The final face-off is worth **150 points**.\n- A wrong answer scores zero and uses one of your three attempts. There is no negative marking.\n- Hints never cost points. They are paid for with coins (see Hints and Coins).\n- The maximum score is 1,200 points.\n- Ranking: more points first. On equal points, the team that reached its last correct answer earlier ranks higher. If that is also equal, the team with more coins left ranks higher."
+      "section": "I. The Hunt",
+      "icon": "reel",
+      "title": "How to Progress",
+      "body": "1. **Start.** Log in with your team account and open **Challenges**. Everything unlocks when the clock starts.\n2. **Open a gate.** Begin with Act 1, checkpoint 1.1. Each checkpoint has its own gate page: a story, the challenge, a data pack or built-in tools where needed, and two optional hints.\n3. **Solve and submit.** Work out the answer as a team and submit your flag (see Submitting Flags).\n4. **Close the checkpoint.** A checkpoint closes when you solve it, or when you use all three attempts on it. Its **Reel Card** then appears: a story clue that carries the plot forward and shows the way to the next gate. Read it carefully.\n5. **Keep to the order.** Checkpoints open strictly one after another. You cannot skip ahead, and a closed checkpoint cannot be reopened.\n6. **Earn relics.** Closing the third checkpoint of an Act awards that Act's relic. Find your relics on the Relics page.\n7. **Face Mogambo.** After Act 5, with all five relics in hand, the final face-off opens. It is one last challenge, worth the most points.\n8. **Finish.** Your run ends when you close the final face-off or the clock runs out. Points scored by then are your result.\n- In case of any discrepancy, ask your mentor."
     },
     {
       "id": 5,
-      "section": "II. Scoring and Hints",
-      "icon": "bulb",
-      "title": "Hints and Coins",
-      "body": "- Every team starts with **120 coins**.\n- Each checkpoint has two optional hints, unlocked in order. On every checkpoint, **hint 1 costs 10 coins** and **hint 2 costs 15 coins**.\n- Coins are spent the moment you reveal a hint, whether or not you then solve the checkpoint. When your coins run out, no more hints.\n- 120 coins covers hint 1 on 12 checkpoints, or both hints on only 4. Spend them wisely: coins left over can break a tie."
+      "section": "I. The Hunt",
+      "icon": "mask",
+      "title": "Submitting Flags",
+      "body": "- The answer box already shows `OBSCURA{` and `}` for you. Type **only your answer** between the braces. Do not type `OBSCURA{}` yourself.\n- Answers are case-insensitive. Spaces, underscores, hyphens and commas are ignored, so `Red Door`, `red door` and `RED-DOOR` are the same answer.\n- Read challenge instructions carefully and give exactly what is asked for (the right numbers, words and order).\n- **You get three attempts per question, including the final face-off.** A wrong answer uses one attempt. After the third wrong answer the checkpoint closes with zero points and the next one opens.\n- Agree on the answer as a team and check its format before you submit. You will be asked to confirm.\n- In case of any discrepancy, ask your mentor."
     },
     {
       "id": 6,
-      "section": "III. Tools and Fair Play",
-      "icon": "scroll",
-      "title": "No Outside Help",
-      "body": "- No internet searches, other websites, apps or AI assistants during the hunt. It is played on this site only, in full screen.\n- Where a checkpoint needs a tool, such as a decoder or a calculator, it is built into that checkpoint's page. Built-in tools are free and never cost coins.\n- Pen and paper are allowed for working things out.\n- Using any other device, tool or outside help may result in disqualification at event staff discretion."
+      "section": "II. Scoring and Hints",
+      "icon": "check",
+      "title": "Points and Scoring",
+      "body": "- Points grow with every act. A correct answer scores **20 points in Act 1, 40 in Act 2, 70 in Act 3, 100 in Act 4 and 120 in Act 5**. The final face-off is worth **150 points**.\n- A wrong answer scores zero and uses one of your three attempts. There is no negative marking.\n- Hints never cost points. They are paid for with coins (see Hints and Coins).\n- The maximum score is 1,200 points.\n- Ranking: more points first. On equal points, the team that reached its last correct answer earlier ranks higher. If that is also equal, the team with more coins left ranks higher.\n- In case of any discrepancy, ask your mentor."
     },
     {
       "id": 7,
-      "section": "III. Tools and Fair Play",
-      "icon": "user",
-      "title": "Team Collaboration",
-      "body": "- Collaboration among members of the same registered team is encouraged.\n- Each team must use its assigned team account.\n- Do not share team credentials with participants outside your registered team.\n- Sharing flags, answers, or solutions with other competing teams is prohibited."
+      "section": "II. Scoring and Hints",
+      "icon": "coin",
+      "title": "Hints and Coins",
+      "body": "- Every team starts with **120 coins**.\n- Each checkpoint has two optional hints, unlocked in order. On every checkpoint, **hint 1 costs 10 coins** and **hint 2 costs 15 coins**.\n- Coins are spent the moment you reveal a hint, whether or not you then solve the checkpoint. When your coins run out, no more hints.\n- 120 coins covers hint 1 on 12 checkpoints, or both hints on only 4. Spend them wisely: coins left over can break a tie.\n- In case of any discrepancy, ask your mentor."
     },
     {
       "id": 8,
       "section": "III. Tools and Fair Play",
       "icon": "shield",
-      "title": "Fair Play and Prohibited Activities",
-      "body": "- Do not share flags, hints, or solutions with other competing teams.\n- Do not attack the CTF platform, its infrastructure, or other teams' accounts.\n- Unauthorized access, exploitation, or disruption of competition infrastructure is prohibited.\n- Brute-force attacks against the platform or challenge infrastructure are prohibited.\n- Do not manipulate scores, alter game progress, or interfere with another team's participation.\n- **Stay in full screen while the clock is running.** Every exit from full screen is a violation, and so is switching to another window, app or desktop (Alt+Tab, Task View, touchpad swipes). After 3, your team is disqualified: its timer stops and no flags or hints are accepted. Only event staff can restore access.\n- Violations may result in disqualification at event staff discretion."
+      "title": "No External Tools or AI",
+      "body": "- No internet searches, other websites, apps, **AI assistants** or any other outside tools during the hunt. It is played on this site only.\n- Where a checkpoint needs a tool, such as a decoder or a calculator, it is built into that checkpoint's page. Built-in tools are free and never cost coins.\n- Pen and paper are allowed for working things out.\n- **If any mentor finds a team cheating, that team will be disqualified.**"
     },
     {
       "id": 9,
+      "section": "III. Tools and Fair Play",
+      "icon": "lock",
+      "title": "Stay in Full Screen",
+      "body": "- Keep the site in full screen while the clock is running.\n- **Getting out of full screen counts as a violation.** So does switching to another window, app or desktop (Alt+Tab, Task View, touchpad swipes).\n- **After 3 violations your team is disqualified:** its timer stops and no flags or hints are accepted. Only event staff can restore access.\n- You will see a warning each time. Press the button on it to return to full screen."
+    },
+    {
+      "id": 10,
+      "section": "III. Tools and Fair Play",
+      "icon": "user",
+      "title": "Team Collaboration",
+      "body": "- Collaboration among members of the same registered team is encouraged.\n- Sharing flags, hints, answers or solutions with other competing teams is prohibited."
+    },
+    {
+      "id": 11,
+      "section": "III. Tools and Fair Play",
+      "icon": "flame",
+      "title": "Prohibited Activities",
+      "body": "- Do not attack the CTF platform, its infrastructure, or other teams' accounts.\n- Unauthorized access, exploitation, or disruption of competition infrastructure is prohibited.\n- Brute-force attacks against the platform or challenge infrastructure are prohibited.\n- Do not manipulate scores, alter game progress, or interfere with another team's participation.\n- Any violation of these rules may result in disqualification at event staff discretion."
+    },
+    {
+      "id": 12,
+      "section": "IV. Event Protocol",
+      "icon": "bulb",
+      "title": "Ask Your Mentor",
+      "body": "- Have a doubt about a rule, the platform or how the event works? **Ask your mentor.**\n- Mentors will not give answers or hints for challenges. Hints are available on the site for coins."
+    },
+    {
+      "id": 13,
       "section": "IV. Event Protocol",
       "icon": "clock",
       "title": "Technical Issues and Support",
-      "body": "- Report technical issues to event staff immediately.\n- Do not exploit platform malfunctions or interfere with the system.\n- Event staff will assess reported issues and determine the appropriate resolution.\n- A technical issue does not automatically pause or extend the global countdown."
+      "body": "- Report technical issues to your mentor or event staff immediately.\n- Event staff will assess reported issues and determine the appropriate resolution.\n- A technical issue does not automatically pause or extend the global countdown."
+    },
+    {
+      "id": 14,
+      "section": "IV. Event Protocol",
+      "icon": "trophy",
+      "title": "Final Decisions",
+      "body": "- Event staff and mentors may clarify or update these rules during the event.\n- Decisions on disputes, scoring and disqualification are made by the organisers and are final."
     }
   ]
 }

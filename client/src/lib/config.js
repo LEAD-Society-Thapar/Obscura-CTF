@@ -11,6 +11,18 @@ export const EVENT_NAME = "OBSCURA";
 // Designs show OBSCURA{...}; the original plan said SAT{...}. Needs a decision.
 export const FLAG_PREFIX = "OBSCURA";
 export const FLAG_PLACEHOLDER = `${FLAG_PREFIX}{...}`;
+// The flag form shows "OBSCURA{" and "}" around the input: teams type only what goes between the braces.
+export const FLAG_OPEN = `${FLAG_PREFIX}{`;
+export const FLAG_CLOSE = "}";
+export const FLAG_INNER_PLACEHOLDER = "your answer";
+
+// What the team typed -> the answer between the braces. A pasted full flag (OBSCURA{answer}) is unwrapped so the
+// wrapper is never doubled.
+export const innerFlag = (typed) => {
+  const m = String(typed).trim().match(new RegExp(`^${FLAG_PREFIX}\\{([\\s\\S]*)\\}$`, "i"));
+  return (m ? m[1] : String(typed)).trim();
+};
+export const wrapFlag = (typed) => `${FLAG_OPEN}${innerFlag(typed)}${FLAG_CLOSE}`;
 
 // Mock "server" behaviour (client/src/data/mockApi.js). Shortened so states are easy to see.
 export const MOCK_LATENCY_MS = 600;
