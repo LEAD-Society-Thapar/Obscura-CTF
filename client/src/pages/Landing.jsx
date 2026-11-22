@@ -41,7 +41,7 @@ export default function Landing() {
 
             <h1 id="hero-heading" className="mt-4 text-center">
               <img
-                src="/images/obscura-wordmark.png"
+                src="/images/obscura-wordmark.webp"
                 alt="OBSCURA"
                 className="mx-auto block h-auto w-full max-w-[28rem]"
                 draggable="false"
