@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Aldo the Apache";
+  src: url("/fonts/AldotheApache.ttf") format("truetype");
+  font-display: swap;
+}
+
 /*
   OBSCURA design tokens: change the look here, in one place.
   Tailwind turns each token into utilities:
@@ -381,4 +387,10 @@
   stroke-width: 3;
   stroke-dasharray: 1 9;
   stroke-linecap: round;
+}
+
+@layer components {
+  .obscura-logo {
+    font-family: "Aldo the Apache", Rockwell, Georgia, serif;
+  }
 }

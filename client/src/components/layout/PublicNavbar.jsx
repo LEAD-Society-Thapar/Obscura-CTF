@@ -35,7 +35,7 @@ export default function PublicNavbar() {
           </Link>
           <span aria-hidden="true" className="mx-3 h-7 w-px shrink-0 bg-bone/25 sm:mx-4" />
           <Link to="/" aria-label="OBSCURA home">
-            <Logo className="text-[1.5rem] whitespace-nowrap sm:text-[1.5rem]" />
+            <Logo className="text-[1.65375rem] whitespace-nowrap sm:text-[1.65375rem]" />
           </Link>
         </div>
         <div className="flex w-full items-center justify-end gap-0.5 sm:w-auto sm:justify-normal sm:gap-3">

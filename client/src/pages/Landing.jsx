@@ -41,7 +41,7 @@ export default function Landing() {
             </p>
 
             <h1 id="hero-heading" className="mt-4 text-center">
-              <Logo tone="dark" className="block text-[3.25rem] sm:text-8xl" />
+              <Logo tone="dark" className="block text-[3.4125rem] sm:text-[6.3rem]" />
               <span className="mt-3 block font-heading text-lg font-bold tracking-[0.18em] text-parchment-ink uppercase sm:text-2xl">
                 A Student Capture the Flag Event
               </span>
