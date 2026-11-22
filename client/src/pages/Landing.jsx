@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { health } from "../api/endpoints.js";
 import { useActTitles } from "../hooks/useGameData.js";
 import ArtSlot from "../components/ui/ArtSlot.jsx";
-import Logo from "../components/ui/Logo.jsx";
 import PaperCard from "../components/ui/PaperCard.jsx";
 import StampLabel from "../components/ui/StampLabel.jsx";
 import TeamAccessCard from "../components/game/TeamAccessCard.jsx";
@@ -41,7 +40,12 @@ export default function Landing() {
             </p>
 
             <h1 id="hero-heading" className="mt-4 text-center">
-              <Logo tone="dark" className="block text-[3.4125rem] sm:text-[6.3rem]" />
+              <img
+                src="/images/obscura-wordmark.png"
+                alt="OBSCURA"
+                className="mx-auto block h-auto w-full max-w-[28rem]"
+                draggable="false"
+              />
               <span className="mt-3 block font-heading text-lg font-bold tracking-[0.18em] text-parchment-ink uppercase sm:text-2xl">
                 A Student Capture the Flag Event
               </span>
