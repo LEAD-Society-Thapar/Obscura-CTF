@@ -10,7 +10,7 @@ const links = [
 ];
 
 const linkClass = ({ isActive }) =>
-  `px-1.5 sm:px-3 py-1.5 font-heading text-sm sm:text-base font-semibold tracking-wide transition-colors ${
+  `px-0.5 py-1.5 font-heading text-xs font-semibold tracking-wide transition-colors sm:px-3 sm:text-base ${
     isActive ? "text-bone" : "text-muted hover:text-bone"
   }`;
 
@@ -19,11 +19,26 @@ export default function PublicNavbar() {
 
   return (
     <header className="sticky top-0 z-30 border-b border-line/70 bg-ink/85 backdrop-blur">
-      <nav aria-label="Main" className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-4 sm:px-6">
-        <Link to="/" aria-label="OBSCURA home">
-          <Logo className="text-lg sm:text-xl" />
-        </Link>
-        <div className="flex items-center gap-1 sm:gap-3">
+      <nav aria-label="Main" className="mx-auto flex h-20 max-w-6xl flex-col justify-center gap-1 px-3 sm:h-14 sm:flex-row sm:items-center sm:justify-between sm:gap-2 sm:px-6">
+        <div className="flex min-w-0 items-center">
+          <Link
+            to="/"
+            aria-label="LEAD home"
+            className="lead-logo-crop shrink-0"
+          >
+            <img
+              src="/assets/lead-logo-white.png"
+              alt="LEAD"
+              className="lead-logo-crop__image"
+              draggable="false"
+            />
+          </Link>
+          <span aria-hidden="true" className="mx-3 h-7 w-px shrink-0 bg-bone/25 sm:mx-4" />
+          <Link to="/" aria-label="OBSCURA home">
+            <Logo className="text-[1.5rem] whitespace-nowrap sm:text-[1.5rem]" />
+          </Link>
+        </div>
+        <div className="flex w-full items-center justify-end gap-0.5 sm:w-auto sm:justify-normal sm:gap-3">
           {links.map((l) =>
             l.to.includes("#") ? (
               <a key={l.to} href={l.to} className={linkClass({ isActive: false })}>

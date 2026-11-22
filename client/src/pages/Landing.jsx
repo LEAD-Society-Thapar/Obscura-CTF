@@ -29,6 +29,13 @@ export default function Landing() {
 
         <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:py-20">
           <PaperCard innerClassName="relative px-6 pt-8 pb-10 sm:px-10">
+            <img
+              src="/assets/lead-presents-stamp.png"
+              alt="LEAD Presents"
+              className="lead-presents-stamp"
+              draggable="false"
+            />
+
             <p className="w-48 -rotate-6 font-hand text-xl leading-tight text-parchment-ink/85 uppercase sm:text-2xl">
               Some stories are real. Some lies live forever.
             </p>

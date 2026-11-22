@@ -147,6 +147,60 @@
   }
 }
 
+/* Official LEAD artwork. The source PNG has transparent padding around the visible wordmark,
+   so this container crops the original in-place rather than editing or recreating the asset. */
+.lead-logo-crop {
+  display: block;
+  width: 120px;
+  height: 30px;
+  overflow: hidden;
+  position: relative;
+}
+
+.lead-logo-crop__image {
+  position: absolute;
+  width: 156px;
+  height: 155.58px;
+  max-width: none;
+  left: -17.8px;
+  top: -64.2px;
+  object-fit: contain;
+}
+
+.lead-presents-stamp {
+  position: absolute;
+  z-index: 2;
+  top: 1.25rem;
+  right: 2.25rem;
+  width: clamp(8.9565rem, 17.325%, 12.705rem);
+  max-width: 12.705rem;
+  height: auto;
+  object-fit: contain;
+  transform: rotate(2deg);
+  filter: saturate(0.92) contrast(1.04);
+  pointer-events: none;
+}
+
+@media (max-width: 639px) {
+  .lead-logo-crop {
+    width: 92px;
+    height: 21px;
+  }
+
+  .lead-logo-crop__image {
+    width: 119.3px;
+    height: 119px;
+    left: -13.6px;
+    top: -49.2px;
+  }
+
+  .lead-presents-stamp {
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 7.21875rem;
+  }
+}
+
 /* Dashboard typography stays within its content and never changes navbar branding. */
 .team-dashboard {
   font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
