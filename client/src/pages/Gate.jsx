@@ -236,8 +236,13 @@ export default function Gate() {
                 </Button>
               )}
               {final && (
-                <Button to="/challenges" size="sm" caps={false}>
-                  {solved ? "See your victory" : "Back to your dossier"} <Icon name="arrowRight" className="size-4" />
+                <Button to="/report" size="sm" caps={false}>
+                  View final report <Icon name="arrowRight" className="size-4" />
+                </Button>
+              )}
+              {final && (
+                <Button to="/challenges" variant="outline" size="sm" caps={false}>
+                  {solved ? "See your victory" : "Back to your dossier"}
                 </Button>
               )}
             </div>
@@ -264,8 +269,10 @@ export default function Gate() {
         missed={!!result?.missed}
         action={result && !result.finished ? nextAction(result.next) : null}
       />
+      {/* The final closed: solved (victory) or every attempt used (defeat). */}
       <EndingModal
-        open={!!result?.finished}
+        open={!!result?.finished || !!result?.finalMissed}
+        variant={result?.finished ? "victory" : "defeat"}
         onClose={closeModal}
         title={result?.endingTitle}
         ending={result?.ending}

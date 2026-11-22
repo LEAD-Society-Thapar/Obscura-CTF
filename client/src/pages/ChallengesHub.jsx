@@ -4,7 +4,7 @@ import { formatCp, formatPoints } from "../lib/format.js";
 import ActivityFeed from "../components/game/ActivityFeed.jsx";
 import RelicCard from "../components/game/RelicCard.jsx";
 import TeamAvatar from "../components/game/TeamAvatar.jsx";
-import VictoryPanel from "../components/game/VictoryPanel.jsx";
+import OutcomePanel from "../components/game/OutcomePanel.jsx";
 import Button from "../components/ui/Button.jsx";
 import Icon from "../components/ui/Icon.jsx";
 import PageStatus from "../components/ui/PageStatus.jsx";
@@ -75,7 +75,7 @@ export default function ChallengesHub() {
 
   return (
     <>
-      <VictoryPanel className="mb-5" />
+      <OutcomePanel className="mb-5" />
       <div className="team-dashboard space-y-5">
         <div className="dashboard-main-grid grid min-w-0 grid-cols-1 gap-5 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.65fr)]">
           <section

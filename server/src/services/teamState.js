@@ -142,6 +142,9 @@ export class TeamState {
     this.event = null; // the event_state row, set by loadTeamState and the admin overview
 
     const solved = new Set(solves.map((s) => s.cp_id));
+    // Every wrong answer per checkpoint, including on checkpoints solved later (for the final report).
+    this.wrongCount = new Map();
+    for (const m of misses) this.wrongCount.set(m.cp_id, (this.wrongCount.get(m.cp_id) ?? 0) + 1);
     // Wrong rows per checkpoint, oldest first, ignoring checkpoints that were solved (a solve always wins).
     this.wrong = new Map();
     for (const m of [...misses].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))) {
@@ -343,11 +346,39 @@ export class TeamState {
       finishedAt: finalSolve?.solved_at ?? null,
       finalMissed: this.finalMissed,
       relics,
+      report: this.report(),
       activity: activity.map((e) => ({
         ...e,
         cp: checkpointById(e.cpId) ? this.summary(checkpointById(e.cpId)) : null,
         relic: e.relicId ? relics.find((r) => r.id === e.relicId) || null : null,
       })),
+    };
+  }
+
+  // The final report (shown to winners and losers alike once their hunt is over): how every checkpoint went.
+  // endedAt: when the final closed for this team (solved, or its last wrong answer), else null.
+  // Never includes answers; locked checkpoints only show what the map already shows (title, points).
+  report() {
+    const finalMiss = this.misses.find((m) => m.cp_id === FINAL_BOSS.id);
+    const checkpoints = CHECKPOINTS.map((cp) => {
+      const hints = this.hints.filter((h) => h.cp_id === cp.id);
+      return {
+        id: cp.id,
+        act: cp.act,
+        index: cp.index,
+        title: cp.title,
+        points: cp.points,
+        status: this.status.get(cp.id),
+        pointsEarned: this.solves.find((s) => s.cp_id === cp.id)?.points ?? 0,
+        wrongAnswers: this.wrongCount.get(cp.id) ?? 0,
+        hintsUsed: hints.length,
+        coinsSpent: hints.reduce((n, h) => n + Number(h.cost || 0), 0),
+      };
+    });
+    return {
+      endedAt: this.finalSolve?.solved_at ?? finalMiss?.created_at ?? null,
+      wrongAnswers: checkpoints.reduce((n, c) => n + c.wrongAnswers, 0),
+      checkpoints,
     };
   }
 

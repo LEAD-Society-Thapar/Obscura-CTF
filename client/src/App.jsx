@@ -13,6 +13,7 @@ import ActChallenges from "./pages/ActChallenges.jsx";
 import Gate from "./pages/Gate.jsx";
 import ReelCard from "./pages/ReelCard.jsx";
 import Relics from "./pages/Relics.jsx";
+import FinalReport from "./pages/FinalReport.jsx";
 import Rules from "./pages/Rules.jsx";
 import Leaderboard from "./pages/admin/Leaderboard.jsx";
 import AdminLogin from "./pages/admin/AdminLogin.jsx";
@@ -53,6 +54,7 @@ export default function App() {
           <Route path="/gate/:slug" element={<Gate />} />
           <Route path="/reel/:cpId" element={<ReelCard />} />
           <Route path="/relics" element={<Relics />} />
+          <Route path="/report" element={<FinalReport />} />
           <Route path="/inventory" element={<Navigate to="/relics" replace />} />
         </Route>
       </Route>
