@@ -204,3 +204,34 @@ test("admin row: counts, current gate and per-checkpoint statuses", () => {
   assert.deepEqual(row.checkpoints.slice(0, 4).map((c) => c.status), ["solved", "failed", "current", "locked"]);
   assert.ok(!("password_hash" in row));
 });
+
+// ---------- final report ----------
+test("final report: wrong answers count on solved and missed checkpoints, points and hints per checkpoint", () => {
+  const at = (n) => iso(T0 + n * MIN);
+  const team = { id: "t1", name: "T1", points_adjust: 0 };
+  const acts = ACT_CHECKPOINTS;
+  const solves = acts.map((c, i) => ({ cp_id: c.id, points: c.points, solved_at: at(i + 1) })).filter((s) => s.cp_id !== acts[2].id);
+  const misses = [
+    { cp_id: acts[0].id, submitted: "x", created_at: at(0.5) }, // wrong once, then solved
+    ...[1, 2, 3].map((k) => ({ cp_id: acts[2].id, submitted: `w${k}`, created_at: at(2 + k / 10) })), // missed
+    ...[1, 2, 3].map((k) => ({ cp_id: FINAL_BOSS.id, submitted: `f${k}`, created_at: at(30 + k) })), // final missed
+  ];
+  const hints = [{ cp_id: acts[0].id, hint_id: 1, cost: 10, revealed_at: at(0.2) }];
+  const relics = RELICS.map((r) => ({ relic_id: r.id, earned_at: at(20) }));
+  const s = new TeamState(team, solves, hints, relics, misses);
+  const r = s.progress().report;
+  const of = (id) => r.checkpoints.find((c) => c.id === id);
+
+  assert.equal(r.checkpoints.length, CHECKPOINTS.length);
+  assert.deepEqual(
+    { ...of(acts[0].id), title: undefined },
+    { id: acts[0].id, act: acts[0].act, index: acts[0].index, title: undefined, points: acts[0].points, status: "solved", pointsEarned: acts[0].points, wrongAnswers: 1, hintsUsed: 1, coinsSpent: 10 }
+  );
+  assert.equal(of(acts[2].id).status, "failed");
+  assert.equal(of(acts[2].id).pointsEarned, 0);
+  assert.equal(of(acts[2].id).wrongAnswers, 3);
+  assert.equal(of(FINAL_BOSS.id).status, "failed");
+  assert.equal(r.wrongAnswers, 7);
+  assert.equal(r.endedAt, at(33)); // the final's last wrong answer
+  assert.equal(s.progress().finalMissed, true);
+});

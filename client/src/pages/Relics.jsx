@@ -1,6 +1,6 @@
 import { useFinale, useRelics } from "../hooks/useGameData.js";
 import RelicCard from "../components/game/RelicCard.jsx";
-import VictoryPanel from "../components/game/VictoryPanel.jsx";
+import OutcomePanel from "../components/game/OutcomePanel.jsx";
 import Button from "../components/ui/Button.jsx";
 import Icon from "../components/ui/Icon.jsx";
 import PageStatus from "../components/ui/PageStatus.jsx";
@@ -97,7 +97,7 @@ export default function Relics() {
 
   return (
     <section className="relics-page" aria-labelledby="relics-heading">
-      <VictoryPanel className="mb-8" />
+      <OutcomePanel className="mb-8" />
 
       <header className="text-center">
         <h1 id="relics-heading" className="relics-page-heading text-4xl tracking-wide text-parchment uppercase sm:text-5xl">

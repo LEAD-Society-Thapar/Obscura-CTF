@@ -1,7 +1,7 @@
 // Creates (or updates) the event teams. Safe to re-run: it never touches progress, flags or the event clock.
 //
-//   npm run db:teams                          create/update TEST-LEAD-1..3 and the 48 event teams (Glitch-Mob ..
-//                                             Chrome-X); deletes the old placeholder teams participant-1..20 AND
+//   npm run db:teams                          create/update TEST-LEAD-1..3 and the 80 event teams (Glitch-Mob ..
+//                                             Outlaw-Gear); deletes the old placeholder teams participant-1..20 AND
 //                                             all their progress
 //   npm run db:teams -- --remove-dev-teams    also delete the dev teams team1..team3 AND all their progress
 //   npm run db:teams -- --rotate              give every team a new password
@@ -22,7 +22,7 @@ const ROTATE = args.has("--rotate");
 const DEV_TEAM_CODES = ["team1", "team2", "team3"];
 // Placeholder accounts used before the final team names were known. Removed on every run.
 const OLD_PLACEHOLDER_CODES = Array.from({ length: 20 }, (_, i) => `participant-${i + 1}`);
-// The 48 event teams. Team ID = this exact text (case-sensitive).
+// The 80 event teams. Team ID = this exact text (case-sensitive).
 const EVENT_TEAM_CODES = [
   "Glitch-Mob", "Iron-Legion", "Scrapbomb", "Vortex", "Titan-Core", "Gearheads",
   "Hex-Raiders", "Null-Force", "Cyberpunk", "Doom-Squad", "War-Machine", "Shockwave",
@@ -32,10 +32,16 @@ const EVENT_TEAM_CODES = [
   "Iron-Havoc", "Grim-Bots", "Ironclads", "Overclock", "Death-Gear", "Rogue-Core",
   "Rustborn", "Kill-Switch", "Gear-Shift", "Steel-Storm", "Dustbyte", "Metal-Fangs",
   "Wraiths", "Havoc-Crew", "Dreadbots", "Warforged", "Steel-Fang", "Chrome-X",
+  "Apex-Bots", "Deadbolt", "Rust-Devils", "Steel-Vipers", "Nitro-Core", "Shadow-Gear",
+  "Pulse-Breakers", "Iron-Phantoms", "Scrap-Dogs", "Cyber-Hawks", "Surge-Unit", "Blade-Runners",
+  "Heavy-Metal", "Gridlock", "Venom-Core", "Cobalt-Crew", "Spark-Plugs", "Dark-Forge",
+  "Wrecking-Crew", "Plasma-Fang", "Iron-Fist", "Glitch-Squad", "Wastelanders", "Torque-Kings",
+  "Black-Circuit", "Steel-Reapers", "Meltdown", "Rogue-Bots", "Acid-Rain", "Cyber-Wolves",
+  "Mech-Raiders", "Outlaw-Gear",
 ];
 const TEAM_CODES = [...[1, 2, 3].map((n) => `TEST-LEAD-${n}`), ...EVENT_TEAM_CODES];
-if (EVENT_TEAM_CODES.length !== 48 || new Set(TEAM_CODES).size !== TEAM_CODES.length) {
-  throw new Error("Team list must have 48 unique event teams.");
+if (EVENT_TEAM_CODES.length !== 80 || new Set(TEAM_CODES).size !== TEAM_CODES.length) {
+  throw new Error("Team list must have 80 unique event teams.");
 }
 
 const PRIVATE_DIR = new URL("../private/", import.meta.url);

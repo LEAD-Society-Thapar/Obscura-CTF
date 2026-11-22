@@ -100,24 +100,34 @@ export function useRelics() {
 
 // Final face-off state from /progress. Safe defaults when the API (or mock mode) has no final boss yet.
 //   unlocked: the final gate is open and not yet solved (show the CTA, pulse the Relics tab)
+//   outcome:  "victory" (final solved) | "defeat" (every attempt on the final used) | "timeUp" (the clock ran out
+//             first) | null (still playing). Any non-null outcome means the hunt is over for this team and the
+//             final report (/report) can be shown.
 export function useFinale() {
   const { progress, event, error } = useGameStore();
   const relics = progress?.relics ?? [];
   const finalBoss = progress?.finalBoss ?? null;
   const finished = !!progress?.finished;
+  const finalMissed = finalBoss?.status === "failed"; // wrong answer on the final: the run is over, no victory
+  const timeUp = !finished && !finalMissed && event?.status === "ended";
+  const outcome = finished ? "victory" : finalMissed ? "defeat" : timeUp ? "timeUp" : null;
+  const report = progress?.report ?? null;
   const finishedAt = progress?.finishedAt ?? null;
+  const endedAt = finishedAt ?? report?.endedAt ?? null; // when the final closed (solve or last wrong answer)
   const startedAt = event?.startedAt ?? null;
-  const timeTakenMs =
-    finished && finishedAt && startedAt ? Math.max(0, new Date(finishedAt) - new Date(startedAt)) : null;
+  const timeTakenMs = endedAt && startedAt ? Math.max(0, new Date(endedAt) - new Date(startedAt)) : null;
   return {
     loading: !progress && !error,
     finalBoss,
     relicsCollected: progress?.relicsCollected ?? relics.filter((r) => r.collected).length,
     relicsTotal: progress?.relicsTotal ?? relics.length,
     unlocked: finalBoss?.status === "current" && !!finalBoss.slug,
-    finalMissed: finalBoss?.status === "failed", // wrong answer on the final: the run is over, no victory
+    finalMissed,
     finished,
     finishedAt,
+    outcome,
+    over: outcome != null,
+    report,
     timeTakenMs: Number.isFinite(timeTakenMs) ? timeTakenMs : null,
   };
 }

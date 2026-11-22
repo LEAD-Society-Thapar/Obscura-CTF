@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-import { health } from "../api/endpoints.js";
 import { useActTitles } from "../hooks/useGameData.js";
 import ArtSlot from "../components/ui/ArtSlot.jsx";
 import PaperCard from "../components/ui/PaperCard.jsx";
@@ -8,14 +6,7 @@ import TeamAccessCard from "../components/game/TeamAccessCard.jsx";
 
 // Design 1: landing + team login.
 export default function Landing() {
-  const [status, setStatus] = useState("checking");
   const { acts } = useActTitles();
-
-  useEffect(() => {
-    health()
-      .then(() => setStatus("online"))
-      .catch(() => setStatus("unreachable"));
-  }, []);
 
   return (
     <>
@@ -66,12 +57,6 @@ export default function Landing() {
 
           <div className="mx-auto w-full max-w-sm lg:max-w-none">
             <TeamAccessCard />
-            <p className="mt-4 text-center font-type text-xs text-muted" aria-live="polite">
-              Archive server:{" "}
-              <span className={status === "online" ? "text-gold" : "text-muted"}>
-                {status === "checking" ? "checking..." : status}
-              </span>
-            </p>
           </div>
         </div>
       </section>
